@@ -1,0 +1,43 @@
+Package: ProjectPepi
+Type: Package
+Title: ProjectPepi - Bayesian method for quantifying plasticity from VAF spectrum
+Version: 1.0.0
+Date: 2023-12-5
+Author: Riccardo Bergamin
+Maintainer: Riccardo Bergamin <rbergamin@units.it>
+Authors@R: c(
+    person("Riccardo", "Bergamin", "rbergamin@units.it", role = c("aut")),
+    person("Giulio", "Caravagna", "gcaravagn@gmail.com", role = c("aut"),
+      comment = c(ORCID = "0000-0003-4240-3265")),
+    person("Clara", "Canavese", "arnold@sissa.com", role = c("aut"))
+  )
+Description: ProjectPepi is a package that implements a statistical model for studying epigenetic dynamics from multivariate VAF distribution.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.2.2),
+Imports: 
+    rstan,
+    cmdstanr,
+    dplyr,
+    MCMCprecision,
+    VGAM,
+    rjson,
+    ggplot2,
+    ape,
+    ggtree,
+    treeio,
+    ggpubr,
+    parallel
+RoxygenNote: 7.2.3
+Suggests: knitr,
+    rmarkdown,
+    CNAqc
+Remotes:
+    caravagn/easypar,
+    caravagn/viber
+VignetteBuilder: knitr
+URL: https://github.com/caravagnalab/ProjectPepi,
+    https://caravagnalab.github.io/ProjectPepi/
+BugReports: https://github.com/caravagnalab/ProjectPepi/issues

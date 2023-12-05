@@ -1,0 +1,122 @@
+---
+title: "Pepi"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ProjectPepi)
+```
+
+We generate a sample tree encoding epigenetic states and number of mutations of branches
+
+```{r setup}
+
+M = 8000
+mu = 10^-7
+length = 2.7*10^9
+s = 0.1
+rate_minus = 1/3000
+rate_plus = 1/2000
+max_depth = 2
+at = 10
+bt = 80
+gamma = 100
+
+tree = generate_nodes(M = M,gamma = gamma,at=at,bt=bt,s = s,
+                      rate_minus=rate_minus,rate_plus=rate_plus,mu,length,
+                      max_depth = max_depth)
+tree
+
+threshold = 0.1
+tree = filter_nodes(tree,threshold = threshold)
+
+tree = calculate_ccf(tree,s)
+tree
+
+tree = add_tail_muts(mu = mu,tree = tree,vaf_min = 0.05)
+spectrum = generate_spectrum(tree,vaf_min = 0.05,DP = 200,tail = F)
+spectrum = spectrum %>% mutate(VAFx = Nx/DPx,VAFy = Ny/DPy)
+
+p1 = plot_multivariate(spectrum)
+p2 = plot_tree(tree)
+p3 = plot_marginal(spectrum)
+
+p = ggarrange(plotlist = list(p1,p2),ncol = 2,nrow = 1) 
+p = ggarrange(plotlist = list(p,p3),ncol = 1,nrow = 2) 
+p
+
+```
+
+
+We infer the sample tree and epimutation rates
+
+```{r setup}
+
+x = fit_tree (spectrum,path_to_model = "models",
+              cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
+                    max_depth = 2,ndraws = 1000,
+                    init = list(list(rn = 1/6000, rp = 1e-3,  nu_n = 0.16)), seed = 25,
+                    mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
+                    qt = 1e4,rate_n = 1/5000,qn = 1e4,rate_p = 1/5000,
+                    qp = 1e4,k = 1e4,gamma = 150)
+
+```
+
+We obtain the inferred tree and clusters of mutations
+```{r setup}
+
+inf_tree = get_average_tree(x)
+inf_tree
+```
+
+We get the cluster of mutations
+
+```{r setup}
+
+cl = get_clusters(spectrum,inf_tree)
+```
+
+We plot the distributions and inferred tree
+```{r setup}
+
+p1 = plot_multivariate(cl$data)
+p2 = plot_tree(inf_tree)
+p3 = plot_marginal(cl$data)
+
+p = ggarrange(plotlist = list(p1,p2),ncol = 2,nrow = 1) 
+p = ggarrange(plotlist = list(p,p3),ncol = 1,nrow = 2) 
+p
+```
+
+We plot the inferred rates
+```{r setup}
+posterior = get_posterior(x)
+plot_inference(posterior,prior)
+```
+
+
+We infer s and epimutation clocks
+```{r setup}
+y = fit_s(x,path_to_model = "models",
+          cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
+          threshold = 0.1,
+          ndraws = 1000,init = NULL,seed = 45,
+          mu = 1e-7,l = 2.7*10^9,ms = -0.5, sigma = 0.5, k = 100)
+```
+
+
+
+
+
+We plot the inferred distribution
+```{r setup}
+posterior = get_posterior(y,model_type = "fitness")
+plot_inference(post = posterior)
+
+```
