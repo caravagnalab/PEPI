@@ -4,14 +4,15 @@
 #
 # A multivariate plot is generated from a labelled dataset
 #
-# @param spectrum Dataframe with number of variants,depth and node label for any mutation
+# @param x Pepi object with labelled spectrum
 # @return A multivariate plot
 # @examples
 # plot_multivariate(spectrum)
 # @export
 
-plot_multivariate = function(spectrum){
-  
+plot_multivariate = function(x){
+
+spectrum = x$spectrum 
 max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
 cls = get_colors(max_depth)
 

@@ -129,4 +129,4 @@ generated quantities{
      real<lower=0> effective_switch_rate_n = rn*2*mu*l;
      real<lower=0> effective_switch_rate_p = rp*2*mu*l;                   
                         
-    }
+}

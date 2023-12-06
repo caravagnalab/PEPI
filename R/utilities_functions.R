@@ -4,18 +4,20 @@
 #
 # A tree is obtained from the inferred values of nodes ccfs and number of mutations.
 #
-# @param x A fit
+# @param x A pepi fit
 # @param threshold Threshold on epimutation probability for tree pruning
-# @return Inferred sample tree
+# @return Pepi fit with inferred average sample tree
 # @examples
 # get_average_tree(x,threshold = 0.1)
 # @export
 
 
-get_average_tree = function(x,threshold = NULL){
+get_average_tree = function(fit,threshold = NULL){
+  
+  x = fit$pepi_tree
   
   params = x$summary() %>% as_tibble() %>% dplyr::rename(param = variable)
-  M = round((x$draws("m_n") %>% as.vector())/(x$draws("nu_n") %>% as.vector())) %>% unique()
+  M = x$data_tree$delta_m_n
   means = params %>% dplyr::select(param,mean)
   
   rn = means %>% filter(param == "rn") %>% pull(mean)
@@ -113,7 +115,9 @@ if(!is.null(threshold)){
 }    
   }
   
-  return(tree)
+  fit = append(fit,list(inferred_tree = tree))
+  
+  return(fit)
   
 }
 
@@ -121,7 +125,7 @@ if(!is.null(threshold)){
 #
 # Posterior draws are extracted from the fit.
 #
-# @param x Inference fit
+# @param x Pepi fit
 # @param threshold Threshold for tree pruning
 # @return A dataframe with posterior draws
 # @examples
@@ -129,11 +133,14 @@ if(!is.null(threshold)){
 # @export
 
 
-get_posterior = function(x,model_type = "tree",threshold = 0.1){
+get_posterior = function(fit,model_type = "tree",threshold = 0.1){
 
 if(model_type == "tree"){
   
-  tree = get_average_tree(x,threshold = threshold)
+  fit = get_average_tree(fit,threshold = threshold)
+  x = fit$pepi
+  tree = fit$inferred_tree
+  
   tree = tree %>% mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
            mutate(node = gsub(x = node,pattern = "\\+",replacement = "p"))
   

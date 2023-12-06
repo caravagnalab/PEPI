@@ -1,9 +1,31 @@
 
+# Create a pepi object.
+#
+# A Pepi object is created.
+#
+# @param spectrum Dataframe with number of variants and depth for any mutation and sample
+# @param counts Dataframe with number of cell counts of - and + cells at different time points
+# @return Pepi object
+# @examples
+# init(spectrum,counts)
+# @export
+
+
+init = function(spectrum = NULL,counts = NULL){
+  
+if(is.null(spectrum) & is.null(counts)){
+  
+  stop("no data") 
+}
+  
+  list(VAF = spectrum,counts = counts)
+  
+}
 
 
 # Fit a multivariate vaf spectrum with epigenetic tree model.
 #
-# A cmdstanr fit is returned.
+# A Pepi fit with tree inference is returned.
 #
 # @param spectrum Dataframe with number of variants and depth for any mutation and sample
 # @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
@@ -24,7 +46,7 @@
 # @param qp Number of trials for the beta prior on the epimutation rate from - to +
 # @param k Number of trials for the beta prior on cluster centroids
 # @param gamma Concentration of a Dirichlet distribution to split mutations at any node
-# @return cdmstanr fit
+# @return Pepi object
 # @examples
 # fit_tree = function(spectrum,path_to_model = "models",cmdstan_path = "my_cmdstan/",
 # max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
@@ -33,7 +55,7 @@
 # qp = 1e4,k = 1e4,gamma = 150)
 # @export
 
-fit_tree = function(spectrum,path_to_model,cmdstan_path,
+fit_tree = function(x,path_to_model,cmdstan_path,
                     max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
                     mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
                     qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
@@ -41,8 +63,19 @@ fit_tree = function(spectrum,path_to_model,cmdstan_path,
   
   dir.create(path_to_model)
   cmdstanr::set_cmdstan_path(cmdstan_path)
+
+  spectrum = x$VAF
+  
+  
+  if(is.null(spectrum)){
+    
+    stop("no VAF spectrum") 
+    
+  }
   
   model = tree_inference_code(max_depth = max_depth,likelihood = T)
+
+if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_model)){ 
   
   write_stan_file(
     model,
@@ -51,6 +84,8 @@ fit_tree = function(spectrum,path_to_model,cmdstan_path,
     force_overwrite = FALSE,
     hash_salt = ""
   )
+  
+}
   
   data = list(
     delta_m_n = spectrum %>% nrow(),
@@ -81,17 +116,21 @@ fit_tree = function(spectrum,path_to_model,cmdstan_path,
                              output_samples = ndraws, 
                              algorithm="fullrank")
   
-  return(fit)
+  pepi = list(inference = list(tree = fit),stan_data = list(tree = data))
+  
+  x = append(x,pepi)
+  
+  return(pepi)
   
 }
 
 
 # Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
 #
-# A cmdstanr fit is returned.
+# A Pepi fit with fitness inference is returned.
 #
-# @param fit_tree cmdstanr fit containing tree inference
-# @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
+# @param x Pepi object containing fitness and epimutation clocks inference
+# @param path_to_model String specifying the path where we want to save the stan model for a given depth
 # @param cmdstan_path String specifying the path to cmdstan folder
 # @param threshold Threshold for tree pruning
 # @param ndraws Number of draws from the posterior
@@ -102,23 +141,33 @@ fit_tree = function(spectrum,path_to_model,cmdstan_path,
 #@ param ms Mean of lognormal prior for s
 #@ param sigma Sigma parameter of lognormal prior for s
 # @param k Number of trials for the beta prior on cluster centroids
-# @return cdmstanr fit
+# @return Pepi object
 # @examples
-# fit_s(fit_tree,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
+# fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
 # ndraws = 1000,init = NULL,seed = 45,
 # mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
 # @export
 
-fit_s = function(fit_tree,path_to_model,cmdstan_path,threshold = 0.1,
+fit_s = function(x,path_to_model,cmdstan_path,threshold = 0.1,
                  ndraws = 1000,init = NULL,seed = 45,
                  mu = 1e-7,l = 2.7*10^9,ms = -0.5, sigma = 0.5, k = 100){
   
   dir.create(path_to_model)
   cmdstanr::set_cmdstan_path(cmdstan_path)
   
-  tree = get_average_tree(fit_tree,threshold = threshold)
+  if(is.null(x$inference$tree)){
+    
+    stop("no tree inference") 
+    
+  }
+  
+  x = get_average_tree(x,threshold = threshold)
+  
+  tree = x$inferred_tree
   
   model = fitness_inference_code(tree,likelihood = T)
+
+if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
   
   write_stan_file(
     model,
@@ -127,6 +176,8 @@ fit_s = function(fit_tree,path_to_model,cmdstan_path,threshold = 0.1,
     force_overwrite = FALSE,
     hash_salt = ""
   )
+
+}
   
   data = list(delta_t_n = 0,
               mu = mu,
@@ -153,17 +204,103 @@ fit_s = function(fit_tree,path_to_model,cmdstan_path,threshold = 0.1,
                              output_samples = ndraws, 
                              algorithm="fullrank")
   
-  return(fit)
+  x$inference$fitness = fit
+  x$stan_data$fitness = data
+  
+  return(x)
   
 }
 
 
-# x = fit_tree(spectrum,max_depth = 2,path_to_model = "models",cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",seed = 2000)
-# y = fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
-# ndraws = 1000,init = NULL,seed = 45, mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
-# tree = get_average_tree(x,threshold = NULL)
-# clusters = get_clusters(spectrum %>% dplyr::select(-node),tree)
 
+#
+# A Pepi fit with cell counts inference is returned.
+#
+# @param x Pepi object containing cell counts inference
+# @param threshold Threshold for tree pruning
+# @param ndraws Number of draws from the posterior
+# @param init List of initialization parameters
+# @param seed Seed of the computation
+# @param alpha_ln shape parameter for gamma prior on - growth rate
+# @param beta_ln rate parameter for gamma prior on - growth rate
+# @param alpha_lp shape parameter for gamma prior on + growth rate
+# @param beta_lp rate parameter for gamma prior on + growth rate
+# @param alpha_rn shape parameter for gamma prior on - effective switch rate
+# @param beta_rn rate parameter for gamma prior on - effective switch rate
+# @param alpha_rp shape parameter for gamma prior on + effective switch rate
+# @param beta_rp rate parameter for gamma prior on + effective switch rate
+# @return Pepi fit
+# @examples
+#fit_counts(x,path_to_model,cmdstan_path,
+#                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
+#                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
+#                      alpha_rp = 1, beta_rp = 10)
+# @export
 
+fit_counts = function(x,path_to_model,cmdstan_path,
+                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
+                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
+                      alpha_rp = 1, beta_rp = 10
+                      ){
+  
+  dir.create(path_to_model)
+  cmdstanr::set_cmdstan_path(cmdstan_path)
+  
+  if(is.null(x$counts)){
+    
+    stop("no cell counts") 
+    
+  }
+  
+  model = counts_inference_code(likelihood = T)
+  
+  if(! "regressionODE.stan" %in% list.files(path_to_model)){
+    
+    write_stan_file(
+      model,
+      dir = ".",
+      basename = paste0(path_to_model,"/regressionODE.stan"),
+      force_overwrite = FALSE,
+      hash_salt = ""
+    )
+    
+  }
+  
+  t0 = counts$time %>% min()
+  z0n = counts %>% filter(time == t0,epistate == "-") %>% pull(counts)
+  z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(counts)
+    
+  data  = list(
+    n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique(),
+    z0 = c(z0n,z0p,0,0,0),
+    t0 = t0,
+    zminus = counts %>% filter(time > t0, epistate = "-") %>% pull(counts), 
+    zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(counts),
+    t = counts %>% filter(time > 0) %>% pull(time) %>% unique(),
+    alpha_ln = alpha_ln,
+    beta_ln = beta_ln,
+    alpha_lp = alpha_lp,
+    beta_lp = beta_lp,
+    alpha_rn = alpha_rn,
+    beta_rn = beta_rn,
+    alpha_rp = alpha_rp,
+    beta_rp = beta_rp 
+)
+  
+ file = paste0(path_to_model,"/regressionODE.stan")
+  
+  mod = cmdstan_model(file)
+  
+  fit = mod$variational(data = data, seed = seed,
+                        init = init,
+                        output_samples = ndraws, 
+                        algorithm="fullrank")
+  
+  x$inference$counts = fit
+  x$stan_data$counts = data
+  
+  return(x)
+  
+}
 
 
