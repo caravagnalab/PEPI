@@ -556,7 +556,7 @@ parameters {
 }
 
 transformed parameters {
-  real theta[2];
+  real theta[4];
   theta[1] = lambda_minus;
   theta[2] = lambda_plus;
   theta[3] = effective_switch_rate_p*lambda_plus; // omega_minus

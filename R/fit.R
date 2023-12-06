@@ -216,7 +216,7 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
 #
 # A Pepi fit with cell counts inference is returned.
 #
-# @param x Pepi object containing cell counts inference
+# @param x Pepi object containing cell counts data
 # @param threshold Threshold for tree pruning
 # @param ndraws Number of draws from the posterior
 # @param init List of initialization parameters
@@ -271,10 +271,10 @@ fit_counts = function(x,path_to_model,cmdstan_path,
   z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(counts)
     
   data  = list(
-    n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique(),
+    n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique() %>% length(),
     z0 = c(z0n,z0p,0,0,0),
     t0 = t0,
-    zminus = counts %>% filter(time > t0, epistate = "-") %>% pull(counts), 
+    zminus = counts %>% filter(time > t0, epistate == "-") %>% pull(counts), 
     zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(counts),
     t = counts %>% filter(time > 0) %>% pull(time) %>% unique(),
     alpha_ln = alpha_ln,
@@ -302,5 +302,7 @@ fit_counts = function(x,path_to_model,cmdstan_path,
   return(x)
   
 }
+
+
 
 

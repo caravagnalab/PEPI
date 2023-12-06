@@ -13,6 +13,13 @@
 plot_multivariate = function(x){
 
 spectrum = x$spectrum 
+
+if(!"node" %in% colnames(spectrum)){
+  
+  stop("no cluster labels") 
+  
+}
+  
 max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
 cls = get_colors(max_depth)
 
@@ -32,10 +39,18 @@ ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x =
 # plot_marginal(spectrum)
 # @export
 
-plot_marginal = function(spectrum){
+plot_marginal = function(x){
+  
+  spectrum = x$spectrum
   
   max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
   cls = get_colors(max_depth)
+  
+  if(!"node" %in% colnames(spectrum)){
+    
+    stop("no cluster labels") 
+    
+  }
   
 px =   ggplot(spectrum %>% mutate(vaf_x = Nx/DPx) %>% filter(vaf_x > 0)) + 
   geom_histogram(aes(x = vaf_x, fill = node), bins = 50) +
@@ -45,7 +60,7 @@ py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
   geom_histogram(aes(x = vaf_y, fill= node), bins = 50) +
   CNAqc:::my_ggplot_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal +", x = "VAF")
 
-ggarrange(plotlist = list(px,py),ncol = 2, nrow = 1)
+ ggarrange(plotlist = list(px,py),ncol = 2, nrow = 1)
   
  }
 
@@ -53,13 +68,21 @@ ggarrange(plotlist = list(px,py),ncol = 2, nrow = 1)
 #
 # A ggtree plot of the sample tree is generated from the inferred tree.
 #
-# @param tree Inferred tree
+# @param x Pepi object
 # @return Plot of the tree.
 # @examples
 # plot_tree(tree)
 # @export
 
-plot_tree = function(tree){
+plot_tree = function(x){
+  
+  if(! "inferred_tree" %in% names(x)){
+    
+    stop("no inferred tree") 
+    
+  }
+  
+  tree = x$inferred_tree
   
   max_level = tree %>% pull(level) %>% max 
   
@@ -139,7 +162,3 @@ get_colors = function(max_depth){
 }
 
 
-# plot_multivariate(clusters$data)
-# plot_marginal(clusters$data)
-# plot_tree(tree)
-# get_colors(2)
