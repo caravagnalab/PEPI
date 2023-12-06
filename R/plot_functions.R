@@ -12,7 +12,7 @@
 
 plot_multivariate = function(x){
 
-spectrum = x$spectrum 
+spectrum = x$VAF
 
 if(!"node" %in% colnames(spectrum)){
   
@@ -41,7 +41,7 @@ ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x =
 
 plot_marginal = function(x){
   
-  spectrum = x$spectrum
+  spectrum = x$VAF
   
   max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
   cls = get_colors(max_depth)
@@ -123,6 +123,10 @@ plot_tree = function(x){
  )
  
 }
+
+
+# to do: plot predicted counts vs data
+
 
 # Associate colors to nodes.
 #

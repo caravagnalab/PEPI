@@ -14,10 +14,10 @@
 
 get_average_tree = function(fit,threshold = NULL){
   
-  x = fit$pepi_tree
+  x = fit$inferece$tree
   
   params = x$summary() %>% as_tibble() %>% dplyr::rename(param = variable)
-  M = x$data_tree$delta_m_n
+  M = fit$stan_data$delta_m_n
   means = params %>% dplyr::select(param,mean)
   
   rn = means %>% filter(param == "rn") %>% pull(mean)
@@ -83,7 +83,6 @@ get_average_tree = function(fit,threshold = NULL){
   tree$node = gsub(x = tree$node,pattern = "p",replacement = "+")
   tree = tree %>% mutate(pi = m/M) %>% as_tibble()
   
-  
   # tree pruning
   
 if(!is.null(threshold)){
@@ -115,7 +114,9 @@ if(!is.null(threshold)){
 }    
   }
   
-  fit = append(fit,list(inferred_tree = tree))
+  fit$inferred_tree = tree
+  
+  fit$epimutation_threshold = threshold
   
   return(fit)
   
@@ -124,50 +125,54 @@ if(!is.null(threshold)){
 # Get posterior draws from fit.
 #
 # Posterior draws are extracted from the fit.
-#
+# @param threshold Threshold on epimutation probability for tree pruning
 # @param x Pepi fit
-# @param threshold Threshold for tree pruning
-# @return A dataframe with posterior draws
+# @return A pepi object with posterior draws
 # @examples
-# get_posterior(x,threshold = 0.1)
+# get_posterior(fit)
 # @export
 
 
-get_posterior = function(fit,model_type = "tree",threshold = 0.1){
+get_posterior = function(fit,threshold = NULL){
 
-if(model_type == "tree"){
+if("tree" %in% names(x$inference)){
   
-  fit = get_average_tree(fit,threshold = threshold)
-  x = fit$pepi
+  if("inferred_tree" %in% names(fit)){
+    
+    fit = get_average_tree(fit,threshold)
+    
+  }
+  
+  x = fit$inference$tree
+  
   tree = fit$inferred_tree
   
   tree = tree %>% mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
            mutate(node = gsub(x = node,pattern = "\\+",replacement = "p"))
   
+  tree = tree %>% mutate(leave = ifelse(!paste0(node,"n") %in% nodes,T,F))
+  
   nodes = tree %>% pull(node)
   
  params =  tree %>% 
-   mutate(w_plus  = ifelse(paste0(node,"-") %in% nodes,0.5,1), 
-          w_minus = ifelse(paste0(node,"-") %in% nodes,0.5,1)) %>% reshape2::melt() %>% 
-    filter(!(variable == "p_switch" & value == 0)) %>% 
-    filter(!(variable == "nu" & value == 1)) %>% 
-    filter(!(variable %in% c("w_minus","w_plus") & value == 1)) %>% 
-    mutate(variable = paste0(variable,"_",node)) %>% 
-     pull(variable)
+   mutate(w_plus  = 0.5, w_minus = 0.5) %>% reshape2::melt() %>% 
+    filter(!(variable == "p_switch" & leave)) %>% 
+    filter(!(variable == "nu" & leave)) %>% 
+    filter(!(variable %in% c("w_minus","w_plus") & leave)) %>% 
+    filter(!(variable %in% c("w_minus","w_plus") & 
+    substr(x = node,start = nchar(node),stop = nchar(node)) == "p"),
+     !(node == "n" & variable %in% c("phi","w_minus","w_plus","p_switch")),
+     ! variable %in% c("level","s","delta_t","rate","tail","ccf_minus","ccf_plus")) %>% 
+    mutate(variable = paste0(variable,"_",node)) %>% pull(variable)
  
-   all_variables = x$draws() %>% as.data.frame()  %>%
-                 reshape2::melt() %>% pull(variable) %>% unique()
-   
-   
-  params = c(params[params %in% all_variables],"rn","rp")
-  
+  params = c(params,"rn","rp")
+    
   posterior = as.data.frame(x$draws())[,colnames(x$draws() %>% as.data.frame()) %in% params]
 
- full_tree =  get_average_tree(x,threshold = NULL)
+  max_depth = fit$max_depth 
 
-if(nrow(full_tree) > nrow(tree)){
+if( nrow(tree) <  2**(max_depth+1) - 1){
   
-tree = tree %>% mutate(leave = ifelse(!paste0(node,"n") %in% nodes,T,F))
 leaves = tree %>% filter(leave) %>% pull(node)
   
 for (leav in leaves){
@@ -194,19 +199,33 @@ posterior[,colnames(posterior) == paste0("delta_m_",leav)] =
       posterior[,colnames(posterior) == paste0("vaf_plus_",leav)] =  rbeta(nrow(posterior),1,1e6)
     }
 
-  }    
-}
+    }    
 }
   
-if(model_type == "fitness"){
+   fit$posterior$tree = posterior
+}
   
+if("fitness" %in% names(x$inference)){
+  
+  x = fit$inference$fitness
   posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
     dplyr::select(-c( "lp__","lp_approx__"))
   
+  fit$posterior$fitness = posterior
+  
 }
   
+if("counts" %in% names(x$inference)){
+    
+  x = fit$inference$counts
+    posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
+      dplyr::select(-c( "lp__","lp_approx__"))
+    
+  fit$posterior$counts = posterior
+    
+  }
   
-return(posterior %>% as_tibble())
+ return(fit)
   
 }
 
@@ -214,14 +233,22 @@ return(posterior %>% as_tibble())
 #
 # Membership probabilities and cluster assignents are computed for any mutation.
 #
-# @param data Dataset containing number of variants and depth for any mutation
-# @param Inferred tree
-# @return A list with cluster membership probabilities and mutation assignment
+# @param fit Pepi object
+# @return A pepi object containing membership probabilities and cluster assignents
 # @examples
-# get_clusters(data,tree)
+# get_clusters(fit)
 # @export
 
-get_clusters = function(data,tree){
+get_clusters = function(fit){
+  
+  data = fit$VAF
+  tree = fit$inferred_tree
+  
+  if(is.null(tree)){
+    
+    stop("no inferred tree")
+    
+  }
   
   data = data %>% mutate(VAFx = Nx/DPx + 1e-3,VAFy = Ny/DPy + 1e-3) %>% 
     mutate(data_id = 1:nrow(data))
@@ -274,9 +301,15 @@ get_clusters = function(data,tree){
   
   clusters = full_join(data,clusters,by = "data_id")
   
-  return(list(ass_probs = probs, data = clusters))
+  fit$cluster_probs = probs
+  
+  fit$VAF = clusters
+    
+  return(fit)
   
 }
+
+# to fix
 
 # Get draws from prior used for the inference
 #

@@ -116,7 +116,7 @@ if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_m
                              output_samples = ndraws, 
                              algorithm="fullrank")
   
-  pepi = list(inference = list(tree = fit),stan_data = list(tree = data))
+  pepi = list(inference = list(tree = fit),stan_data = list(tree = data), max_depth = max_depth)
   
   x = append(x,pepi)
   
