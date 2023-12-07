@@ -125,16 +125,36 @@ plot_tree = function(x){
 }
 
 
-# to do: plot predicted counts vs data
-
-
+# Plot predicted vs input counts.
+#
+# A plot of predicted and input counts is generated.
+#
+# @param x Pepi object
+# @return Plot of the counts.
+# @examples
+# plot_counts(x)
+# @export
 
 
 plot_counts = function(x){
   
-  x$counts
+  if(is.null(x$predicted_counts)){
+    
+    stop("no predicted counts")
+  }
   
+  obj = rbind(x$counts %>% mutate(type = "data") %>% 
+                dplyr::select(-genotype),
+        x$predicted_counts %>% mutate(type = "prediction"))
   
+  cls = c("dodgerblue","black")
+  names(cls) = c("prediction","data")
+    
+  plot = ggplot(obj) + geom_point(aes(x = time,y = counts,color = type)) + 
+          scale_color_manual(values = cls) + facet_grid(~epistate) + 
+          CNAqc:::my_ggplot_theme()
+  
+   return(plot)
 }
 
 

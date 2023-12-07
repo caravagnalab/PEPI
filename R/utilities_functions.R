@@ -122,29 +122,53 @@ if(!is.null(threshold)){
   
 }
 
-# Get posterior draws from fit.
+# Get average predicted cell counts from the fit.
 #
 # Posterior draws are extracted from the fit.
-# @param threshold Threshold on epimutation probability for tree pruning
-# @param x Pepi fit
-# @return A pepi object with posterior draws
+# @param x Pepi object
+# @return A pepi object with average counts
 # @examples
-# get_posterior(fit)
+# get_average_counts(x)
 # @export
 
 
 get_average_counts = function(x){
-  
-  if(is.null(x$inference$counts){
-    
+
+  if(is.null(x$inference$counts)){
+
     stop("no inference counts")
-    
+
   }
+
+  times = x$counts$time %>% unique()
+  t0 = times %>% min()
+  times = times[times > t0]
+  x$predicted_counts = rbind(x$inference$counts$draws() %>% as.data.frame() %>% as_tibble() %>% 
+                     dplyr::select(starts_with("pred_minus")) %>% reshape2::melt() %>% 
+                     group_by(variable) %>% summarize(value = mean(value)) %>% 
+                     mutate(epistate = "-",time = times) %>% dplyr::select(epistate,time,value) %>% 
+                     dplyr::rename(counts = value),
+                     x$inference$counts$draws() %>% as.data.frame() %>% as_tibble() %>% 
+                     dplyr::select(starts_with("pred_plus")) %>% reshape2::melt() %>% 
+                     group_by(variable) %>% summarize(value = mean(value)) %>% 
+                     mutate(epistate = "+",time = times) %>% dplyr::select(epistate,time,value) %>% 
+                     dplyr::rename(counts = value),
+                     x$counts %>% filter(time == t0) %>% dplyr::select(-genotype)) %>% 
+                    arrange(time)
   
-  x$inference$counts$draws() %>% as.data.frame() %>% dplyr::select(starts_with("pred_minus")) %>% 
-    reshape2::melt() %>% group_by(variable) %>% summarize(counts = mean(value))  %>% mutate(time = x$stan_data$counts$t)
-  
+  return(x)
+
 }
+
+# Get posterior distribution from Pepi object.
+#
+# Posterior draws are extracted from the fit.
+# @param x Pepi object
+# @param threshold Threshold on epimutation probability for tree pruning
+# @return A pepi object with posterior draws
+# @examples
+# get_posterior(x,threshold = NULL)
+# @export
 
 get_posterior = function(fit,threshold = NULL){
 

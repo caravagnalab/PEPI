@@ -186,8 +186,10 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
               sigma = sigma,
               k = k)
   
-  param = tree %>% reshape2::melt() %>% mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
-      mutate(node = gsub(x = node,pattern = "\\+",replacement = "p")) %>% filter(variable %in% c("m","vaf_minus","vaf_plus")) %>% 
+  param = tree %>% reshape2::melt() %>% 
+    mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
+      mutate(node = gsub(x = node,pattern = "\\+",replacement = "p")) %>% 
+    filter(variable %in% c("m","vaf_minus","vaf_plus")) %>% 
       mutate(variable = paste0(variable,"_",node)) %>% dplyr::select(variable,value)
   
   extra_data = param$value
