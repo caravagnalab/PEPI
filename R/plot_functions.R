@@ -128,6 +128,16 @@ plot_tree = function(x){
 # to do: plot predicted counts vs data
 
 
+
+
+plot_counts = function(x){
+  
+  x$counts
+  
+  
+}
+
+
 # Associate colors to nodes.
 #
 # A list of colors labelled by nodes is generated.

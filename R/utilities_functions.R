@@ -133,6 +133,19 @@ if(!is.null(threshold)){
 # @export
 
 
+get_average_counts = function(x){
+  
+  if(is.null(x$inference$counts){
+    
+    stop("no inference counts")
+    
+  }
+  
+  x$inference$counts$draws() %>% as.data.frame() %>% dplyr::select(starts_with("pred_minus")) %>% 
+    reshape2::melt() %>% group_by(variable) %>% summarize(counts = mean(value))  %>% mutate(time = x$stan_data$counts$t)
+  
+}
+
 get_posterior = function(fit,threshold = NULL){
 
 if("tree" %in% names(x$inference)){
@@ -313,47 +326,49 @@ get_clusters = function(fit){
 
 # Get draws from prior used for the inference
 #
-# Prior draws are generated from inference object.
+# Prior draws are generated from Pepi object.
 #
-# @param x Fit obtained from the inference
-# @param model_type: It can be "tree" or "fitness"
-# @param threshold Threshold on switching probability for tree pruning
+# @param Pepi object
+# @param model_types list of models we want the prior
 # @param ndraws Number of draws
-# @return A dataframe with prior draws for any parameter
+# @return A Pepi object with prior draws
 # @examples
-# get_prior(x,model_type = "tree",ndraws = 1000)
+# get_prior(x,model_type = c("tree","counts"),ndraws = 1000)
 # @export
 
-# get_prior = function(x,model_type = "tree",threshold = 0.1,ndraws = 1000){
-#   
-#   data = fromJSON(file = x$data_file())
-#   
-#   if(model_type == "tree"){
-#     max_depth = gsub(x = x$draws() %>% as.data.frame() %>% 
-#                        dplyr::select(starts_with("vaf_minus")) %>% colnames(),
-#                      pattern = "vaf_minus_",replacement = "") %>% nchar() %>% max() - 1
-#     model_prior = tree_inference_code(max_depth,likelihood = F)
-#   }
-#    if(model_type == "fitness"){
-#     tree = get_average_tree(x,threshold = threshold)
-#     model_prior =  fitness_inference_code(tree,likelihood = F)
-#   }
-#   
-#   prior <- rstan::stan(model_code = model_prior,data =  data, chains = 1, 
-#                        warmup = 500, iter = ndraws,cores = 4)
-# 
-#   # model <- cmdstan_model(model_prior)
-#   # prior <- model$sample(
-#   #   data = data,
-#   #   seed = 123,
-#   #   chains = 1
-#   # )
-#   
-#   prior = prior %>% as.data.frame() %>% as_tibble()
-#   
-#   return(prior)
-#   
-# }
+get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
+
+ if("counts" %in% model_types & ! is.null(x$stan_data$counts)){
+    
+ model_prior =  counts_inference_code(likelihood = F)
+  sampling <- rstan::stan(model_code = model_prior,data =  x$stan_data$counts, chains = 1,
+                       warmup = 500, iter = ndraws,cores = 4)
+  x$prior$counts = sampling %>% as.data.frame() %>% as_tibble() %>% 
+    dplyr::select(-c( "lp__"))
+ }
+
+  if("tree" %in% model_types & ! is.null(x$stan_data$tree) ){
+    
+    max_depth = x$max_depth
+    model_prior = tree_inference_code(max_depth,likelihood = F)
+    sampling <- rstan::stan(model_code = model_prior,data =  x$stan_data$tree, chains = 1,
+                            warmup = 500, iter = ndraws,cores = 4)
+    x$prior$tree = sampling %>% as.data.frame() %>% as_tibble() %>% 
+      dplyr::select(-c( "lp__"))
+  }
+   if("fitness" %in% model_types & ! is.null(x$stan_data$fitness)){
+     
+    tree = x$inferred_tree
+    model_prior =  fitness_inference_code(tree,likelihood = F)
+    sampling <- rstan::stan(model_code = model_prior,data =  x$stan_data$fitness, chains = 1,
+                            warmup = 500, iter = ndraws,cores = 4)
+    x$prior$fitness = sampling %>% as.data.frame() %>% as_tibble() %>% 
+      dplyr::select(-c( "lp__"))
+  }
+
+    return(x)
+
+}
 
 
 # Plot posterior and prior distributions.
@@ -367,28 +382,39 @@ get_clusters = function(fit){
 # plot_inference(x,params = c("rn","rp"))
 # @export
 
-plot_inference = function(post,params = NULL,prior = NULL){
+plot_inference = function(x,params = NULL){
   
-  if(!is.null(prior)){ 
-  prior = prior %>% as_tibble() %>% reshape2::melt() %>% 
-          mutate(type = "prior")}
-  if(!is.null(post)){
-  post = post %>% as_tibble() %>% reshape2::melt() %>% 
-               mutate(type = "post")}
+  prior = rbind(as_tibble(x$prior$tree) %>% mutate(class = "tree"),
+                as_tibble(x$prior$fitness) %>% mutate(class = "fitness"),
+                as_tibble(x$prior$counts) %>% mutate(class = "counts")) %>% 
+              mutate(type = "prior")  %>% reshape2::melt()
   
-  sampling = rbind(prior,post)  
+  post = rbind(as_tibble(x$post$tree) %>% mutate(class = "tree"),
+                as_tibble(x$post$fitness) %>% mutate(class = "fitness"),
+                as_tibble(x$post$counts) %>% mutate(class = "counts")) %>% 
+              mutate(type = "post")  %>% reshape2::melt()
+  
+  sampling = rbind(prior,post)
   
   if(!is.null(params)){
     
     sampling = sampling %>% filter(variable %in% params) 
   }
   
+  if (is.null(sampling)) {
+    stop("required parameters are not present")
+    
+  }
+  
   nr = round(length(sampling$variable %>% unique())/4 + 1)
   nc = min(length(sampling$variable %>% unique()) + 1,4) 
-  
-  ggplot(sampling) + geom_density(aes(x = value, alpha = type),fill = "steelblue") + 
+  cls = c("indianred","steelblue","darkgreen")
+  names(cls) = c("tree","fitness","counts")
+    
+  ggplot(sampling) + geom_density(aes(x = value, alpha = type,fill = class)) + 
      facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
     scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
+    scale_fill_manual(values = cls) + 
     CNAqc:::my_ggplot_theme() + theme(legend.position="none")
   
 }

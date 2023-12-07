@@ -27,7 +27,7 @@ if(is.null(spectrum) & is.null(counts)){
 #
 # A Pepi fit with tree inference is returned.
 #
-# @param spectrum Dataframe with number of variants and depth for any mutation and sample
+# @param x Pepi object containing VAF multivariate spectrum
 # @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
 # @param cmdstan_path String specifying the path to cmdstan folder
 # @param max_depth Maximum number of levels
@@ -48,7 +48,7 @@ if(is.null(spectrum) & is.null(counts)){
 # @param gamma Concentration of a Dirichlet distribution to split mutations at any node
 # @return Pepi object
 # @examples
-# fit_tree = function(spectrum,path_to_model = "models",cmdstan_path = "my_cmdstan/",
+# fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
 # max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
 # mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
 # qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
