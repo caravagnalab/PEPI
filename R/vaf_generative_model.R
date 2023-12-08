@@ -280,6 +280,9 @@ generate_spectrum = function(tree,vaf_min,DP,tail = T){
   
   muts = rbind(muts,tail_muts)
   
+  muts = muts %>% mutate(Nx = as.integer(Nx), Ny = as.integer(Ny),
+                         DPx = as.integer(DPx),DPy = as.integer(DPy))
+  
   return(muts)
   
 }

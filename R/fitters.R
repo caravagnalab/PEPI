@@ -1,27 +1,4 @@
 
-# Create a pepi object.
-#
-# A Pepi object is created.
-#
-# @param spectrum Dataframe with number of variants and depth for any mutation and sample
-# @param counts Dataframe with number of cell counts of - and + cells at different time points
-# @return Pepi object
-# @examples
-# init(spectrum,counts)
-# @export
-
-
-init = function(spectrum = NULL,counts = NULL){
-  
-if(is.null(spectrum) & is.null(counts)){
-  
-  stop("no data") 
-}
-  
-  list(VAF = spectrum,counts = counts)
-  
-}
-
 
 # Fit a multivariate vaf spectrum with epigenetic tree model.
 #
@@ -118,9 +95,11 @@ if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_m
   
   pepi = list(inference = list(tree = fit),stan_data = list(tree = data), max_depth = max_depth)
   
-  x = append(x,pepi)
+  x$inference$tree = fit
+  x$stan_data$tree = data
+  x$max_depth = max_depth
   
-  return(pepi)
+  return(x)
   
 }
 
@@ -160,8 +139,9 @@ fit_s = function(x,path_to_model,cmdstan_path,threshold = 0.1,
     stop("no tree inference") 
     
   }
-  
-  x = get_average_tree(x,threshold = threshold)
+
+  if(!is.null(x$inferred_tree)){  
+  x = get_average_tree(x,threshold = threshold)}
   
   tree = x$inferred_tree
   

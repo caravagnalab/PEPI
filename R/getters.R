@@ -14,18 +14,16 @@
 
 get_average_tree = function(fit,threshold = NULL){
   
-  x = fit$inferece$tree
+  x = fit$inference$tree
   
   params = x$summary() %>% as_tibble() %>% dplyr::rename(param = variable)
-  M = fit$stan_data$delta_m_n
+  M = fit$stan_data$tree$delta_m_n
   means = params %>% dplyr::select(param,mean)
   
   rn = means %>% filter(param == "rn") %>% pull(mean)
   rp = means %>% filter(param == "rp") %>% pull(mean)
   
-  max_depth = gsub(x = params %>% filter(grepl(x = param,pattern = "vaf_minus")) %>% pull(param),
-                pattern = "vaf_minus_",replacement = "") %>% 
-                 nchar() %>% max() - 1
+  max_depth = fit$max_depth
   
  tree = data.frame(node = "n",
                     level = 0, 
@@ -172,9 +170,9 @@ get_average_counts = function(x){
 
 get_posterior = function(fit,threshold = NULL){
 
-if("tree" %in% names(x$inference)){
+if("tree" %in% names(fit$inference)){
   
-  if("inferred_tree" %in% names(fit)){
+  if(!"inferred_tree" %in% names(fit)){
     
     fit = get_average_tree(fit,threshold)
     
@@ -242,7 +240,7 @@ posterior[,colnames(posterior) == paste0("delta_m_",leav)] =
    fit$posterior$tree = posterior
 }
   
-if("fitness" %in% names(x$inference)){
+if("fitness" %in% names(fit$inference)){
   
   x = fit$inference$fitness
   posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -252,7 +250,7 @@ if("fitness" %in% names(x$inference)){
   
 }
   
-if("counts" %in% names(x$inference)){
+if("counts" %in% names(fit$inference)){
     
   x = fit$inference$counts
     posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -395,55 +393,42 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 }
 
 
-# Plot posterior and prior distributions.
+# Associate colors to nodes.
 #
-# Posterior and prior draws histograms are plotted for any required parameter.
+# A list of colors labelled by nodes is generated.
 #
-# @param post Posterior draws
-# @param params A list of parameters 
-# @return A plot with posterior and prior distributions
+# @param max_depth Maximal number of levels of the tree
+# @return Named list of colors.
 # @examples
-# plot_inference(x,params = c("rn","rp"))
+# get_colors(max_depth = 2)
 # @export
 
-plot_inference = function(x,params = NULL){
+get_colors = function(max_depth){
   
-  prior = rbind(as_tibble(x$prior$tree) %>% mutate(class = "tree"),
-                as_tibble(x$prior$fitness) %>% mutate(class = "fitness"),
-                as_tibble(x$prior$counts) %>% mutate(class = "counts")) %>% 
-              mutate(type = "prior")  %>% reshape2::melt()
+  tree = data.frame(node = "-",level = 0) 
   
-  post = rbind(as_tibble(x$post$tree) %>% mutate(class = "tree"),
-                as_tibble(x$post$fitness) %>% mutate(class = "fitness"),
-                as_tibble(x$post$counts) %>% mutate(class = "counts")) %>% 
-              mutate(type = "post")  %>% reshape2::melt()
-  
-  sampling = rbind(prior,post)
-  
-  if(!is.null(params)){
+  for(l in 1:max_depth){
     
-    sampling = sampling %>% filter(variable %in% params) 
-  }
-  
-  if (is.null(sampling)) {
-    stop("required parameters are not present")
+    epsilon = tree %>% filter(level == l-1) 
+    node = epsilon %>% pull(node)
+    
+    new =  lapply(1:length(node), function(i){
+      
+      new_nodes = tibble(node = c(paste0(node[i],"-"),paste0(node[i],"+")), level = l)
+      
+    }) %>% bind_rows()
+    
+    tree = rbind(tree,new)
     
   }
   
-  nr = round(length(sampling$variable %>% unique())/4 + 1)
-  nc = min(length(sampling$variable %>% unique()) + 1,4) 
-  cls = c("indianred","steelblue","darkgreen")
-  names(cls) = c("tree","fitness","counts")
-    
-  ggplot(sampling) + geom_density(aes(x = value, alpha = type,fill = class)) + 
-     facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
-    scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
-    scale_fill_manual(values = cls) + 
-    CNAqc:::my_ggplot_theme() + theme(legend.position="none")
+  nodes = tree %>% pull(node)
+  cls = ggsci::pal_igv()(nodes %>% length())
+  names(cls) = nodes
+  
+  return(cls)
   
 }
-
-
 
 
 

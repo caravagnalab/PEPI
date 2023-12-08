@@ -1,5 +1,5 @@
 ---
-title: "Pepi"
+title: "VAF analysys"
 ---
 
 ```{r, include = FALSE}
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(ProjectPepi)
+library(Pepi)
 ```
 
 We generate a sample tree encoding epigenetic states and number of mutations of branches
@@ -20,10 +20,10 @@ We generate a sample tree encoding epigenetic states and number of mutations of 
 M = 8000
 mu = 10^-7
 length = 2.7*10^9
-s = 0.1
-rate_minus = 1/3000
-rate_plus = 1/2000
-max_depth = 2
+s = 0.25
+rate_minus = 1/7000
+rate_plus = 1/8000
+max_depth = 3
 at = 10
 bt = 80
 gamma = 100
@@ -54,69 +54,71 @@ p
 ```
 
 
-We infer the sample tree and epimutation rates
+We infer the sample tree and epimutation rates. We start by creating a PEPI VAF object
 
 ```{r setup}
 
-x = fit_tree (spectrum,path_to_model = "models",
+x = init_vaf(data = spectrum)
+print(x)
+```
+
+We infer epimutation rates and cluster centroids
+```{r setup}
+
+x = fit_tree(x,path_to_model = "models",
               cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
-                    max_depth = 2,ndraws = 1000,
-                    init = list(list(rn = 1/6000, rp = 1e-3,  nu_n = 0.16)), seed = 25,
+                    max_depth = 3,ndraws = 1000,
+                    init = list(list(rn = 1/6000,rp = 1/9000)), seed = 50,
                     mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-                    qt = 1e4,rate_n = 1/5000,qn = 1e4,rate_p = 1/5000,
-                    qp = 1e4,k = 1e4,gamma = 150)
+                    qt = 1e4,rate_n = 1e-4,qn = 1e3,rate_p = 1e-4,
+                    qp = 1e3,k = 1e4,gamma = 200)
 
 ```
 
-We obtain the inferred tree and clusters of mutations
+We obtain the inferred tree 
 ```{r setup}
 
-inf_tree = get_average_tree(x)
-inf_tree
+x = get_average_tree(x,threshold = 0.1)
+x$inferred_tree
 ```
 
 We get the cluster of mutations
 
 ```{r setup}
 
-cl = get_clusters(spectrum,inf_tree)
+x = get_clusters(x)
+
 ```
 
 We plot the distributions and inferred tree
 ```{r setup}
 
-p1 = plot_multivariate(cl$data)
-p2 = plot_tree(inf_tree)
-p3 = plot_marginal(cl$data)
+p1 = plot_multivariate(x)
+p2 = plot_tree(x)
+p3 = plot_marginal(x)
 
 p = ggarrange(plotlist = list(p1,p2),ncol = 2,nrow = 1) 
 p = ggarrange(plotlist = list(p,p3),ncol = 1,nrow = 2) 
 p
 ```
 
-We plot the inferred rates
-```{r setup}
-posterior = get_posterior(x)
-plot_inference(posterior,prior)
-```
 
 
 We infer s and epimutation clocks
 ```{r setup}
-y = fit_s(x,path_to_model = "models",
+
+x = fit_s(x,path_to_model = "models",
           cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
           threshold = 0.1,
-          ndraws = 1000,init = NULL,seed = 45,
-          mu = 1e-7,l = 2.7*10^9,ms = -0.5, sigma = 0.5, k = 100)
+          ndraws = 1000,init = NULL,seed = 250,
+          mu = 1e-7,l = 2.7*10^9,ms = -1.8, sigma = 0.5, k = 1e3)
 ```
-
-
-
 
 
 We plot the inferred distribution
 ```{r setup}
-posterior = get_posterior(y,model_type = "fitness")
-plot_inference(post = posterior)
+x = get_posterior(x)
+plot_inference(x,params = c("rn","rp","s"))
 
 ```
+

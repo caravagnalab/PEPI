@@ -20,8 +20,9 @@ if(!"node" %in% colnames(spectrum)){
   
 }
   
-max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
-cls = get_colors(max_depth)
+tree = x$inferred_tree
+max_level = tree %>% pull(level) %>% max 
+cls = get_colors(max_level)
 
 ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x = vaf_x, y = vaf_y,color = node)) +
   CNAqc:::my_ggplot_theme() + scale_colour_manual(values = cls) + 
@@ -43,8 +44,9 @@ plot_marginal = function(x){
   
   spectrum = x$VAF
   
-  max_depth = spectrum %>% pull(node) %>% unique() %>% nchar() %>% max() - 1
-  cls = get_colors(max_depth)
+  tree = x$inferred_tree
+  max_level = tree %>% pull(level) %>% max 
+  cls = get_colors(max_level)
   
   if(!"node" %in% colnames(spectrum)){
     
@@ -157,42 +159,53 @@ plot_counts = function(x){
    return(plot)
 }
 
-
-# Associate colors to nodes.
+# Plot posterior and prior distributions.
 #
-# A list of colors labelled by nodes is generated.
+# Posterior and prior draws histograms are plotted for any required parameter.
 #
-# @param max_depth Maximal number of levels of the tree
-# @return Named list of colors.
+# @param post Posterior draws
+# @param params A list of parameters 
+# @return A plot with posterior and prior distributions
 # @examples
-# get_colors(max_depth = 2)
+# plot_inference(x,params = c("rn","rp"))
 # @export
 
-get_colors = function(max_depth){
+plot_inference = function(x,params = NULL){
   
-  tree = data.frame(node = "-",level = 0) 
+  prior = rbind(as_tibble(x$prior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
+                as_tibble(x$prior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
+                as_tibble(x$prior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
+    mutate(type = "prior") 
   
-  for(l in 1:max_depth){
+  post = rbind(as_tibble(x$posterior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
+               as_tibble(x$posterior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
+               as_tibble(x$posterior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
+    mutate(type = "post")  
+  
+  sampling = rbind(prior,post)
+  
+  if(!is.null(params)){
     
-    epsilon = tree %>% filter(level == l-1) 
-    node = epsilon %>% pull(node)
-    
-    new =  lapply(1:length(node), function(i){
-      
-     new_nodes = tibble(node = c(paste0(node[i],"-"),paste0(node[i],"+")), level = l)
-      
-       }) %>% bind_rows()
-    
-    tree = rbind(tree,new)
+    sampling = sampling %>% filter(variable %in% params) 
+  }
+  
+  if (is.null(sampling)) {
+    stop("required parameters are not present")
     
   }
   
-   nodes = tree %>% pull(node)
-   cls = ggsci::pal_igv()(nodes %>% length())
-   names(cls) = nodes
-
-  return(cls)
+  nr = round(length(sampling$variable %>% unique())/4 + 1)
+  nc = min(length(sampling$variable %>% unique()) + 1,4) 
+  cls = c("indianred","steelblue","darkgreen")
+  names(cls) = c("tree","fitness","counts")
+  
+  ggplot(sampling) + geom_density(aes(x = value, alpha = type,fill = class)) + 
+    facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
+    scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
+    scale_fill_manual(values = cls) + 
+    CNAqc:::my_ggplot_theme() + theme(legend.position="none")
   
 }
+
 
 
