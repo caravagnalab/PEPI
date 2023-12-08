@@ -500,8 +500,8 @@ code = "
 functions {
   vector switching_process(real t,
                           vector z,
-                          real[] theta //lambda_minus,lambda_plus, omega_minus, omega_plus
-                          ) {
+                          array[] real theta //lambda_minus,lambda_plus, omega_minus, omega_plus
+                          ){
     vector[5] dzdt;
     real lambda_minus = theta[1];
     real lambda_plus = theta[2];
@@ -526,11 +526,11 @@ functions {
 
 data {
   
-  int<lower=1> n_times; 
+  int n_times; 
   vector[5] z0;
   real t0;
-  vector[n_times] zminus;
-  vector[n_times] zplus;
+  array[n_times] real zminus;
+  array[n_times] real zplus;
   array[n_times] real t;
   real <lower = 0> alpha_ln;
   real <lower = 0> beta_ln;
@@ -556,7 +556,8 @@ parameters {
 }
 
 transformed parameters {
-  real theta[4];
+  array[4] real theta;
+  
   theta[1] = lambda_minus;
   theta[2] = lambda_plus;
   theta[3] = effective_switch_rate_p*lambda_plus; // omega_minus
@@ -571,8 +572,6 @@ model {
   target += gamma_lpdf(lambda_plus | alpha_lp, beta_lp);
   target += gamma_lpdf(effective_switch_rate_n | alpha_rn, beta_rn);
   target += gamma_lpdf(effective_switch_rate_p | alpha_rp, beta_rp);
-
-  // z_hat = integrate_ode_rk45(switching_process, z0, t0, t, theta, x_r, x_i);
 
 "
 
@@ -590,11 +589,12 @@ if(likelihood){
 
 code = paste0(code,
 "
+
 }
 
 generated quantities {
-  real pred_minus[n_times];
-  real pred_plus[n_times];
+  array [n_times] real pred_minus;
+  array [n_times] real pred_plus;
   // real var_minus[n_times];
   // real var_plus[n_times];
   // real pred[n_times, 5] = integrate_ode_rk45(switching_process, z0, t0, t, theta, x_r, x_i);

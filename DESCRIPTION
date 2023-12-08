@@ -1,17 +1,39 @@
-Package: ProjectPepi
+Package: Pepi
 Type: Package
-Title: ProjectPepi - Bayesian method for quantifying plasticity from VAF spectrum
+Title: Pepi - Bayesian method for quantifying plasticity from genomics data
 Version: 1.0.0
 Date: 2023-12-5
 Author: Riccardo Bergamin
 Maintainer: Riccardo Bergamin <rbergamin@units.it>
 Authors@R: c(
-    person("Riccardo", "Bergamin", "rbergamin@units.it", role = c("aut")),
-    person("Giulio", "Caravagna", "gcaravagn@gmail.com", role = c("aut"),
+    person("Riccardo", "Bergamin", "rbergamin@units.it", role = c("aut", "cre")),
+    person("Giulio", "Caravagna", "gcaravagn@gmail.com", role = c("ctb"),
       comment = c(ORCID = "0000-0003-4240-3265")),
-    person("Clara", "Canavese", "arnold@sissa.com", role = c("aut"))
+    person("Clara", "Canavese", "arnold@sissa.com", role = c("ctb"))
   )
-Description: ProjectPepi is a package that implements a statistical model for studying epigenetic dynamics from multivariate VAF distribution.
+Description: Pepi is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
+             The first application deals with the study of a latent branching process augmented with genetic mutations that are accumulated 
+             at every division with constant mutation rate, independently of the epigenetic state, and measured by bulk whole-genome DNA 
+             sequencing (a common NGS technology). 
+             We consider a simple experimental design where cells are sorted (i.e., separated) based on their epimutation state (+ versus −) prior 
+             to sequencing, and Variant Allele Frequencies (VAFs) are generated from two samples. 
+             With two samples, the VAFs spectrum is bi-variate as any mutation is identified by two coordinates in VAF space. 
+             Our intuition is to associate to a VAF spectrum a tree where branches and nodes have an interpretation in terms of 
+             epigenetic dynamics: a branch is a trajectory of a cycling cell which goes through a certain number of divisions, 
+             and the length of the edge corresponds to the cumulative number mutations arrived on the genome. 
+             Tree leaves correspond to most recent common ancestors (MRCAs) of subpopulations of cells in our sample, 
+             sorted by the marker state, and each clade of cells forms a cluster in VAF space.
+             For every node two outgoing branches correspond to epi-positive and epi-negative cells and the stochastic 
+             tree-generation process starting from a collection of mutations is a hierarchical stick-breaking process. 
+             This approach allows for trees of unbounded width and depth, where data can live at any node as in infinite 
+             mixtures with a latent dependency structure.
+             The second application deals with the analysis of a time series of cell counts. We consider a longitudinal 
+             experiment where cells are sorted based on their epimutation state and counted at different times.
+             We implemented a non-linear Bayesian regression model where mean and variance of the number of cells at different
+             time points are obtained by solving an ordinary differential equation describing the growth and 
+             switching dynamics of the two populations. Inferring the latent parameters driving the branching process,
+             we can predict cell counts at arbitrary time points.
+             
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -23,7 +45,6 @@ Imports:
     dplyr,
     MCMCprecision,
     VGAM,
-    rjson,
     ggplot2,
     ape,
     ggtree,
@@ -32,11 +53,11 @@ Imports:
     parallel
 RoxygenNote: 7.2.3
 Suggests: knitr,
-    rmarkdown,
-    CNAqc
+    rmarkdown
 Remotes:
     caravagn/easypar,
-    caravagn/viber
+    caravagn/viber,
+    caravagn/rRACES
 VignetteBuilder: knitr
 URL: https://github.com/caravagnalab/ProjectPepi,
     https://caravagnalab.github.io/ProjectPepi/
