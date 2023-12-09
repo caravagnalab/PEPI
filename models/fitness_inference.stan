@@ -44,12 +44,12 @@ real <lower=0> s;
 
 transformed parameters{ 
                         real <lower=0>ccf_minus_npp=2*vaf_minus_npp;
-real <lower=0>ccf_plus_npp=exp(-(delta_t_npp+delta_t_np*1+delta_t_n*(1+s)))/(exp(-(delta_t_nnp+delta_t_nn*(1+s)+delta_t_n*(1+s)))+exp(-(delta_t_npp+delta_t_np*1+delta_t_n*(1+s))));
-real <lower=0>ccf_minus_npn=exp(-(delta_t_npn+delta_t_np*1/(1+s)+delta_t_n*1))/(exp(-(delta_t_nnn+delta_t_nn*1+delta_t_n*1))+exp(-(delta_t_npn+delta_t_np*1/(1+s)+delta_t_n*1)));
+real <lower=0>ccf_plus_npp=exp(-(+delta_t_np*1+delta_t_n*(1+s)))/(exp(-(+delta_t_nn*(1+s)+delta_t_n*(1+s)))+exp(-(+delta_t_np*1+delta_t_n*(1+s))));
+real <lower=0>ccf_minus_npn=exp(-(+delta_t_np*1/(1+s)+delta_t_n*1))/(exp(-(+delta_t_nn*1+delta_t_n*1))+exp(-(+delta_t_np*1/(1+s)+delta_t_n*1)));
 real <lower=0>ccf_plus_npn=2*vaf_plus_npn;
 real <lower=0>ccf_minus_nnp=2*vaf_minus_nnp;
-real <lower=0>ccf_plus_nnp=exp(-(delta_t_nnp+delta_t_nn*(1+s)+delta_t_n*(1+s)))/(exp(-(delta_t_nnp+delta_t_nn*(1+s)+delta_t_n*(1+s)))+exp(-(delta_t_npp+delta_t_np*1+delta_t_n*(1+s))));
-real <lower=0>ccf_minus_nnn=exp(-(delta_t_nnn+delta_t_nn*1+delta_t_n*1))/(exp(-(delta_t_nnn+delta_t_nn*1+delta_t_n*1))+exp(-(delta_t_npn+delta_t_np*1/(1+s)+delta_t_n*1)));
+real <lower=0>ccf_plus_nnp=exp(-(+delta_t_nn*(1+s)+delta_t_n*(1+s)))/(exp(-(+delta_t_nn*(1+s)+delta_t_n*(1+s)))+exp(-(+delta_t_np*1+delta_t_n*(1+s))));
+real <lower=0>ccf_minus_nnn=exp(-(+delta_t_nn*1+delta_t_n*1))/(exp(-(+delta_t_nn*1+delta_t_n*1))+exp(-(+delta_t_np*1/(1+s)+delta_t_n*1)));
 real <lower=0>ccf_plus_nnn=2*vaf_plus_nnn;
 real <lower=0>ccf_minus_np=ccf_minus_npp+ccf_minus_npn;
 real <lower=0>ccf_plus_np=ccf_plus_npp+ccf_plus_npn;

@@ -4,15 +4,14 @@
 #
 # A multivariate plot is generated from a labelled dataset
 #
-# @param x Pepi object with labelled spectrum
+# @param spectrum VAF spectrum with cluster labels
 # @return A multivariate plot
 # @examples
 # plot_multivariate(spectrum)
 # @export
 
-plot_multivariate = function(x){
+plot_multivariate = function(spectrum){
 
-spectrum = x$VAF
 
 if(!"node" %in% colnames(spectrum)){
   
@@ -20,12 +19,11 @@ if(!"node" %in% colnames(spectrum)){
   
 }
   
-tree = x$inferred_tree
-max_level = tree %>% pull(level) %>% max 
+max_level = spectrum %>% pull(node) %>% nchar() %>% max() - 1
 cls = get_colors(max_level)
 
 ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x = vaf_x, y = vaf_y,color = node)) +
-  CNAqc:::my_ggplot_theme() + scale_colour_manual(values = cls) + 
+  get_pepi_theme() + scale_colour_manual(values = cls) + 
   labs(title = "Multivariate Spectrum", x = "VAF -", y = "VAF +")
   
 }
@@ -34,19 +32,13 @@ ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x =
 #
 # Two marginal histograms are generated from a labelled dataset.
 #
-# @param spectrum Dataframe with number of variants,depth and node label for any mutation
+# @param spectrum VAF spectrum with cluster labels
 # @return Two marginal histograms.
 # @examples
 # plot_marginal(spectrum)
 # @export
 
-plot_marginal = function(x){
-  
-  spectrum = x$VAF
-  
-  tree = x$inferred_tree
-  max_level = tree %>% pull(level) %>% max 
-  cls = get_colors(max_level)
+plot_marginal = function(spectrum){
   
   if(!"node" %in% colnames(spectrum)){
     
@@ -54,13 +46,16 @@ plot_marginal = function(x){
     
   }
   
+  max_level = spectrum %>% pull(node) %>% nchar() %>% max() - 1
+  cls = get_colors(max_level)
+  
 px =   ggplot(spectrum %>% mutate(vaf_x = Nx/DPx) %>% filter(vaf_x > 0)) + 
   geom_histogram(aes(x = vaf_x, fill = node), bins = 50) +
-    CNAqc:::my_ggplot_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal -", x = "VAF")
+    get_pepi_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal -", x = "VAF")
 
 py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) + 
   geom_histogram(aes(x = vaf_y, fill= node), bins = 50) +
-  CNAqc:::my_ggplot_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal +", x = "VAF")
+  get_pepi_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal +", x = "VAF")
 
  ggarrange(plotlist = list(px,py),ncol = 2, nrow = 1)
   
@@ -70,22 +65,14 @@ py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
 #
 # A ggtree plot of the sample tree is generated from the inferred tree.
 #
-# @param x Pepi object
+# @param x Tree object
 # @return Plot of the tree.
 # @examples
 # plot_tree(tree)
 # @export
 
-plot_tree = function(x){
-  
-  if(! "inferred_tree" %in% names(x)){
-    
-    stop("no inferred tree") 
-    
-  }
-  
-  tree = x$inferred_tree
-  
+plot_tree = function(tree){
+ 
   max_level = tree %>% pull(level) %>% max 
   
   tree = tree %>% mutate(level = ifelse(! paste0(node,"-") %in% node,max_level,level))
@@ -154,7 +141,7 @@ plot_counts = function(x){
     
   plot = ggplot(obj) + geom_point(aes(x = time,y = counts,color = type)) + 
           scale_color_manual(values = cls) + facet_grid(~epistate) + 
-          CNAqc:::my_ggplot_theme()
+          get_pepi_theme()
   
    return(plot)
 }
@@ -203,7 +190,7 @@ plot_inference = function(x,params = NULL){
     facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
     scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
     scale_fill_manual(values = cls) + 
-    CNAqc:::my_ggplot_theme() + theme(legend.position="none")
+    get_pepi_theme() + theme(legend.position="none")
   
 }
 

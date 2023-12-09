@@ -168,16 +168,18 @@ get_average_counts = function(x){
 # get_posterior(x,threshold = NULL)
 # @export
 
-get_posterior = function(fit,threshold = NULL){
+get_posterior = function(fit){
 
-if("tree" %in% names(fit$inference)){
+if( class(fit) == "PEPI_VAF" & "tree" %in% names(fit$inference)){
   
   if(!"inferred_tree" %in% names(fit)){
     
-    fit = get_average_tree(fit,threshold)
+    stop("missing inferred tree")
     
   }
   
+  threshold = x$epimutation_threshold
+    
   x = fit$inference$tree
   
   tree = fit$inferred_tree
@@ -185,9 +187,9 @@ if("tree" %in% names(fit$inference)){
   tree = tree %>% mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
            mutate(node = gsub(x = node,pattern = "\\+",replacement = "p"))
   
-  tree = tree %>% mutate(leave = ifelse(!paste0(node,"n") %in% nodes,T,F))
-  
   nodes = tree %>% pull(node)
+  
+  tree = tree %>% mutate(leave = ifelse(!paste0(node,"n") %in% nodes,T,F))
   
  params =  tree %>% 
    mutate(w_plus  = 0.5, w_minus = 0.5) %>% reshape2::melt() %>% 
@@ -240,7 +242,7 @@ posterior[,colnames(posterior) == paste0("delta_m_",leav)] =
    fit$posterior$tree = posterior
 }
   
-if("fitness" %in% names(fit$inference)){
+if(class(x) == "PEPI_VAF" & "fitness" %in% names(fit$inference)){
   
   x = fit$inference$fitness
   posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -250,7 +252,7 @@ if("fitness" %in% names(fit$inference)){
   
 }
   
-if("counts" %in% names(fit$inference)){
+if( class(x) == "PEPI_Counts" & "counts" %in% names(fit$inference)){
     
   x = fit$inference$counts
     posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -401,7 +403,6 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 # @return Named list of colors.
 # @examples
 # get_colors(max_depth = 2)
-# @export
 
 get_colors = function(max_depth){
   
@@ -431,8 +432,20 @@ get_colors = function(max_depth){
 }
 
 
+# Generate personalized ggplot theme.
+#
+# A ggplot theme is generated.
+#
+# @return a ggplot theme.
+# @examples
+# get_pepi_theme()
 
-
-
-
+get_pepi_theme = function(){
+  
+  ggplot2::theme_light(base_size = 10 * cex_opt) + 
+    ggplot2::theme(legend.position = "bottom", 
+      legend.key.size = ggplot2::unit(0.3 * cex_opt, "cm"), 
+      panel.background = ggplot2::element_rect(fill = "white"))
+  
+}
 

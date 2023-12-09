@@ -1,0 +1,61 @@
+---
+title: "Counts analisys"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Pepi)
+```
+
+We load a time series of cell counts generated with rRACES
+
+```{r setup}
+
+data("Counts")
+counts
+```
+
+We create a Pepi object of counts type
+```{r setup}
+
+x = init_counts(counts)
+x
+```
+
+
+We fit cell counts 
+```{r setup}
+
+x = fit_counts(x,path_to_model = "models",cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
+                     ndraws = 1000,init = list(list(lambda_minus = 1,lambda_plus = 4,
+                      effective_switch_rate_n = 0.7,  effective_switch_rate_p = 0.8)),
+                      seed = 215, alpha_ln = 150,
+                      beta_ln = 100, alpha_lp = 220, beta_lp = 100, alpha_rn = 100, beta_rn = 200,
+                      alpha_rp = 100, beta_rp = 200)
+x
+```
+
+
+
+We get and plot average counts 
+```{r setup}
+
+x = get_average_counts(x)
+plot_counts(x)
+
+```
+
+
+
+We plot the posterior of growth rates and effective switching rates
+```{r setup}
+
+x = get_posterior(x)
+plot_inference(x,params = c("lambda_minus","lambda_plus","effective_switch_rate_n","effective_switch_rate_p"))
+```
