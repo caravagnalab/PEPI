@@ -10,12 +10,12 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(Pepi)
+library(PEPI)
 ```
 
 We generate a sample tree encoding epigenetic states and number of mutations of branches
 
-```{r setup}
+```{r}
 
 M = 8000
 mu = 10^-7
@@ -56,14 +56,14 @@ p
 
 We infer the sample tree and epimutation rates. We start by creating a PEPI VAF object
 
-```{r setup}
+```{r}
 
 x = init_vaf(data = spectrum)
 print(x)
 ```
 
 We infer epimutation rates and cluster centroids
-```{r setup}
+```{r}
 
 x = fit_tree(x,path_to_model = "models",
               cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
@@ -76,7 +76,7 @@ x = fit_tree(x,path_to_model = "models",
 ```
 
 We obtain the inferred tree 
-```{r setup}
+```{r}
 
 x = get_average_tree(x,threshold = 0.1)
 x$inferred_tree
@@ -84,14 +84,14 @@ x$inferred_tree
 
 We get the cluster of mutations
 
-```{r setup}
+```{r}
 
 x = get_clusters(x)
 
 ```
 
 We plot the distributions and inferred tree
-```{r setup}
+```{r}
 
 p1 = plot_multivariate(x$VAF)
 p2 = plot_tree(x$inferred_tree)
@@ -105,7 +105,7 @@ p
 
 
 We infer s and epimutation clocks
-```{r setup}
+```{r}
 
 x = fit_s(x,path_to_model = "models",
           cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
@@ -115,8 +115,8 @@ x = fit_s(x,path_to_model = "models",
 ```
 
 
-We plot the inferred distribution
-```{r setup}
+We plot the inferred distributions
+```{r}
 x = get_posterior(x)
 plot_inference(x,params = c("rn","rp","s"))
 

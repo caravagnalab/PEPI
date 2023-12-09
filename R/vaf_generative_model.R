@@ -1,23 +1,23 @@
-# generative models
+#' generative models
 
-# Generate a sample tree with input epimutation rates, fraction of truncal mutations and fitness advantage between + and -.
-#
-# A tree with number of mutations per nodes is generated.
-#
-# @param M total number of mutations
-# @param gamma parameter of a beta distribution controlling how we split mutations at any node
-# @param at number of successes of a beta distribution controlling amount of truncal mutations 
-# @param bt number of fails of a beta distribution controlling amount of truncal mutations 
-# @param s Fitness advantage of + cells with respect to - cells
-# @param rate_minus Average number of epimutation from - to + per mutations
-# @param rate_plus Average number of epimutation from + to - per mutations
-# @param mu Mutation rate per division per bp per allele
-# @param len length of the genome
-# @param max_depth maximal level of the tree
-# @return sample tree
-# @examples
-# generate_nodes(6000,100,10,80,0.2,1e-3,1e-3,1e-7,2.7*10^9,3)
-# @export
+#' Generate a sample tree with input epimutation rates, fraction of truncal mutations and fitness advantage between + and -.
+#'
+#' A tree with number of mutations per nodes is generated.
+#'
+#' @param M total number of mutations
+#' @param gamma parameter of a beta distribution controlling how we split mutations at any node
+#' @param at number of successes of a beta distribution controlling amount of truncal mutations 
+#' @param bt number of fails of a beta distribution controlling amount of truncal mutations 
+#' @param s Fitness advantage of + cells with respect to - cells
+#' @param rate_minus Average number of epimutation from - to + per mutations
+#' @param rate_plus Average number of epimutation from + to - per mutations
+#' @param mu Mutation rate per division per bp per allele
+#' @param len length of the genome
+#' @param max_depth maximal level of the tree
+#' @return sample tree
+#' @examples
+#' generate_nodes(6000,100,10,80,0.2,1e-3,1e-3,1e-7,2.7*10^9,3)
+#' @export
 
 
 
@@ -75,16 +75,16 @@ generate_nodes = function(M,gamma,at,bt,s,rate_minus,rate_plus,mu,len,max_depth 
   
 }
 
-# Prunes a sample tree.
-#
-# Nodes with low epimutation probability are removed and replaced with a leave.
-#
-# @param tree A sample tree 
-# @param threshold Pruning threshold for epimutation probability
-# @return sample tree
-# @examples
-# filter_nodes(tree,threshold = 0.01)
-# @export
+#' Prunes a sample tree.
+#'
+#' Nodes with low epimutation probability are removed and replaced with a leave.
+#'
+#' @param tree A sample tree 
+#' @param threshold Pruning threshold for epimutation probability
+#' @return sample tree
+#' @examples
+#' filter_nodes(tree,threshold = 0.01)
+#' @export
 
 filter_nodes = function(tree,threshold = 0.01){
   
@@ -121,16 +121,16 @@ filter_nodes = function(tree,threshold = 0.01){
 }
 
 
-# Calculate ccf for nodes of a sample tree.
-#
-# CCFs are computed according to number of mutations assigned to any node and fitness advantage.
-#
-# @param tree A sample tree 
-# @param s Fitness advantage of + cells with respect to - cells
-# @return sample tree
-# @examples
-# calculate_ccf(tree,s)
-# @export
+#' Calculate ccf for nodes of a sample tree.
+#'
+#' CCFs are computed according to number of mutations assigned to any node and fitness advantage.
+#'
+#' @param tree A sample tree 
+#' @param s Fitness advantage of + cells with respect to - cells
+#' @return sample tree
+#' @examples
+#' calculate_ccf(tree,s)
+#' @export
 
 calculate_ccf = function(tree,s){
   
@@ -193,18 +193,18 @@ calculate_ccf = function(tree,s){
   
 }
 
-# Associate number of tail mutations to the leaves of a sample tree.
-#
-# Number of tail mutations is assigned to any leave based on its ccf and mutation rate
-#
-# @param tree A sample tree 
-# @param mu  Mutation rate
-# @param len Length of the genome
-# @param vaf_min Minimum detectable VAF of a mutation
-# @return a table of mutations with number of variants and depth
-# @examples
-# gadd_tail_muts(tree,1e-07,2.7*10^9,0.05)
-# @export
+#' Associate number of tail mutations to the leaves of a sample tree.
+#'
+#' Number of tail mutations is assigned to any leave based on its ccf and mutation rate
+#'
+#' @param tree A sample tree 
+#' @param mu  Mutation rate
+#' @param len Length of the genome
+#' @param vaf_min Minimum detectable VAF of a mutation
+#' @return a table of mutations with number of variants and depth
+#' @examples
+#' gadd_tail_muts(tree,1e-07,2.7*10^9,0.05)
+#' @export
 
 add_tail_muts = function(tree,mu,len = 2.7*10^9,vaf_min = 0.05){
   
@@ -219,18 +219,18 @@ add_tail_muts = function(tree,mu,len = 2.7*10^9,vaf_min = 0.05){
   
 }
 
-# Simulate VAF multivariate spectrum associated to a sample tree.
-#
-# A bivariate binomial process is simulated any node, with number of trials and success probabilities given by number of mutations and ccfs. If tail mutations
-# are included, thei VAF is sampled from a power law distribution.
-#
-# @param tree A sample tree 
-# @param vaf_min Lower bound on VAF spectrum
-# @param DP average coverage
-# @return a table of mutations with number of variants and depth
-# @examples
-# generate_spectrum(tree,vaf_min = 0.05,DP = 150,tail = T)
-# @export
+#' Simulate VAF multivariate spectrum associated to a sample tree.
+#'
+#' A bivariate binomial process is simulated any node, with number of trials and success probabilities given by number of mutations and ccfs. If tail mutations
+#' are included, thei VAF is sampled from a power law distribution.
+#'
+#' @param tree A sample tree 
+#' @param vaf_min Lower bound on VAF spectrum
+#' @param DP average coverage
+#' @return a table of mutations with number of variants and depth
+#' @examples
+#' generate_spectrum(tree,vaf_min = 0.05,DP = 150,tail = T)
+#' @export
 
 
 

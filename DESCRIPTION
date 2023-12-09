@@ -1,6 +1,6 @@
-Package: Pepi
+Package: PEPI
 Type: Package
-Title: Pepi - Bayesian method for quantifying plasticity from genomics data
+Title: PEPI - Bayesian method for quantifying plasticity from genomics data
 Version: 1.0.0
 Date: 2023-12-5
 Author: Riccardo Bergamin
@@ -11,7 +11,7 @@ Authors@R: c(
       comment = c(ORCID = "0000-0003-4240-3265")),
     person("Clara", "Canavese", "arnold@sissa.com", role = c("ctb"))
   )
-Description: Pepi is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
+Description: PEPI is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
   The first application deals with the study of a latent branching process augmented with genetic mutations that are accumulated 
   at every division with constant mutation rate, independently of the epigenetic state, and measured by bulk whole-genome DNA 
   sequencing (a common NGS technology).We consider a simple experimental design where cells are sorted (i.e., separated) based on their epimutation state (+ versus −) prior 
@@ -55,6 +55,6 @@ Remotes:
     caravagn/viber,
     caravagn/rRACES
 VignetteBuilder: knitr
-URL: https://github.com/caravagnalab/Pepi,
-    https://caravagnalab.github.io/Pepi/
-BugReports: https://github.com/caravagnalab/Pepi/issues
+URL: https://github.com/caravagnalab/PEPI,
+    https://caravagnalab.github.io/PEPI/
+BugReports: https://github.com/caravagnalab/PEPI/issues

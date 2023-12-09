@@ -1,36 +1,36 @@
 
 
-# Fit a multivariate vaf spectrum with epigenetic tree model.
-#
-# A Pepi fit with tree inference is returned.
-#
-# @param x Pepi object containing VAF multivariate spectrum
-# @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
-# @param cmdstan_path String specifying the path to cmdstan folder
-# @param max_depth Maximum number of levels
-# @param ndraws Number of draws from the posterior
-# @param init List of initialization parameters
-# @param seed Seed of the computation
-# @param mu Mutation rate per division per bp per allele
-# @param l length of the genome
-#@ param rho_n Purity of - sample
-#@ param rho_p Purity of + sample
-# @param nu_t Mean of the beta prior on fraction of truncal mutations
-# @param qt Number of trials of the beta prior on fraction of truncal mutations
-# @param rate_n Mean of the beta prior on the epimutation rate from - to +
-# @param qn Number of trials for the beta prior on the epimutation rate from - to +
-# @param rate_p Mean of the beta prior on the epimutation rate from + to -
-# @param qp Number of trials for the beta prior on the epimutation rate from - to +
-# @param k Number of trials for the beta prior on cluster centroids
-# @param gamma Concentration of a Dirichlet distribution to split mutations at any node
-# @return Pepi object
-# @examples
-# fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
-# max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
-# mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-# qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
-# qp = 1e4,k = 1e4,gamma = 150)
-# @export
+#' Fit a multivariate vaf spectrum with epigenetic tree model.
+#'
+#' A Pepi fit with tree inference is returned.
+#'
+#' @param x Pepi object containing VAF multivariate spectrum
+#' @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
+#' @param cmdstan_path String specifying the path to cmdstan folder
+#' @param max_depth Maximum number of levels
+#' @param ndraws Number of draws from the posterior
+#' @param init List of initialization parameters
+#' @param seed Seed of the computation
+#' @param mu Mutation rate per division per bp per allele
+#' @param l length of the genome
+#' @param rho_n Purity of - sample
+#'  @param rho_p Purity of + sample
+#' @param nu_t Mean of the beta prior on fraction of truncal mutations
+#' @param qt Number of trials of the beta prior on fraction of truncal mutations
+#' @param rate_n Mean of the beta prior on the epimutation rate from - to +
+#' @param qn Number of trials for the beta prior on the epimutation rate from - to +
+#' @param rate_p Mean of the beta prior on the epimutation rate from + to -
+#' @param qp Number of trials for the beta prior on the epimutation rate from - to +
+#' @param k Number of trials for the beta prior on cluster centroids
+#' @param gamma Concentration of a Dirichlet distribution to split mutations at any node
+#' @return Pepi object
+#' @examples
+#' fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
+#' max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
+#' mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
+#' qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
+#' qp = 1e4,k = 1e4,gamma = 150)
+#' @export
 
 fit_tree = function(x,path_to_model,cmdstan_path,
                     max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
@@ -104,28 +104,28 @@ if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_m
 }
 
 
-# Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
-#
-# A Pepi fit with fitness inference is returned.
-#
-# @param x Pepi object containing fitness and epimutation clocks inference
-# @param path_to_model String specifying the path where we want to save the stan model for a given depth
-# @param cmdstan_path String specifying the path to cmdstan folder
-# @param threshold Threshold for tree pruning
-# @param ndraws Number of draws from the posterior
-# @param init List of initialization parameters
-# @param seed Seed of the computation
-# @param mu Mutation rate per division per bp per allele
-# @param l length of the genome
-#@ param ms Mean of lognormal prior for s
-#@ param sigma Sigma parameter of lognormal prior for s
-# @param k Number of trials for the beta prior on cluster centroids
-# @return Pepi object
-# @examples
-# fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
-# ndraws = 1000,init = NULL,seed = 45,
-# mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
-# @export
+#' Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
+#'
+#' A Pepi fit with fitness inference is returned.
+#'
+#' @param x Pepi object containing fitness and epimutation clocks inference
+#' @param path_to_model String specifying the path where we want to save the stan model for a given depth
+#' @param cmdstan_path String specifying the path to cmdstan folder
+#' @param threshold Threshold for tree pruning
+#' @param ndraws Number of draws from the posterior
+#' @param init List of initialization parameters
+#' @param seed Seed of the computation
+#' @param mu Mutation rate per division per bp per allele
+#' @param l length of the genome
+#' @param ms Mean of lognormal prior for s
+#'  @param sigma Sigma parameter of lognormal prior for s
+#' @param k Number of trials for the beta prior on cluster centroids
+#' @return Pepi object
+#' @examples
+#' fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
+#' ndraws = 1000,init = NULL,seed = 45,
+#' mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
+#' @export
 
 fit_s = function(x,path_to_model,cmdstan_path,threshold = 0.1,
                  ndraws = 1000,init = NULL,seed = 45,
@@ -195,29 +195,29 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
 
 
 
-#
-# A Pepi fit with cell counts inference is returned.
-#
-# @param x Pepi object containing cell counts data
-# @param threshold Threshold for tree pruning
-# @param ndraws Number of draws from the posterior
-# @param init List of initialization parameters
-# @param seed Seed of the computation
-# @param alpha_ln shape parameter for gamma prior on - growth rate
-# @param beta_ln rate parameter for gamma prior on - growth rate
-# @param alpha_lp shape parameter for gamma prior on + growth rate
-# @param beta_lp rate parameter for gamma prior on + growth rate
-# @param alpha_rn shape parameter for gamma prior on - effective switch rate
-# @param beta_rn rate parameter for gamma prior on - effective switch rate
-# @param alpha_rp shape parameter for gamma prior on + effective switch rate
-# @param beta_rp rate parameter for gamma prior on + effective switch rate
-# @return Pepi fit
-# @examples
-#fit_counts(x,path_to_model,cmdstan_path,
-#                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
-#                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
-#                      alpha_rp = 1, beta_rp = 10)
-# @export
+
+#' A Pepi fit with cell counts inference is returned.
+#'
+#' @param x Pepi object containing cell counts data
+#' @param threshold Threshold for tree pruning
+#' @param ndraws Number of draws from the posterior
+#' @param init List of initialization parameters
+#' @param seed Seed of the computation
+#' @param alpha_ln shape parameter for gamma prior on - growth rate
+#' @param beta_ln rate parameter for gamma prior on - growth rate
+#' @param alpha_lp shape parameter for gamma prior on + growth rate
+#' @param beta_lp rate parameter for gamma prior on + growth rate
+#' @param alpha_rn shape parameter for gamma prior on - effective switch rate
+#' @param beta_rn rate parameter for gamma prior on - effective switch rate
+#' @param alpha_rp shape parameter for gamma prior on + effective switch rate
+#' @param beta_rp rate parameter for gamma prior on + effective switch rate
+#' @return Pepi fit
+#' @examples
+#' fit_counts(x,path_to_model,cmdstan_path,
+#'                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
+#'                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
+#'                      alpha_rp = 1, beta_rp = 10)
+#' @export
 
 fit_counts = function(x,path_to_model,cmdstan_path,
                       ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,

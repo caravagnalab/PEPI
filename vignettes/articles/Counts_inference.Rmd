@@ -10,19 +10,19 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(Pepi)
+library(PEPI)
 ```
 
 We load a time series of cell counts generated with rRACES
 
-```{r setup}
+```{r}
 
-data("Counts")
+data("counts")
 counts
 ```
 
 We create a Pepi object of counts type
-```{r setup}
+```{r}
 
 x = init_counts(counts)
 x
@@ -30,7 +30,7 @@ x
 
 
 We fit cell counts 
-```{r setup}
+```{r}
 
 x = fit_counts(x,path_to_model = "models",cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
                      ndraws = 1000,init = list(list(lambda_minus = 1,lambda_plus = 4,
@@ -44,7 +44,7 @@ x
 
 
 We get and plot average counts 
-```{r setup}
+```{r}
 
 x = get_average_counts(x)
 plot_counts(x)
@@ -52,10 +52,10 @@ plot_counts(x)
 ```
 
 
-
 We plot the posterior of growth rates and effective switching rates
-```{r setup}
+```{r}
 
 x = get_posterior(x)
 plot_inference(x,params = c("lambda_minus","lambda_plus","effective_switch_rate_n","effective_switch_rate_p"))
 ```
+

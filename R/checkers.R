@@ -1,13 +1,13 @@
-# Check if VAF input data has the correct form.
+#' Check if VAF input data has the correct form.
 
-# Check if the input data has the correct fields and stop if someone is missing.
-#
-# @param data Dataset to analyze. It must be a dataframe with number of variants and depth 
-#             for any mutation and sample.
-# @return Pepi object
-# @examples
-# check_input_data(data,type = "VAF")
-# @export
+#' Check if the input data has the correct fields and stop if someone is missing.
+#'
+#' @param data Dataset to analyze. It must be a dataframe with number of variants and depth 
+#'                                  for any mutation and sample.
+#' @return Pepi object
+#' @examples
+#' check_input_vaf(data)
+#' @export
 
 check_input_vaf = function(data){
   
@@ -56,16 +56,16 @@ check_input_vaf = function(data){
 
 
 
-# Check if counts input data has the correct form.
+#' Check if counts input data has the correct form.
 
-# Check if the input data has the correct fields and stop if someone is missing.
-#
-# @param data Dataframe containing with number of cell counts of - and + cells 
-#             at different time points in case of Counts application. 
-# @return Pepi object
-# @examples
-# check_input_counts(data)
-# @export
+#' Check if the input data has the correct fields and stop if someone is missing.
+#'
+#' @param data Dataframe containing with number of cell counts of - and + cells 
+#'             at different time points in case of Counts application. 
+#' @return Pepi object
+#' @examples
+#' check_input_counts(data)
+#' @export
  
 check_input_counts = function(data){
     

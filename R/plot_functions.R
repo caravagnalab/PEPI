@@ -1,14 +1,14 @@
-# plotting functions
+#' plotting functions
 
-# Plot multivariate VAF distributions with cluster associated to tree nodes.
-#
-# A multivariate plot is generated from a labelled dataset
-#
-# @param spectrum VAF spectrum with cluster labels
-# @return A multivariate plot
-# @examples
-# plot_multivariate(spectrum)
-# @export
+#' Plot multivariate VAF distributions with cluster associated to tree nodes.
+#'
+#' A multivariate plot is generated from a labelled dataset
+#'
+#' @param spectrum VAF spectrum with cluster labels
+#' @return A multivariate plot
+#' @examples
+#' plot_multivariate(spectrum)
+#' @export
 
 plot_multivariate = function(spectrum){
 
@@ -28,15 +28,15 @@ ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x =
   
 }
 
-# Plot marginal VAF distributions with cluster associated to tree nodes.
-#
-# Two marginal histograms are generated from a labelled dataset.
-#
-# @param spectrum VAF spectrum with cluster labels
-# @return Two marginal histograms.
-# @examples
-# plot_marginal(spectrum)
-# @export
+#' Plot marginal VAF distributions with cluster associated to tree nodes.
+#'
+#' Two marginal histograms are generated from a labelled dataset.
+#'
+#' @param spectrum VAF spectrum with cluster labels
+#' @return Two marginal histograms.
+#' @examples
+#' plot_marginal(spectrum)
+#' @export
 
 plot_marginal = function(spectrum){
   
@@ -61,15 +61,15 @@ py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
   
  }
 
-# Plot sample tree with branches associated to nodes.
-#
-# A ggtree plot of the sample tree is generated from the inferred tree.
-#
-# @param x Tree object
-# @return Plot of the tree.
-# @examples
-# plot_tree(tree)
-# @export
+#' Plot sample tree with branches associated to nodes.
+#'
+#' A ggtree plot of the sample tree is generated from the inferred tree.
+#'
+#' @param x Tree object
+#' @return Plot of the tree.
+#' @examples
+#' plot_tree(tree)
+#' @export
 
 plot_tree = function(tree){
  
@@ -114,15 +114,15 @@ plot_tree = function(tree){
 }
 
 
-# Plot predicted vs input counts.
-#
-# A plot of predicted and input counts is generated.
-#
-# @param x Pepi object
-# @return Plot of the counts.
-# @examples
-# plot_counts(x)
-# @export
+#' Plot predicted vs input counts.
+#'
+#' A plot of predicted and input counts is generated.
+#'
+#' @param x Pepi object
+#' @return Plot of the counts.
+#' @examples
+#' plot_counts(x)
+#' @export
 
 
 plot_counts = function(x){
@@ -146,16 +146,16 @@ plot_counts = function(x){
    return(plot)
 }
 
-# Plot posterior and prior distributions.
-#
-# Posterior and prior draws histograms are plotted for any required parameter.
-#
-# @param post Posterior draws
-# @param params A list of parameters 
-# @return A plot with posterior and prior distributions
-# @examples
-# plot_inference(x,params = c("rn","rp"))
-# @export
+#' Plot posterior and prior distributions.
+#'
+#' Posterior and prior draws histograms are plotted for any required parameter.
+#'
+#' @param post Posterior draws
+#' @param params A list of parameters 
+#' @return A plot with posterior and prior distributions
+#' @examples
+#' plot_inference(x,params = c("rn","rp"))
+#' @export
 
 plot_inference = function(x,params = NULL){
   

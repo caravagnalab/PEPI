@@ -1,15 +1,15 @@
-# utilities inference
+#' utilities inference
 
-# Get the inferred tree from a fit.
-#
-# A tree is obtained from the inferred values of nodes ccfs and number of mutations.
-#
-# @param x A pepi fit
-# @param threshold Threshold on epimutation probability for tree pruning
-# @return Pepi fit with inferred average sample tree
-# @examples
-# get_average_tree(x,threshold = 0.1)
-# @export
+#' Get the inferred tree from a fit.
+#'
+#' A tree is obtained from the inferred values of nodes ccfs and number of mutations.
+#'
+#' @param x A pepi fit
+#' @param threshold Threshold on epimutation probability for tree pruning
+#' @return Pepi fit with inferred average sample tree
+#' @examples
+#' get_average_tree(x,threshold = 0.1)
+#' @export
 
 
 get_average_tree = function(fit,threshold = NULL){
@@ -120,14 +120,14 @@ if(!is.null(threshold)){
   
 }
 
-# Get average predicted cell counts from the fit.
-#
-# Posterior draws are extracted from the fit.
-# @param x Pepi object
-# @return A pepi object with average counts
-# @examples
-# get_average_counts(x)
-# @export
+#' Get average predicted cell counts from the fit.
+#'
+#' Posterior draws are extracted from the fit.
+#' @param x Pepi object
+#' @return A pepi object with average counts
+#' @examples
+#' get_average_counts(x)
+#' @export
 
 
 get_average_counts = function(x){
@@ -158,15 +158,15 @@ get_average_counts = function(x){
 
 }
 
-# Get posterior distribution from Pepi object.
-#
-# Posterior draws are extracted from the fit.
-# @param x Pepi object
-# @param threshold Threshold on epimutation probability for tree pruning
-# @return A pepi object with posterior draws
-# @examples
-# get_posterior(x,threshold = NULL)
-# @export
+#' Get posterior distribution from Pepi object.
+#'
+#' Posterior draws are extracted from the fit.
+#' @param x Pepi object
+#' @param threshold Threshold on epimutation probability for tree pruning
+#' @return A pepi object with posterior draws
+#' @examples
+#' get_posterior(x,threshold = NULL)
+#' @export
 
 get_posterior = function(fit){
 
@@ -266,15 +266,15 @@ if( class(x) == "PEPI_Counts" & "counts" %in% names(fit$inference)){
   
 }
 
-# Infer clusters from data and inferred tree.
-#
-# Membership probabilities and cluster assignents are computed for any mutation.
-#
-# @param fit Pepi object
-# @return A pepi object containing membership probabilities and cluster assignents
-# @examples
-# get_clusters(fit)
-# @export
+#' Infer clusters from data and inferred tree.
+#'
+#' Membership probabilities and cluster assignents are computed for any mutation.
+#'
+#' @param fit Pepi object
+#' @return A pepi object containing membership probabilities and cluster assignents
+#' @examples
+#' get_clusters(fit)
+#' @export
 
 get_clusters = function(fit){
   
@@ -346,19 +346,19 @@ get_clusters = function(fit){
   
 }
 
-# to fix
+#' to fix
 
-# Get draws from prior used for the inference
-#
-# Prior draws are generated from Pepi object.
-#
-# @param Pepi object
-# @param model_types list of models we want the prior
-# @param ndraws Number of draws
-# @return A Pepi object with prior draws
-# @examples
-# get_prior(x,model_type = c("tree","counts"),ndraws = 1000)
-# @export
+#' Get draws from prior used for the inference
+#'
+#' Prior draws are generated from Pepi object.
+#'
+#' @param Pepi object
+#' @param model_types list of models we want the prior
+#' @param ndraws Number of draws
+#' @return A Pepi object with prior draws
+#' @examples
+#' get_prior(x,model_type = c("tree","counts"),ndraws = 1000)
+#' @export
 
 get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 
@@ -395,14 +395,14 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 }
 
 
-# Associate colors to nodes.
-#
-# A list of colors labelled by nodes is generated.
-#
-# @param max_depth Maximal number of levels of the tree
-# @return Named list of colors.
-# @examples
-# get_colors(max_depth = 2)
+#' Associate colors to nodes.
+#'
+#' A list of colors labelled by nodes is generated.
+#'
+#' @param max_depth Maximal number of levels of the tree
+#' @return Named list of colors.
+#' @examples
+#' get_colors(max_depth = 2)
 
 get_colors = function(max_depth){
   
@@ -432,13 +432,13 @@ get_colors = function(max_depth){
 }
 
 
-# Generate personalized ggplot theme.
-#
-# A ggplot theme is generated.
-#
-# @return a ggplot theme.
-# @examples
-# get_pepi_theme()
+#' Generate personalized ggplot theme.
+#'
+#' A ggplot theme is generated.
+#'
+#' @return a ggplot theme.
+#' @examples
+#' get_pepi_theme()
 
 get_pepi_theme = function(){
   

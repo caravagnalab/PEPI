@@ -1,14 +1,14 @@
 
-# Generate stan model for tree inference.
-#
-# A stan file with the tree inference model is generated.
-#
-# @param max_depth Depth of the tree 
-# @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
-# @return A string containing a stan model
-# @examples
-# tree_inference_code(max_depth = 2,likelihood = T)
-# @export
+#' Generate stan model for tree inference.
+#'
+#' A stan file with the tree inference model is generated.
+#'
+#' @param max_depth Depth of the tree 
+#' @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
+#' @return A string containing a stan model
+#' @examples
+#' tree_inference_code(max_depth = 2,likelihood = T)
+#' @export
 
 
 
@@ -297,16 +297,16 @@ generated quantities{
 }
 
 
-# Generate stan model for fitness inference.
-#
-# A stan file with the fitness inference model is generated.
-#
-# @param tree Sample tree with epigenetic state associated to any node 
-# @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
-# @return A string containing a stan model
-# @examples
-# fitness_inference_code(tree,likelihood = T)
-# @export
+#' Generate stan model for fitness inference.
+#'
+#' A stan file with the fitness inference model is generated.
+#'
+#' @param tree Sample tree with epigenetic state associated to any node 
+#' @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
+#' @return A string containing a stan model
+#' @examples
+#' fitness_inference_code(tree,likelihood = T)
+#' @export
 
 fitness_inference_code = function(tree,likelihood = T){
   
@@ -483,15 +483,15 @@ if(likelihood){
 }
 
 
-# Generate stan model for counts inference.
-#
-# A stan file with the counts inference model is generated.
-#
-# @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
-# @return A string containing a stan model
-# @examples
-# counts_inference_code(likelihood = T)
-# @export
+#' Generate stan model for counts inference.
+#'
+#' A stan file with the counts inference model is generated.
+#'
+#' @param likelihood Boolean value specifying to include the likelihood in the model, or just sampling from the priors.
+#' @return A string containing a stan model
+#' @examples
+#' counts_inference_code(likelihood = T)
+#' @export
 
 counts_inference_code = function(likelihood = T){
   
