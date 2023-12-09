@@ -4,9 +4,9 @@
 #'
 #' A tree is obtained from the inferred values of nodes ccfs and number of mutations.
 #'
-#' @param x A pepi fit
+#' @param x A PEPI fit
 #' @param threshold Threshold on epimutation probability for tree pruning
-#' @return Pepi fit with inferred average sample tree
+#' @return PEPI fit with inferred average sample tree
 #' @examples
 #' get_average_tree(x,threshold = 0.1)
 #' @export
@@ -123,8 +123,8 @@ if(!is.null(threshold)){
 #' Get average predicted cell counts from the fit.
 #'
 #' Posterior draws are extracted from the fit.
-#' @param x Pepi object
-#' @return A pepi object with average counts
+#' @param x PEPI object
+#' @return A PEPI object with average counts
 #' @examples
 #' get_average_counts(x)
 #' @export
@@ -158,14 +158,13 @@ get_average_counts = function(x){
 
 }
 
-#' Get posterior distribution from Pepi object.
+#' Get posterior distribution from PEPI object.
 #'
 #' Posterior draws are extracted from the fit.
-#' @param x Pepi object
-#' @param threshold Threshold on epimutation probability for tree pruning
-#' @return A pepi object with posterior draws
+#' @param x PEPI object
+#' @return A PEPI object with posterior draws
 #' @examples
-#' get_posterior(x,threshold = NULL)
+#' get_posterior(x)
 #' @export
 
 get_posterior = function(fit){
@@ -270,8 +269,8 @@ if( class(x) == "PEPI_Counts" & "counts" %in% names(fit$inference)){
 #'
 #' Membership probabilities and cluster assignents are computed for any mutation.
 #'
-#' @param fit Pepi object
-#' @return A pepi object containing membership probabilities and cluster assignents
+#' @param fit PEPI object
+#' @return A PEPI object containing membership probabilities and cluster assignents
 #' @examples
 #' get_clusters(fit)
 #' @export
@@ -350,12 +349,12 @@ get_clusters = function(fit){
 
 #' Get draws from prior used for the inference
 #'
-#' Prior draws are generated from Pepi object.
+#' Prior draws are generated from PEPI object.
 #'
-#' @param Pepi object
+#' @param x PEPI object
 #' @param model_types list of models we want the prior
 #' @param ndraws Number of draws
-#' @return A Pepi object with prior draws
+#' @return A PEPI object with prior draws
 #' @examples
 #' get_prior(x,model_type = c("tree","counts"),ndraws = 1000)
 #' @export

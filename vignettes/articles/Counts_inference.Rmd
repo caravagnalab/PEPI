@@ -21,7 +21,7 @@ data("counts")
 counts
 ```
 
-We create a Pepi object of counts type
+We create a PEPI object of counts type
 ```{r}
 
 x = init_counts(counts)

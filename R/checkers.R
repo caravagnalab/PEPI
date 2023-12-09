@@ -4,7 +4,7 @@
 #'
 #' @param data Dataset to analyze. It must be a dataframe with number of variants and depth 
 #'                                  for any mutation and sample.
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' check_input_vaf(data)
 #' @export
@@ -62,7 +62,7 @@ check_input_vaf = function(data){
 #'
 #' @param data Dataframe containing with number of cell counts of - and + cells 
 #'             at different time points in case of Counts application. 
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' check_input_counts(data)
 #' @export

@@ -1,9 +1,9 @@
-#' Create a pepi object of VAF type.
+#' Create a PEPI object of VAF type.
 #'
-#' A Pepi object vaf type is created.
+#' A PEPI object vaf type is created.
 #'
 #' @param data Dataset to analyze. It must be a dataframe with number of variants and depth for any mutation and sample
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' init_vaf(data)
 #' @export
@@ -21,12 +21,12 @@ init_vaf = function(data){
   
 }
 
-#' Create a pepi object of Counts type.
+#' Create a PEPI object of Counts type.
 #'
-#' A Pepi object of vaf type or counts type is created.
+#' A PEPI object of vaf type or counts type is created.
 #'
 #' @param data Dataframe containing with number of cell counts of - and + cells at different time points
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' init_counts(data)
 #' @export

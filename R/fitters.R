@@ -2,9 +2,9 @@
 
 #' Fit a multivariate vaf spectrum with epigenetic tree model.
 #'
-#' A Pepi fit with tree inference is returned.
+#' A PEPI fit with tree inference is returned.
 #'
-#' @param x Pepi object containing VAF multivariate spectrum
+#' @param x PEPI object containing VAF multivariate spectrum
 #' @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
 #' @param cmdstan_path String specifying the path to cmdstan folder
 #' @param max_depth Maximum number of levels
@@ -23,7 +23,7 @@
 #' @param qp Number of trials for the beta prior on the epimutation rate from - to +
 #' @param k Number of trials for the beta prior on cluster centroids
 #' @param gamma Concentration of a Dirichlet distribution to split mutations at any node
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
 #' max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
@@ -106,9 +106,9 @@ if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_m
 
 #' Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
 #'
-#' A Pepi fit with fitness inference is returned.
+#' A PEPI fit with fitness inference is returned.
 #'
-#' @param x Pepi object containing fitness and epimutation clocks inference
+#' @param x PEPI object containing fitness and epimutation clocks inference
 #' @param path_to_model String specifying the path where we want to save the stan model for a given depth
 #' @param cmdstan_path String specifying the path to cmdstan folder
 #' @param threshold Threshold for tree pruning
@@ -120,7 +120,7 @@ if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_m
 #' @param ms Mean of lognormal prior for s
 #'  @param sigma Sigma parameter of lognormal prior for s
 #' @param k Number of trials for the beta prior on cluster centroids
-#' @return Pepi object
+#' @return PEPI object
 #' @examples
 #' fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
 #' ndraws = 1000,init = NULL,seed = 45,
@@ -196,9 +196,9 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
 
 
 
-#' A Pepi fit with cell counts inference is returned.
+#' A PEPI fit with cell counts inference is returned.
 #'
-#' @param x Pepi object containing cell counts data
+#' @param x PEPI object containing cell counts data
 #' @param threshold Threshold for tree pruning
 #' @param ndraws Number of draws from the posterior
 #' @param init List of initialization parameters
@@ -211,7 +211,7 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
 #' @param beta_rn rate parameter for gamma prior on - effective switch rate
 #' @param alpha_rp shape parameter for gamma prior on + effective switch rate
 #' @param beta_rp rate parameter for gamma prior on + effective switch rate
-#' @return Pepi fit
+#' @return PEPI fit
 #' @examples
 #' fit_counts(x,path_to_model,cmdstan_path,
 #'                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,

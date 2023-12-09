@@ -118,7 +118,7 @@ plot_tree = function(tree){
 #'
 #' A plot of predicted and input counts is generated.
 #'
-#' @param x Pepi object
+#' @param x PEPI object
 #' @return Plot of the counts.
 #' @examples
 #' plot_counts(x)
