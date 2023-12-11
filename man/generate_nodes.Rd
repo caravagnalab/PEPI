@@ -3,7 +3,7 @@
 \name{generate_nodes}
 \alias{generate_nodes}
 \title{generative models
-Generate a sample tree with input epimutation rates, fraction of truncal mutations and fitness advantage between + and -.}
+Bla bla}
 \usage{
 generate_nodes(
   M,
@@ -43,6 +43,8 @@ generate_nodes(
 sample tree
 }
 \description{
+Generate a sample tree with input epimutation rates, fraction of truncal mutations and fitness advantage between + and -.
+
 A tree with number of mutations per nodes is generated.
 }
 \examples{

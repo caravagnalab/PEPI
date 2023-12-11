@@ -7,7 +7,6 @@
 #' @return PEPI object
 #' @examples
 #' check_input_vaf(data)
-#' @export
 
 check_input_vaf = function(data){
   
@@ -65,7 +64,6 @@ check_input_vaf = function(data){
 #' @return PEPI object
 #' @examples
 #' check_input_counts(data)
-#' @export
  
 check_input_counts = function(data){
     

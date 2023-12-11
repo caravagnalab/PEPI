@@ -11,12 +11,16 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(PEPI)
+library(cmdstanr)
+library(rstan)
+library(dplyr)
+library(ggplot2)
 ```
 
 We load a time series of cell counts generated with rRACES
 
 ```{r}
-
+set.seed(2010)
 data("counts")
 counts
 ```
@@ -32,12 +36,30 @@ x
 We fit cell counts 
 ```{r}
 
-x = fit_counts(x,path_to_model = "models",cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
-                     ndraws = 1000,init = list(list(lambda_minus = 1,lambda_plus = 4,
-                      effective_switch_rate_n = 0.7,  effective_switch_rate_p = 0.8)),
-                      seed = 215, alpha_ln = 150,
-                      beta_ln = 100, alpha_lp = 220, beta_lp = 100, alpha_rn = 100, beta_rn = 200,
-                      alpha_rp = 100, beta_rp = 200)
+x = fit_counts(
+  x,
+  path_to_model = "models",
+  cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
+  ndraws = 1000,
+  init = list(
+    list(
+      lambda_minus = 1,
+      lambda_plus = 4,
+      effective_switch_rate_n = 0.7,
+      effective_switch_rate_p = 0.8
+    )
+  ),
+  seed = 215,
+  alpha_ln = 150,
+  beta_ln = 100,
+  alpha_lp = 220,
+  beta_lp = 100,
+  alpha_rn = 100,
+  beta_rn = 200,
+  alpha_rp = 100,
+  beta_rp = 200
+)
+
 x
 ```
 

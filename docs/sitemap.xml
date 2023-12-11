@@ -4,12 +4,102 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/articles/Counts_inference.html</loc>
+  </url>
+  <url>
+    <loc>/articles/VAF_inference.html</loc>
+  </url>
+  <url>
+    <loc>/articles/index.html</loc>
+  </url>
+  <url>
     <loc>/authors.html</loc>
   </url>
   <url>
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/add_tail_muts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/calculate_ccf.html</loc>
+  </url>
+  <url>
+    <loc>/reference/check_input_counts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/check_input_vaf.html</loc>
+  </url>
+  <url>
+    <loc>/reference/counts_inference_code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/filter_nodes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/fit_counts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/fit_s.html</loc>
+  </url>
+  <url>
+    <loc>/reference/fit_tree.html</loc>
+  </url>
+  <url>
+    <loc>/reference/fitness_inference_code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/generate_nodes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/generate_spectrum.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_average_counts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_average_tree.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_clusters.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_colors.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_pepi_theme.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_posterior.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_prior.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/init_counts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/init_vaf.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_counts.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_inference.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_marginal.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_multivariate.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_tree.html</loc>
+  </url>
+  <url>
+    <loc>/reference/tree_inference_code.html</loc>
   </url>
 </urlset>

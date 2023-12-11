@@ -241,7 +241,7 @@ posterior[,colnames(posterior) == paste0("delta_m_",leav)] =
    fit$posterior$tree = posterior
 }
   
-if(class(x) == "PEPI_VAF" & "fitness" %in% names(fit$inference)){
+if(class(fit) == "PEPI_VAF" & "fitness" %in% names(fit$inference)){
   
   x = fit$inference$fitness
   posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -251,7 +251,7 @@ if(class(x) == "PEPI_VAF" & "fitness" %in% names(fit$inference)){
   
 }
   
-if( class(x) == "PEPI_Counts" & "counts" %in% names(fit$inference)){
+if( class(fit) == "PEPI_Counts" & "counts" %in% names(fit$inference)){
     
   x = fit$inference$counts
     posterior =  x$draws() %>% as.data.frame() %>% as_tibble() %>% 
@@ -441,9 +441,9 @@ get_colors = function(max_depth){
 
 get_pepi_theme = function(){
   
-  ggplot2::theme_light(base_size = 10 * cex_opt) + 
+  ggplot2::theme_light(base_size = 10) + 
     ggplot2::theme(legend.position = "bottom", 
-      legend.key.size = ggplot2::unit(0.3 * cex_opt, "cm"), 
+      legend.key.size = ggplot2::unit(0.3, "cm"), 
       panel.background = ggplot2::element_rect(fill = "white"))
   
 }

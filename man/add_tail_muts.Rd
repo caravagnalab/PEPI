@@ -22,5 +22,5 @@ a table of mutations with number of variants and depth
 Number of tail mutations is assigned to any leave based on its ccf and mutation rate
 }
 \examples{
-gadd_tail_muts(tree,1e-07,2.7*10^9,0.05)
+add_tail_muts(tree,1e-07,2.7*10^9,0.05)
 }

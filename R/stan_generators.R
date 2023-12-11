@@ -8,7 +8,6 @@
 #' @return A string containing a stan model
 #' @examples
 #' tree_inference_code(max_depth = 2,likelihood = T)
-#' @export
 
 
 
@@ -306,7 +305,6 @@ generated quantities{
 #' @return A string containing a stan model
 #' @examples
 #' fitness_inference_code(tree,likelihood = T)
-#' @export
 
 fitness_inference_code = function(tree,likelihood = T){
   
@@ -491,7 +489,6 @@ if(likelihood){
 #' @return A string containing a stan model
 #' @examples
 #' counts_inference_code(likelihood = T)
-#' @export
 
 counts_inference_code = function(likelihood = T){
   

@@ -52,8 +52,7 @@ Suggests: knitr,
     rmarkdown
 Remotes:
     caravagn/easypar,
-    caravagn/viber,
-    caravagn/rRACES
+    caravagn/VIBER
 VignetteBuilder: knitr
 URL: https://github.com/caravagnalab/PEPI,
     https://caravagnalab.github.io/PEPI/

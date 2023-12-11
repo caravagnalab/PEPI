@@ -11,12 +11,24 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(PEPI)
+library(rstan)
+library(cmdstanr)
+library(dplyr)
+library(MCMCprecision)
+library(VGAM)
+library(ggplot2)
+library(ape)
+library(ggtree)
+library(treeio)
+library(ggpubr)
+library(parallel)
 ```
 
 We generate a sample tree encoding epigenetic states and number of mutations of branches
 
 ```{r}
 
+set.seed(1908)
 M = 8000
 mu = 10^-7
 length = 2.7*10^9
@@ -66,12 +78,12 @@ We infer epimutation rates and cluster centroids
 ```{r}
 
 x = fit_tree(x,path_to_model = "models",
-              cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
+              cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
                     max_depth = 3,ndraws = 1000,
-                    init = list(list(rn = 1/6000,rp = 1/9000)), seed = 50,
+                    init = list(list(rn = 1/5000,rp = 1/9000)), seed = 690,
                     mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-                    qt = 1e4,rate_n = 1e-4,qn = 1e3,rate_p = 1e-4,
-                    qp = 1e3,k = 1e4,gamma = 200)
+                    qt = 1e4,rate_n = 1/5000,qn = 1e4,rate_p = 1e-4,
+                    qp = 1e4,k = 1e4,gamma = 150)
 
 ```
 
@@ -108,7 +120,7 @@ We infer s and epimutation clocks
 ```{r}
 
 x = fit_s(x,path_to_model = "models",
-          cmdstan_path = "/.cmdstan/cmdstan-2.33.1",
+          cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
           threshold = 0.1,
           ndraws = 1000,init = NULL,seed = 250,
           mu = 1e-7,l = 2.7*10^9,ms = -1.8, sigma = 0.7, k = 1e3)
@@ -118,6 +130,7 @@ x = fit_s(x,path_to_model = "models",
 We plot the inferred distributions
 ```{r}
 x = get_posterior(x)
+x = get_prior(x,model_types = c("tree","fitness"))
 plot_inference(x,params = c("rn","rp","s"))
 
 ```

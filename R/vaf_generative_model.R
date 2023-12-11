@@ -1,5 +1,8 @@
 #' generative models
 
+#' Bla bla
+#' 
+#' @description 
 #' Generate a sample tree with input epimutation rates, fraction of truncal mutations and fitness advantage between + and -.
 #'
 #' A tree with number of mutations per nodes is generated.
@@ -77,6 +80,7 @@ generate_nodes = function(M,gamma,at,bt,s,rate_minus,rate_plus,mu,len,max_depth 
 
 #' Prunes a sample tree.
 #'
+#' @description
 #' Nodes with low epimutation probability are removed and replaced with a leave.
 #'
 #' @param tree A sample tree 
@@ -203,7 +207,7 @@ calculate_ccf = function(tree,s){
 #' @param vaf_min Minimum detectable VAF of a mutation
 #' @return a table of mutations with number of variants and depth
 #' @examples
-#' gadd_tail_muts(tree,1e-07,2.7*10^9,0.05)
+#' add_tail_muts(tree,1e-07,2.7*10^9,0.05)
 #' @export
 
 add_tail_muts = function(tree,mu,len = 2.7*10^9,vaf_min = 0.05){
