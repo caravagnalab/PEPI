@@ -79,9 +79,8 @@ get_average_tree = function(fit,threshold = NULL){
   
   tree$node = gsub(x = tree$node,pattern = "n",replacement = "-")
   tree$node = gsub(x = tree$node,pattern = "p",replacement = "+")
-  tree = tree %>% mutate(pi = m/M) %>% as_tibble()
-  
-  # tree pruning
+ 
+# tree pruning
   
 if(!is.null(threshold)){
   
@@ -111,6 +110,8 @@ if(!is.null(threshold)){
 
 }    
   }
+  
+  tree = tree %>% mutate(pi = m/M) %>% as_tibble()
   
   fit$inferred_tree = tree
   
