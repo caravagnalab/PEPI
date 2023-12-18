@@ -346,7 +346,6 @@ get_clusters = function(fit){
   
 }
 
-#' to fix
 
 #' Get draws from prior used for the inference
 #'
@@ -393,6 +392,128 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
     return(x)
 
 }
+
+
+#' Clusters mutation with VIBER, a variational multivariate clustering method
+#' which implements a stick-breaking process
+#'
+#' Clusters with centroids VAF coordiates and relative proportion are given.
+#'
+#' @param data Mutation data with number of variants and depth for any mutation and sample
+#' @param K Maximum number of clusters
+#' @param alpha Dirichlet concentration parameter
+#' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
+#' @return 
+#' @examples
+#' get_clusters(data,K = 10,alpha = 1,pi_cutoff = 0.01)
+
+get_clusters = function(data,K = 10,alpha = 1,pi_cutoff = 0.01){
+  
+  DPs =  data %>% dplyr::select(DPx,DPy) %>% rename(X = DPx, Y = DPy)
+  NVs =  data %>% dplyr::select(Nx,Ny) %>% rename(X = Nx, Y = Ny)
+  
+  
+  fit = VIBER::variational_fit(
+    NVs,
+    DPs,
+    K = K,
+    samples = 1,
+    alpha_0 = alpha
+  )
+  
+  fit = VIBER::choose_clusters(
+    fit,
+    binomial_cutoff = 0,
+    dimensions_cutoff = 0,
+    pi_cutoff = pi_cutoff,
+    re_assign = TRUE
+  )
+  
+  pi = data.frame(cluster = names(fit$pi_k),pi = fit$pi_k %>% as.vector())
+  vaf = fit$theta_k %>% t %>% as.data.frame() %>% dplyr::rename(VAFx = X, VAFy = Y)
+  vaf = vaf %>% as.data.frame() %>% mutate(cluster = rownames(vaf)) %>% as_tibble()
+  
+  x = full_join(as_tibble(pi),vaf,by = "cluster")  %>% mutate(m = pi*nrow(data))
+  
+  return(x)
+  
+}
+
+#' Provide a initialization parameters for a PEPI VAF fit
+#'
+#' Return a list of initialization values for some parameters through some euristic.
+#'
+#' @param data Mutation data with number of variants and depth for any mutation and sample
+#' @param K Maximum number of clusters
+#' @param alpha Dirichlet concentration parameter
+#' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
+#' @return 
+#' @examples
+#' get_init(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01)
+#' @export
+
+get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
+  
+  cl =  get_clusters(spectrum,K = K,alpha = alpha,pi_cutoff = pi_cutoff)
+  tr = cl %>% arrange(desc(VAFx + VAFy))
+  nu_t = tr[1,]$pi
+  m_n = tr[1,]$m
+  vaf_minus_n = tr[1,]$VAFx
+  vaf_plus_n = tr[1,]$VAFy
+  claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
+  claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
+  shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
+  
+  if( abs(vaf_minus_n - max(claids_x$VAFx)) > 0.05){
+    
+    vaf_minus_nn = max(claids_x$VAFx)
+    vaf_plus_nn = 0
+    m_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(m)
+    nu_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(pi)
+    
+  }else{
+    
+    m_nn = ifelse(max(claids_x$VAFx) > max(claids_y$VAFy),
+                  shared$m %>% min(),shared$m %>% max())
+    nu_nn = shared %>% filter(m == m_nn) %>% pull(pi)
+    vaf_minus_nn = shared %>% filter(m == m_nn) %>% pull(VAFx)
+    vaf_plus_nn = shared %>% filter(m == m_nn) %>% pull(VAFy)
+    
+  }
+  
+  if(abs(vaf_plus_n - max(claids_y$VAFy)) > 0.05){
+    
+    vaf_plus_np = max(claids_y$VAFy)
+    vaf_minus_np = 0
+    m_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(m)
+    nu_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(pi)
+    
+  }else{
+    
+    m_np = ifelse(max(claids_y$VAFy) > max(claids_x$VAFx),
+                  shared$m %>% min(),shared$m %>% max())
+    nu_np = shared %>% filter(m == m_np) %>% pull(pi)
+    vaf_minus_np = shared %>% filter(m == m_np) %>% pull(VAFx)
+    vaf_plus_np = shared %>% filter(m == m_np) %>% pull(VAFy)
+  }
+  
+  return(list(list(nu_t = nu_t,
+                   m_n = m_n,
+                   delta_m_nn = (nrow(spectrum) - m_n)*0.5,
+                   delta_m_np = (nrow(spectrum) - m_n)*0.5,
+                   m_nn = m_nn,
+                   m_np = m_np,
+                   nu_nn = nu_nn,
+                   nu_np = nu_np,
+                   vaf_minus_n = vaf_minus_n,
+                   vaf_plus_n = vaf_plus_n,
+                   vaf_minus_nn = vaf_minus_nn,
+                   vaf_plus_nn = vaf_plus_nn,
+                   vaf_minus_np = vaf_minus_np,
+                   vaf_plus_np =  vaf_plus_np)))
+  
+}
+
 
 
 #' Associate colors to nodes.
