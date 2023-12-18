@@ -404,7 +404,7 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 #' @param alpha Dirichlet concentration parameter
 #' @param samples Number of fits computed by the algorithm
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
-#' @return 
+#' @return a tibble with clusters names, mixing proportion and vaf coordinates
 #' @examples
 #' get_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
 
@@ -449,7 +449,7 @@ get_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
 #' @param alpha Dirichlet concentration parameter
 #' @param samples Number of fits computed by the algorithm
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
-#' @return 
+#' @return a list with initialization values
 #' @examples
 #' get_init_values(spectrum,K = 10,alpha = 10,samples = 1, pi_cutoff = 0.01)
 #' @export
@@ -528,7 +528,7 @@ return(list(list(nu_t = nu_t,
 #' @param alpha Dirichlet concentration parameter
 #' @param samples Number of fits computed by the algorithm
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
-#' @return 
+#' @return a list with prior means
 #' @examples
 #' get_prior_means(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01)
 #' @export
