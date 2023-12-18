@@ -464,7 +464,7 @@ get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
   claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
   shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
   
-  if( abs(vaf_minus_n - max(claids_x$VAFx)) > 0.05){
+  if( abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
     
     vaf_minus_nn = max(claids_x$VAFx)
     vaf_plus_nn = 0
@@ -481,7 +481,7 @@ get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
     
   }
   
-  if(abs(vaf_plus_n - max(claids_y$VAFy)) > 0.05){
+  if(abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
     
     vaf_plus_np = max(claids_y$VAFy)
     vaf_minus_np = 0
