@@ -394,20 +394,21 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 }
 
 
-#' Clusters mutation with VIBER, a variational multivariate clustering method
-#' which implements a stick-breaking process
+#' Clusters mutation with VIBER, a package that implements a variational 
+#' non parametric Bayesian model to fit multi-variate Binomial mixtures
 #'
 #' Clusters with centroids VAF coordiates and relative proportion are given.
 #'
 #' @param data Mutation data with number of variants and depth for any mutation and sample
 #' @param K Maximum number of clusters
 #' @param alpha Dirichlet concentration parameter
+#' @param samples Number of fits computed by the algorithm
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
 #' @return 
 #' @examples
-#' get_clusters(data,K = 10,alpha = 1,pi_cutoff = 0.01)
+#' get_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
 
-get_clusters = function(data,K = 10,alpha = 1,pi_cutoff = 0.01){
+get_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
   
   DPs =  data %>% dplyr::select(DPx,DPy) %>% rename(X = DPx, Y = DPy)
   NVs =  data %>% dplyr::select(Nx,Ny) %>% rename(X = Nx, Y = Ny)
@@ -417,7 +418,7 @@ get_clusters = function(data,K = 10,alpha = 1,pi_cutoff = 0.01){
     NVs,
     DPs,
     K = K,
-    samples = 1,
+    samples = samples,
     alpha_0 = alpha
   )
   
@@ -441,20 +442,23 @@ get_clusters = function(data,K = 10,alpha = 1,pi_cutoff = 0.01){
 
 #' Provide a initialization parameters for a PEPI VAF fit
 #'
-#' Return a list of initialization values for some parameters through some euristic.
+#' Return a list of initialization values for some parameters through some euristics.
 #'
-#' @param data Mutation data with number of variants and depth for any mutation and sample
+#' @param spectrum Mutation data with number of variants and depth for any mutation and sample
 #' @param K Maximum number of clusters
 #' @param alpha Dirichlet concentration parameter
+#' @param samples Number of fits computed by the algorithm
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
 #' @return 
 #' @examples
-#' get_init(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01)
+#' get_init_values(spectrum,K = 10,alpha = 10,samples = 1, pi_cutoff = 0.01)
 #' @export
 
-get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
+get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
   
-  cl =  get_clusters(spectrum,K = K,alpha = alpha,pi_cutoff = pi_cutoff)
+  cl =  get_clusters(spectrum,K = K,alpha = alpha,
+                     samples = samples, pi_cutoff = pi_cutoff)
+  
   tr = cl %>% arrange(desc(VAFx + VAFy))
   nu_t = tr[1,]$pi
   m_n = tr[1,]$m
@@ -497,7 +501,7 @@ get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
     vaf_plus_np = shared %>% filter(m == m_np) %>% pull(VAFy)
   }
   
-  return(list(list(nu_t = nu_t,
+return(list(list(nu_t = nu_t,
                    m_n = m_n,
                    delta_m_nn = (nrow(spectrum) - m_n)*0.5,
                    delta_m_np = (nrow(spectrum) - m_n)*0.5,
@@ -514,6 +518,56 @@ get_init = function(spectrum,K = 10,alpha = 10,pi_cutoff = 0.01){
   
 }
 
+
+#' Provide prior means for a PEPI VAF fit
+#'
+#' Return means for the beta priors on rates and relative proportion of truncal cluster.
+#'
+#' @param spectrum Mutation data with number of variants and depth for any mutation and sample
+#' @param K Maximum number of clusters
+#' @param alpha Dirichlet concentration parameter
+#' @param samples Number of fits computed by the algorithm
+#' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
+#' @return 
+#' @examples
+#' get_prior_means(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01)
+#' @export
+
+
+get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
+  
+  cl =  get_clusters(spectrum,K = K,alpha = alpha,
+                     samples = samples, pi_cutoff = pi_cutoff)
+  tr = cl %>% arrange(desc(VAFx + VAFy))
+  nu_t = tr[1,]$pi
+  claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
+  claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
+  shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
+  
+  if( abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
+    
+    rn = 1/(nrow(spectrum)*10)
+    
+  }else{
+    
+    rn = ifelse(max(claids_x$VAFx) > max(claids_y$VAFy),
+                1/(shared$m %>% min()),1/(shared$m %>% max()))
+    
+  }
+  
+  if(abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
+    
+    rp = 1/(nrow(spectrum)*10)
+    
+  }else{
+    
+    rp = ifelse(max(claids_y$VAFy) > max(claids_x$VAFx),
+                1/(shared$m %>% min()),1/(shared$m %>% max()))
+  }
+  
+  return(list(nu_t = nu_t,rate_n = rn, rate_p = rp))
+  
+}
 
 
 #' Associate colors to nodes.
