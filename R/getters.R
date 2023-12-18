@@ -539,12 +539,14 @@ get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
   cl =  get_clusters(spectrum,K = K,alpha = alpha,
                      samples = samples, pi_cutoff = pi_cutoff)
   tr = cl %>% arrange(desc(VAFx + VAFy))
+  vaf_minus_n = tr[1,]$VAFx
+  vaf_plus_n = tr[1,]$VAFy
   nu_t = tr[1,]$pi
   claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
   claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
   shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
   
-  if( abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
+  if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
     
     rn = 1/(nrow(spectrum)*10)
     
@@ -555,7 +557,7 @@ get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     
   }
   
-  if(abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
+  if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
     
     rp = 1/(nrow(spectrum)*10)
     
