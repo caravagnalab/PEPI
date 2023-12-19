@@ -406,9 +406,9 @@ get_prior = function(x,model_types = c("tree","counts"),ndraws = 1000){
 #' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
 #' @return a tibble with clusters names, mixing proportion and vaf coordinates
 #' @examples
-#' get_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
+#' get_viber_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
 
-get_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
+get_viber_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
   
   DPs =  data %>% dplyr::select(DPx,DPy) %>% rename(X = DPx, Y = DPy)
   NVs =  data %>% dplyr::select(Nx,Ny) %>% rename(X = Nx, Y = Ny)
@@ -456,7 +456,7 @@ get_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
 
 get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
   
-  cl =  get_clusters(spectrum,K = K,alpha = alpha,
+  cl =  get_viber_clusters(spectrum,K = K,alpha = alpha,
                      samples = samples, pi_cutoff = pi_cutoff)
   
   tr = cl %>% arrange(desc(VAFx + VAFy))
@@ -536,7 +536,7 @@ return(list(list(nu_t = nu_t,
 
 get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
   
-  cl =  get_clusters(spectrum,K = K,alpha = alpha,
+  cl =  get_viber_clusters(spectrum,K = K,alpha = alpha,
                      samples = samples, pi_cutoff = pi_cutoff)
   tr = cl %>% arrange(desc(VAFx + VAFy))
   vaf_minus_n = tr[1,]$VAFx
