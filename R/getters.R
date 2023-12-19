@@ -548,7 +548,7 @@ get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
   
   if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
     
-    rn = 1/(nrow(spectrum)*10)
+    rn = 1/(nrow(spectrum))
     
   }else{
     
@@ -559,7 +559,7 @@ get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
   
   if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
     
-    rp = 1/(nrow(spectrum)*10)
+    rp = 1/(nrow(spectrum))
     
   }else{
     
