@@ -43,7 +43,7 @@ real <lower=0> s;
  } 
 
 transformed parameters{ 
-                        real <lower=0>ccf_minus_npp=2*vaf_minus_npp;
+real <lower=0>ccf_minus_npp=2*vaf_minus_npp;
 real <lower=0>ccf_plus_npp=exp(-(+delta_t_np*1+delta_t_n*(1+s)))/(exp(-(+delta_t_nn*(1+s)+delta_t_n*(1+s)))+exp(-(+delta_t_np*1+delta_t_n*(1+s))));
 real <lower=0>ccf_minus_npn=exp(-(+delta_t_np*1/(1+s)+delta_t_n*1))/(exp(-(+delta_t_nn*1+delta_t_n*1))+exp(-(+delta_t_np*1/(1+s)+delta_t_n*1)));
 real <lower=0>ccf_plus_npn=2*vaf_plus_npn;

@@ -120,13 +120,13 @@ for (j in 1:length(nodes)){
     
   tree =  tree %>% mutate(vaf_minus_sampling = ifelse(node == paste0(nodes[j],"n"),
               paste0("vaf_minus_",paste0(nodes[j],"n"),
-              "~ beta_proportion(vaf_minus_",nodes[j]," + 1e-3,k);"),vaf_minus_sampling),
+              "~ beta_proportion(vaf_minus_",nodes[j]," + 1e-6,k);"),vaf_minus_sampling),
                           vaf_plus_sampling = ifelse(node == paste0(nodes[j],"n"),
         paste0("vaf_plus_",paste0(nodes[j],"n"),"~ beta(1,1e6);"),vaf_plus_sampling))
   
   tree =  tree %>% mutate(vaf_plus_sampling = ifelse(node == paste0(nodes[j],"p"),
                   paste0("vaf_plus_",paste0(nodes[j],"p"),
-                         "~ beta_proportion(vaf_plus_",nodes[j]," + 1e-3,k);"),
+                         "~ beta_proportion(vaf_plus_",nodes[j]," + 1e-6,k);"),
                   vaf_plus_sampling),
                     vaf_minus_sampling = ifelse(node == paste0(nodes[j],"p"),
                  paste0("vaf_minus_",paste0(nodes[j],"p"),"~ beta(1,1e6);"),vaf_minus_sampling))

@@ -146,26 +146,26 @@ nu_nnp ~ beta(p_switch_nnp/rp,delta_m_nnp- p_switch_nnp/rp);
  phi_npn ~ beta(gamma,gamma) ;
 nu_npn ~ beta(p_switch_npn/rn,delta_m_npn- p_switch_npn/rn);
 nu_npp ~ beta(p_switch_npp/rp,delta_m_npp- p_switch_npp/rp);
- vaf_minus_nnnn~ beta_proportion(vaf_minus_nnn + 1e-3,k); 
+ vaf_minus_nnnn~ beta_proportion(vaf_minus_nnn + 1e-6,k); 
  vaf_plus_nnnn~ beta(1,1e6); 
  phi_nnnn ~ beta(gamma,gamma) ;
  vaf_minus_nnnp~ beta(1,1e6); 
- vaf_plus_nnnp~ beta_proportion(vaf_plus_nnn + 1e-3,k); 
- vaf_minus_nnpn~ beta_proportion(vaf_minus_nnp + 1e-3,k); 
+ vaf_plus_nnnp~ beta_proportion(vaf_plus_nnn + 1e-6,k); 
+ vaf_minus_nnpn~ beta_proportion(vaf_minus_nnp + 1e-6,k); 
  vaf_plus_nnpn~ beta(1,1e6); 
  phi_nnpn ~ beta(gamma,gamma) ;
  vaf_minus_nnpp~ beta(1,1e6); 
- vaf_plus_nnpp~ beta_proportion(vaf_plus_nnp + 1e-3,k); 
- vaf_minus_npnn~ beta_proportion(vaf_minus_npn + 1e-3,k); 
+ vaf_plus_nnpp~ beta_proportion(vaf_plus_nnp + 1e-6,k); 
+ vaf_minus_npnn~ beta_proportion(vaf_minus_npn + 1e-6,k); 
  vaf_plus_npnn~ beta(1,1e6); 
  phi_npnn ~ beta(gamma,gamma) ;
  vaf_minus_npnp~ beta(1,1e6); 
- vaf_plus_npnp~ beta_proportion(vaf_plus_npn + 1e-3,k); 
- vaf_minus_nppn~ beta_proportion(vaf_minus_npp + 1e-3,k); 
+ vaf_plus_npnp~ beta_proportion(vaf_plus_npn + 1e-6,k); 
+ vaf_minus_nppn~ beta_proportion(vaf_minus_npp + 1e-6,k); 
  vaf_plus_nppn~ beta(1,1e6); 
  phi_nppn ~ beta(gamma,gamma) ;
  vaf_minus_nppp~ beta(1,1e6); 
- vaf_plus_nppp~ beta_proportion(vaf_plus_npp + 1e-3,k); 
+ vaf_plus_nppp~ beta_proportion(vaf_plus_npp + 1e-6,k); 
 
 
 for (i in 1:n){
