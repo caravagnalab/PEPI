@@ -89,8 +89,10 @@ if(!is.null(threshold)){
   tree = tree %>% mutate(leave = ifelse(!paste0(node,"-") %in% nodes,T,F))
   leaves = tree %>% filter(leave) %>% pull(node)
   
-  for (leav in leaves){
-    
+for (leav in leaves){
+
+if(paste0(substr(x = leav,start = 1,stop = nchar(leav) - 1),"-") %in% leaves & 
+   paste0(substr(x = leav,start = 1,stop = nchar(leav) - 1),"+") %in% leaves){    
     v_m = ifelse(substr(x = leav,start = nchar(leav),stop = nchar(leav)) == "-",
                  tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
                    pull(vaf_minus),1e-6)
@@ -101,6 +103,25 @@ if(!is.null(threshold)){
     delt_m = (tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
                 pull(delta_m) - tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
                  pull(m))*(tree %>% filter(node == leav) %>% pull(phi))
+}else{
+  
+  v_m = ifelse(substr(x = leav,start = nchar(leav),stop = nchar(leav)) == "-",
+               tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
+                 pull(vaf_minus) -  tree %>% filter(node == paste0(substr(x = leav,start = 1,stop = nchar(leav)-1),"+")) %>% 
+                 pull(vaf_minus),1e-6)
+  
+  v_p = ifelse(substr(x = leav,start = nchar(leav),stop = nchar(leav)) == "+",
+              tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
+                pull(vaf_plus) -  tree %>% filter(node == paste0(substr(x = leav,start = 1,stop = nchar(leav)-1),"-")) %>% 
+                pull(vaf_plus),1e-6)
+  
+  delt_m = (tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
+              pull(delta_m) - tree %>% filter(node == substr(x = leav,start = 1,stop = nchar(leav)-1)) %>% 
+              pull(m))*( 1 - tree %>% filter(node %in% 
+            c(paste0(substr(x = leav,start = 1,stop = nchar(leav)-1),"-"),
+              paste0(substr(x = leav,start = 1,stop = nchar(leav)-1),"+")),! leave) %>% pull(phi))
+  
+}
       
     tree = tree %>% rowwise() %>% 
         mutate(vaf_minus = ifelse(node == leav,v_m,vaf_minus),
@@ -460,37 +481,51 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
                      samples = samples, pi_cutoff = pi_cutoff)
   
   tr = cl %>% arrange(desc(VAFx + VAFy))
-  nu_t = tr[1,]$pi
-  m_n = tr[1,]$m
+  nu_n = tr[1,]$pi
+  # m_n = tr[1,]$m
   vaf_minus_n = tr[1,]$VAFx
   vaf_plus_n = tr[1,]$VAFy
   claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
   claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
-  shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
+  shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & 
+                           cluster != tr[1,]$cluster)
   
   if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
     
-    vaf_minus_nn = max(claids_x$VAFx)
-    vaf_plus_nn = 0
-    m_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(m)
-    nu_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(pi)
+    # vaf_minus_nn = max(claids_x$VAFx)
+    # vaf_plus_nn = 0
+    # m_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(m)
+    # nu_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(pi)
     
-  }else{
+    w_minus_nn = max(claids_x$VAFx)/vaf_minus_n
+    w_plus_nn = 0
+    nu_nn = claids_x %>% filter(VAFx == max(claids_x$VAFx)) %>% pull(pi)
+    rn = 1/(nrow(spectrum))
+    
+   }else{
     
     m_nn = ifelse(max(claids_x$VAFx) > max(claids_y$VAFy),
                   shared$m %>% min(),shared$m %>% max())
     nu_nn = shared %>% filter(m == m_nn) %>% pull(pi)
     vaf_minus_nn = shared %>% filter(m == m_nn) %>% pull(VAFx)
     vaf_plus_nn = shared %>% filter(m == m_nn) %>% pull(VAFy)
-    
-  }
+     
+     w_minus_nn =  vaf_minus_nn/vaf_minus_n
+     w_plus_nn = vaf_plus_nn/vaf_plus_n
+     rn = 1/m_nn
+}
   
   if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
     
-    vaf_plus_np = max(claids_y$VAFy)
-    vaf_minus_np = 0
-    m_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(m)
-    nu_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(pi)
+    # vaf_plus_np = max(claids_y$VAFy)
+    # vaf_minus_np = 0
+    # m_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(m)
+    # nu_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(pi)
+    
+    w_plus_np = max(claids_y$VAFy)/vaf_plus_n
+    w_minus_np = 0
+    nu_np = claids_y %>% filter(VAFy == max(claids_y$VAFy)) %>% pull(pi)
+    rp = 1/(nrow(spectrum))
     
   }else{
     
@@ -499,77 +534,42 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     nu_np = shared %>% filter(m == m_np) %>% pull(pi)
     vaf_minus_np = shared %>% filter(m == m_np) %>% pull(VAFx)
     vaf_plus_np = shared %>% filter(m == m_np) %>% pull(VAFy)
-  }
+    
+    w_minus_np =  vaf_minus_np/vaf_minus_n
+    w_plus_np = vaf_plus_np/vaf_plus_n
+    rp = 1/m_np
+    
+ }
   
-return(list(list(nu_t = nu_t,
-                   m_n = m_n,
-                   delta_m_nn = (nrow(spectrum) - m_n)*0.5,
-                   delta_m_np = (nrow(spectrum) - m_n)*0.5,
-                   m_nn = m_nn,
-                   m_np = m_np,
+# return(list(list(nu_t = nu_t,
+#                    m_n = m_n,
+#                    delta_m_nn = (nrow(spectrum) - m_n)*0.5,
+#                    delta_m_np = (nrow(spectrum) - m_n)*0.5,
+#                    m_nn = m_nn,
+#                    m_np = m_np,
+#                    nu_nn = nu_nn,
+#                    nu_np = nu_np,
+#                    vaf_minus_n = vaf_minus_n,
+#                    vaf_plus_n = vaf_plus_n,
+#                    vaf_minus_nn = vaf_minus_nn,
+#                    vaf_plus_nn = vaf_plus_nn,
+#                    vaf_minus_np = vaf_minus_np,
+#                    vaf_plus_np =  vaf_plus_np)))
+  
+  return(list(list(nu_n = nu_n,
                    nu_nn = nu_nn,
                    nu_np = nu_np,
+                   rn = rn,
+                   rp = rp,
                    vaf_minus_n = vaf_minus_n,
                    vaf_plus_n = vaf_plus_n,
-                   vaf_minus_nn = vaf_minus_nn,
-                   vaf_plus_nn = vaf_plus_nn,
-                   vaf_minus_np = vaf_minus_np,
-                   vaf_plus_np =  vaf_plus_np)))
+                   w_minus_nn = w_minus_nn,
+                   w_plus_nn = w_plus_nn,
+                   w_minus_np = w_minus_np,
+                   w_plus_np =  w_plus_np)))
   
 }
 
-
-#' Provide prior means for a PEPI VAF fit
-#'
-#' Return means for the beta priors on rates and relative proportion of truncal cluster.
-#'
-#' @param spectrum Mutation data with number of variants and depth for any mutation and sample
-#' @param K Maximum number of clusters
-#' @param alpha Dirichlet concentration parameter
-#' @param samples Number of fits computed by the algorithm
-#' @param pi_cutoff Cutoff on mixing proportions to filter clusters and reassign mutations
-#' @return a list with prior means
-#' @examples
-#' get_prior_means(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01)
-#' @export
-
-
-get_prior_means = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
-  
-  cl =  get_viber_clusters(spectrum,K = K,alpha = alpha,
-                     samples = samples, pi_cutoff = pi_cutoff)
-  tr = cl %>% arrange(desc(VAFx + VAFy))
-  vaf_minus_n = tr[1,]$VAFx
-  vaf_plus_n = tr[1,]$VAFy
-  nu_t = tr[1,]$pi
-  claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
-  claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
-  shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & cluster != tr[1,]$cluster)
-  
-  if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
-    
-    rn = 1/(nrow(spectrum))
-    
-  }else{
-    
-    rn = ifelse(max(claids_x$VAFx) > max(claids_y$VAFy),
-                1/(shared$m %>% min()),1/(shared$m %>% max()))
-    
-  }
-  
-  if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
-    
-    rp = 1/(nrow(spectrum))
-    
-  }else{
-    
-    rp = ifelse(max(claids_y$VAFy) > max(claids_x$VAFx),
-                1/(shared$m %>% min()),1/(shared$m %>% max()))
-  }
-  
-  return(list(nu_t = nu_t,rate_n = rn, rate_p = rp))
-  
-}
 
 
 #' Associate colors to nodes.
