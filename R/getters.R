@@ -482,13 +482,15 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
   
   tr = cl %>% arrange(desc(VAFx + VAFy))
   nu_n = tr[1,]$pi
-  # m_n = tr[1,]$m
+  m_n = tr[1,]$m
+  delta  = (nrow(spectrum) - m_n)*0.5
   vaf_minus_n = tr[1,]$VAFx
   vaf_plus_n = tr[1,]$VAFy
   claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
   claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
   shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & 
                            cluster != tr[1,]$cluster)
+
   
   if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
     
@@ -510,9 +512,20 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     vaf_minus_nn = shared %>% filter(m == m_nn) %>% pull(VAFx)
     vaf_plus_nn = shared %>% filter(m == m_nn) %>% pull(VAFy)
      
-     w_minus_nn =  vaf_minus_nn/vaf_minus_n
-     w_plus_nn = vaf_plus_nn/vaf_plus_n
-     rn = 1/m_nn
+    w_minus_nn =  vaf_minus_nn/vaf_minus_n
+    w_plus_nn = vaf_plus_nn/vaf_plus_n
+     
+  lk = function(r){
+       
+       alpha = 1/r*(1-exp(-r*delta))
+       
+       - dbeta(nu_nn,shape1 = alpha, shape2 = delta - alpha)
+     }
+    
+   mle = nlm(lk,1/m_nn,stepmax = 1/(10*m_nn))
+   
+   rn = mle$estimate
+     
 }
   
   if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
@@ -537,7 +550,17 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     
     w_minus_np =  vaf_minus_np/vaf_minus_n
     w_plus_np = vaf_plus_np/vaf_plus_n
-    rp = 1/m_np
+    
+    lk = function(r){
+      
+      alpha = 1/r*(1-exp(-r*delta))
+      
+      - dbeta(nu_np,shape1 = alpha, shape2 = delta - alpha)
+    }
+    
+    mle = nlm(lk,1/m_np,stepmax = 1/m_np)
+    
+    rp = mle$estimate
     
  }
   
