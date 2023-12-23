@@ -482,22 +482,14 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
   
   tr = cl %>% arrange(desc(VAFx + VAFy))
   nu_n = tr[1,]$pi
-  m_n = tr[1,]$m
-  delta  = (nrow(spectrum) - m_n)*0.5
   vaf_minus_n = tr[1,]$VAFx
   vaf_plus_n = tr[1,]$VAFy
   claids_x = cl %>% filter(VAFy < 0.01 & VAFx > 0.01) 
   claids_y = cl %>% filter(VAFy > 0.01 & VAFx < 0.01) 
   shared = cl %>% filter(VAFx > 0.01 & VAFy > 0.01 & 
                            cluster != tr[1,]$cluster)
-
   
   if( abs(vaf_plus_n - max(claids_y$VAFy)) < 0.05){
-    
-    # vaf_minus_nn = max(claids_x$VAFx)
-    # vaf_plus_nn = 0
-    # m_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(m)
-    # nu_nn = claids_x %>% filter(VAFx == vaf_minus_nn) %>% pull(pi)
     
     w_minus_nn = max(claids_x$VAFx)/vaf_minus_n
     w_plus_nn = 0
@@ -512,29 +504,13 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     vaf_minus_nn = shared %>% filter(m == m_nn) %>% pull(VAFx)
     vaf_plus_nn = shared %>% filter(m == m_nn) %>% pull(VAFy)
      
-    w_minus_nn =  vaf_minus_nn/vaf_minus_n
-    w_plus_nn = vaf_plus_nn/vaf_plus_n
-     
-  lk = function(r){
-       
-       alpha = 1/r*(1-exp(-r*delta))
-       
-       - dbeta(nu_nn,shape1 = alpha, shape2 = delta - alpha)
-     }
-    
-   mle = nlm(lk,1/m_nn,stepmax = 1/(10*m_nn))
-   
-   rn = mle$estimate
-     
+     w_minus_nn =  vaf_minus_nn/vaf_minus_n
+     w_plus_nn = vaf_plus_nn/vaf_plus_n
+     rn = 1/m_nn
 }
   
   if(abs(vaf_minus_n - max(claids_x$VAFx)) < 0.05){
-    
-    # vaf_plus_np = max(claids_y$VAFy)
-    # vaf_minus_np = 0
-    # m_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(m)
-    # nu_np = claids_y %>% filter(VAFy == vaf_plus_np) %>% pull(pi)
-    
+   
     w_plus_np = max(claids_y$VAFy)/vaf_plus_n
     w_minus_np = 0
     nu_np = claids_y %>% filter(VAFy == max(claids_y$VAFy)) %>% pull(pi)
@@ -550,36 +526,11 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
     
     w_minus_np =  vaf_minus_np/vaf_minus_n
     w_plus_np = vaf_plus_np/vaf_plus_n
-    
-    lk = function(r){
-      
-      alpha = 1/r*(1-exp(-r*delta))
-      
-      - dbeta(nu_np,shape1 = alpha, shape2 = delta - alpha)
-    }
-    
-    mle = nlm(lk,1/m_np,stepmax = 1/m_np)
-    
-    rp = mle$estimate
+    rp = 1/m_np
     
  }
-  
-# return(list(list(nu_t = nu_t,
-#                    m_n = m_n,
-#                    delta_m_nn = (nrow(spectrum) - m_n)*0.5,
-#                    delta_m_np = (nrow(spectrum) - m_n)*0.5,
-#                    m_nn = m_nn,
-#                    m_np = m_np,
-#                    nu_nn = nu_nn,
-#                    nu_np = nu_np,
-#                    vaf_minus_n = vaf_minus_n,
-#                    vaf_plus_n = vaf_plus_n,
-#                    vaf_minus_nn = vaf_minus_nn,
-#                    vaf_plus_nn = vaf_plus_nn,
-#                    vaf_minus_np = vaf_minus_np,
-#                    vaf_plus_np =  vaf_plus_np)))
-  
-  return(list(list(nu_n = nu_n,
+
+ return(list(list( nu_n = nu_n,
                    nu_nn = nu_nn,
                    nu_np = nu_np,
                    rn = rn,
