@@ -1,1 +1,2 @@
 # PEPI
+PEPI is a software package implementing a statistical framework to study epigenetic dynamics using genomics data and cell count information. The model considers an experimental design in which cells are sorted according to their epimutation state (positive vs. negative) prior to sequencing. Variant Allele Frequencies (VAFs) are then obtained from the two sorted populations, together with the corresponding cell counts. This procedure can be repeated across multiple time points, enabling the study of epigenetic dynamics over time.

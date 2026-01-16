@@ -14,7 +14,7 @@ Authors@R: c(
 Description: PEPI is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
   The first application deals with the study of a latent branching process augmented with genetic mutations that are accumulated 
   at every division with constant mutation rate, independently of the epigenetic state, and measured by bulk whole-genome DNA 
-  sequencing (a common NGS technology).We consider a simple experimental design where cells are sorted (i.e., separated) based on their epimutation state (+ versus −) prior 
+  sequencing (a common NGS technology).We consider an experimental design where cells are sorted (i.e., separated) based on their epimutation state (+ versus −) prior 
   to sequencing, and Variant Allele Frequencies (VAFs) are generated from two samples. 
   With two samples, the VAFs spectrum is bi-variate as any mutation is identified by two coordinates in VAF space. 
   Our intuition is to associate to a VAF spectrum a tree where branches and nodes have an interpretation in terms of 
