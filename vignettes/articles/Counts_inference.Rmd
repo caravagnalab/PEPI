@@ -21,7 +21,6 @@ We load a time series of cell counts generated with rRACES
 
 ```{r}
 set.seed(2010)
-data("counts")
 counts
 ```
 
@@ -39,7 +38,7 @@ We fit cell counts
 x = fit_counts(
   x,
   path_to_model = "models",
-  cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
+  cmdstan_path = cmdstanr::cmdstan_path(),
   ndraws = 1000,
   init = list(
     list(

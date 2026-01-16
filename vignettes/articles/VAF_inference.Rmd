@@ -78,7 +78,7 @@ We infer epimutation rates and cluster centroids
 ```{r}
 
 x = fit_tree(x,path_to_model = "models",
-              cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
+              cmdstan_path = cmdstanr::cmdstan_path(),
                     max_depth = 3,ndraws = 1000,
                     init = list(list(rn = 1/5000,rp = 1/9000)), seed = 690,
                     mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
@@ -120,7 +120,7 @@ We infer s and epimutation clocks
 ```{r}
 
 x = fit_s(x,path_to_model = "models",
-          cmdstan_path = "/opt/anaconda3/envs/stan/bin/cmdstan/",
+          cmdstan_path = cmdstanr::cmdstan_path(),
           threshold = 0.1,
           ndraws = 1000,init = NULL,seed = 250,
           mu = 1e-7,l = 2.7*10^9,ms = -1.8, sigma = 0.7, k = 1e3)
