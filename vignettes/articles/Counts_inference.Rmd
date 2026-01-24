@@ -39,7 +39,7 @@ x = fit_counts(
   x,
   cmdstan_path = cmdstanr::cmdstan_path(),
   ndraws = 5000,
-  seed = 215,
+  seed = 1000,
   alpha_n = 0.5,
   beta_n = 2,
   alpha_p = 0.2,
@@ -50,7 +50,8 @@ x = fit_counts(
   sigma_epi = 0.5
 )
 
-x
+print(x)
+
 ```
 
 

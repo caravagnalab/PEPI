@@ -282,8 +282,9 @@ fit_counts = function(x,cmdstan_path,
   
   fit = mod$variational(data = data, seed = seed,
                         init = init,
-                        output_samples = ndraws, 
+                        output_samples = ndraws,
                         algorithm="fullrank")
+  
   
   x$inference$counts = fit
   x$stan_data$counts = data
