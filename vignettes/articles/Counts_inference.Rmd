@@ -37,26 +37,17 @@ We fit cell counts
 
 x = fit_counts(
   x,
-  path_to_model = "models",
   cmdstan_path = cmdstanr::cmdstan_path(),
-  ndraws = 1000,
-  init = list(
-    list(
-      lambda_minus = 5,
-      lambda_plus = 8,
-      effective_switch_rate_n = 0.7,
-      effective_switch_rate_p = 0.8
-    )
-  ),
+  ndraws = 5000,
   seed = 215,
-  alpha_ln = 1000,
-  beta_ln = 1000,
-  alpha_lp = 1200,
-  beta_lp = 1000,
-  alpha_rn = 100,
-  beta_rn = 200,
-  alpha_rp = 100,
-  beta_rp = 200
+  alpha_n = 0.5,
+  beta_n = 2,
+  alpha_p = 0.2,
+  beta_p = 10,
+  alpha_lambda = 1,
+  beta_lambda = 1,
+  ms_epi = 0.1,
+  sigma_epi = 0.5
 )
 
 x
@@ -77,7 +68,6 @@ We plot the posterior of growth rates and effective switching rates
 ```{r}
 
 x = get_posterior(x)
-x = get_prior(x,model_types = c("counts"))
-plot_inference(x,params = c("lambda_minus","lambda_plus","effective_switch_rate_n","effective_switch_rate_p"))
+plot_inference(x,params = c("lambda_minus","s_epi","omega_p","omega_n"))
 ```
 

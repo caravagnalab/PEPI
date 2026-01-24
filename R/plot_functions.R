@@ -132,14 +132,14 @@ plot_counts = function(x){
     stop("no predicted counts")
   }
   
-  obj = rbind(x$counts %>% mutate(type = "data") %>% 
-                dplyr::select(-genotype),
+  obj = rbind(x$counts %>% 
+                dplyr::select(epistate,time,count) %>% mutate(type = "data") ,
         x$predicted_counts %>% mutate(type = "prediction"))
   
   cls = c("dodgerblue","black")
   names(cls) = c("prediction","data")
     
-  plot = ggplot(obj) + geom_point(aes(x = time,y = counts,color = type)) + 
+  plot = ggplot(obj) + geom_point(aes(x = time,y = count,color = type)) + 
           scale_color_manual(values = cls) + facet_grid(~epistate) + 
           get_pepi_theme()
   
@@ -159,17 +159,24 @@ plot_counts = function(x){
 
 plot_inference = function(x,params = NULL){
   
-  prior = rbind(as_tibble(x$prior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
-                as_tibble(x$prior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
-                as_tibble(x$prior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
-    mutate(type = "prior") 
+  prior = x$posterior$counts %>% reshape2::melt() %>% filter(grepl(variable,pattern = "prior")) %>%
+    mutate(variable = gsub(x = variable,pattern = "_prior",replace = "")) %>% mutate(type = "prior") %>% 
+    filter(variable %in% params) 
   
-  post = rbind(as_tibble(x$posterior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
-               as_tibble(x$posterior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
-               as_tibble(x$posterior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
-    mutate(type = "post")  
+  post = x$posterior$counts %>% reshape2::melt() %>% filter(!grepl(variable,pattern = "prior")) %>%
+    mutate(type = "posterior") %>% filter(variable %in% params)
   
-  sampling = rbind(prior,post)
+  # prior = rbind(as_tibble(x$prior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
+  #               as_tibble(x$prior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
+  #               as_tibble(x$prior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
+  #   mutate(type = "prior") 
+  
+  # post = rbind(as_tibble(x$posterior$tree) %>% mutate(class = "tree") %>% reshape2::melt(),
+  #              as_tibble(x$posterior$fitness) %>% mutate(class = "fitness") %>% reshape2::melt(),
+  #              as_tibble(x$posterior$counts) %>% mutate(class = "counts") %>% reshape2::melt()) %>% 
+  #   mutate(type = "post")  
+  
+  sampling = rbind(prior,post) %>% mutate(class = "counts")
   
   if(!is.null(params)){
     
@@ -186,7 +193,13 @@ plot_inference = function(x,params = NULL){
   cls = c("indianred","steelblue","darkgreen")
   names(cls) = c("tree","fitness","counts")
   
-  ggplot(sampling) + geom_density(aes(x = value, alpha = type,fill = class)) + 
+  # ggplot(sampling) + geom_density(aes(x = value, alpha = type,fill = class)) + 
+  #   facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
+  #   scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
+  #   scale_fill_manual(values = cls) + 
+  #   get_pepi_theme() + theme(legend.position="none")
+  
+  ggplot(sampling) + geom_histogram(aes(x = value, alpha = type,fill = class)) + 
     facet_wrap(~variable,scales = "free",nrow = nr, ncol = nc)  + 
     scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) + 
     scale_fill_manual(values = cls) + 

@@ -35,14 +35,18 @@ data {
   array[n_times] real zminus;
   array[n_times] real zplus;
   array[n_times] real t;
-  real <lower = 0> alpha_ln;
-  real <lower = 0> beta_ln;
-  real <lower = 0> alpha_lp;
-  real <lower = 0> beta_lp;
-  real <lower = 0> alpha_rn;
-  real <lower = 0> beta_rn;
-  real <lower = 0> alpha_rp;
-  real <lower = 0> beta_rp;
+  real <lower = 0> alpha_lambda;
+  real <lower = 0> beta_lambda;
+  real ms_epi;
+  real <lower=0> sigma_epi;
+  real <lower = 0> alpha_n;
+  real <lower = 0> beta_n;
+  real <lower = 0> alpha_p;
+  real <lower = 0> beta_p;
+  // real <lower=0> alpha_minus;
+  // real <lower=0> beta_minus;
+  // real <lower=0> alpha_plus;
+  // real <lower=0> beta_plus;
   
 }
 
@@ -53,28 +57,38 @@ data {
 
 parameters {
   real<lower=0> lambda_minus;
-  real<lower=0> lambda_plus;
-  real<lower=0> effective_switch_rate_n; // omega_plus / lambda_minus
-  real<lower=0> effective_switch_rate_p; // omega_minus / lambda_plus
+  real<lower=0> s_hat;
+  real<lower=0> omega_p; 
+  real<lower=0> omega_n; 
+  // real<lower=0> sigma_plus; 
+  // real<lower=0> sigma_minus; 
 }
 
 transformed parameters {
+  
+  real <lower=-1> s_epi;
+  s_epi = s_hat - 1;
+
   array[4] real theta;
   
   theta[1] = lambda_minus;
-  theta[2] = lambda_plus;
-  theta[3] = effective_switch_rate_p*lambda_plus; // omega_minus
-  theta[4] = effective_switch_rate_n*lambda_minus; // omega_plus
+  theta[2] = lambda_minus*(1+s_epi);
+  theta[3] = omega_n; // omega_minus
+  theta[4] = omega_p; // omega_plus
+  
+  array[n_times] vector[5] z_hat = ode_rk45(switching_process, z0, t0, t, theta);
 }
 
 model {
   // real z_hat[n_times,5];
-  array[n_times] vector[5] z_hat = ode_rk45(switching_process, z0, t0, t, theta);
   
-  target += gamma_lpdf(lambda_minus | alpha_ln, beta_ln);
-  target += gamma_lpdf(lambda_plus | alpha_lp, beta_lp);
-  target += gamma_lpdf(effective_switch_rate_n | alpha_rn, beta_rn);
-  target += gamma_lpdf(effective_switch_rate_p | alpha_rp, beta_rp);
+  target += gamma_lpdf(lambda_minus | alpha_lambda, beta_lambda);
+  s_hat ~ lognormal(ms_epi,sigma_epi);
+  target += gamma_lpdf(omega_p | alpha_p, beta_p);
+  target += gamma_lpdf(omega_n | alpha_n, beta_n);
+  
+  // sigma_minus ~ gamma(alpha_minus,beta_minus);
+  // sigma_plus ~ gamma(alpha_plus,beta_plus);
 
   // z_hat = integrate_ode_rk45(switching_process, z0, t0, t, theta, x_r, x_i);
 
@@ -92,14 +106,26 @@ generated quantities {
   // real var_minus[n_times];
   // real var_plus[n_times];
   // real pred[n_times, 5] = integrate_ode_rk45(switching_process, z0, t0, t, theta, x_r, x_i);
-  array[n_times] vector[5] pred = ode_rk45(switching_process, z0, t0, t, theta);
+  // array[n_times] vector[5] pred = ode_rk45(switching_process, z0, t0, t, theta);
 
   for (i in 1:n_times){
-    pred_minus[i] = pred[i,1];
-    pred_plus[i] = pred[i,2];
+    pred_minus[i] = normal_rng(z_hat[i,1], sqrt(z_hat[i,3]));
+    pred_plus[i] = normal_rng( z_hat[i,2], sqrt(z_hat[i,4]));
     // var_minus[i] = pred[i,3];
     // var_plus[i] = pred[i,4];
   }
+  
+  
+  real  s_epi_prior;
+  real <lower = 0> lambda_minus_prior;
+  real <lower = 0> omega_p_prior;
+  real <lower = 0> omega_n_prior;
+  
+  s_epi_prior = lognormal_rng(ms_epi,sigma_epi) - 1;
+  lambda_minus_prior = gamma_rng(alpha_lambda,beta_lambda);
+  omega_n_prior = gamma_rng(alpha_n,beta_n);
+  omega_p_prior = gamma_rng(alpha_p,beta_p);
+  
 }
 
 

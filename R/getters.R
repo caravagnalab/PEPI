@@ -167,13 +167,13 @@ get_average_counts = function(x){
                      dplyr::select(starts_with("pred_minus")) %>% reshape2::melt() %>% 
                      group_by(variable) %>% summarize(value = mean(value)) %>% 
                      mutate(epistate = "-",time = times) %>% dplyr::select(epistate,time,value) %>% 
-                     dplyr::rename(counts = value),
+                     dplyr::rename(count = value),
                      x$inference$counts$draws() %>% as.data.frame() %>% as_tibble() %>% 
                      dplyr::select(starts_with("pred_plus")) %>% reshape2::melt() %>% 
                      group_by(variable) %>% summarize(value = mean(value)) %>% 
                      mutate(epistate = "+",time = times) %>% dplyr::select(epistate,time,value) %>% 
-                     dplyr::rename(counts = value),
-                     x$counts %>% filter(time == t0) %>% dplyr::select(-genotype)) %>% 
+                     dplyr::rename(count = value),
+                     x$counts %>% filter(time == t0) %>% dplyr::select(epistate,time,count)) %>% 
                     arrange(time)
   
   return(x)

@@ -219,13 +219,16 @@ if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
 #'                      alpha_rp = 1, beta_rp = 10)
 #' @export
 
-fit_counts = function(x,path_to_model,cmdstan_path,
-                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
-                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
-                      alpha_rp = 1, beta_rp = 10
+fit_counts = function(x,cmdstan_path,
+                      ndraws = 1000,init = NULL,seed = 45, alpha_n = 0.2,
+                      beta_n = 10, alpha_p = 0.2, beta_p = 10,
+                      alpha_lambda = 1,  beta_lambda  = 1,
+                      ms_epi = 0.1,
+                      sigma_epi = 0.5
                       ){
   
-  dir.create(path_to_model)
+  
+  
   cmdstanr::set_cmdstan_path(cmdstan_path)
   
   if(is.null(x$counts)){
@@ -234,42 +237,46 @@ fit_counts = function(x,path_to_model,cmdstan_path,
     
   }
   
-  model = counts_inference_code(likelihood = T)
+  # model = counts_inference_code(likelihood = T)
   
-  if(! "regressionODE.stan" %in% list.files(path_to_model)){
-    
-    write_stan_file(
-      model,
-      dir = ".",
-      basename = paste0(path_to_model,"/regressionODE.stan"),
-      force_overwrite = FALSE,
-      hash_salt = ""
-    )
-    
-  }
+  # if(! "regressionODE.stan" %in% list.files(path_to_model)){
+  #   
+  #   write_stan_file(
+  #     model,
+  #     dir = ".",
+  #     basename = paste0(path_to_model,"/regressionODE.stan"),
+  #     force_overwrite = FALSE,
+  #     hash_salt = ""
+  #   )
+  #   
+  # }
   
   t0 = counts$time %>% min()
-  z0n = counts %>% filter(time == t0,epistate == "-") %>% pull(counts)
-  z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(counts)
+  z0n = counts %>% filter(time == t0,epistate == "-") %>% pull(count)
+  z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(count)
     
   data  = list(
     n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique() %>% length(),
     z0 = c(z0n,z0p,0,0,0),
     t0 = t0,
-    zminus = counts %>% filter(time > t0, epistate == "-") %>% pull(counts), 
-    zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(counts),
-    t = counts %>% filter(time > 0) %>% pull(time) %>% unique(),
-    alpha_ln = alpha_ln,
-    beta_ln = beta_ln,
-    alpha_lp = alpha_lp,
-    beta_lp = beta_lp,
-    alpha_rn = alpha_rn,
-    beta_rn = beta_rn,
-    alpha_rp = alpha_rp,
-    beta_rp = beta_rp 
+    zminus = counts %>% filter(time > t0, epistate == "-") %>% pull(count), 
+    zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(count),
+    t = counts %>% filter(time > t0) %>% pull(time) %>% unique(),
+    alpha_n = alpha_n,
+    beta_n = beta_n,
+    alpha_p = alpha_p ,
+    beta_p =  beta_p,
+    alpha_lambda = alpha_lambda ,
+    beta_lambda =  beta_lambda ,
+    ms_epi =  ms_epi,
+    sigma_epi = sigma_epi
 )
   
- file = paste0(path_to_model,"/regressionODE.stan")
+ file = system.file(
+   "stan",
+   "regressionODE.stan",
+   package = "PEPI"
+ )
   
   mod = cmdstan_model(file)
   

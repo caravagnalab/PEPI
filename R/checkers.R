@@ -71,7 +71,7 @@ check_input_counts = function(data){
       
       stop("Missing epistate")
     }
-    if(! "counts" %in% colnames(data)){
+    if(! "count" %in% colnames(data)){
       
       stop("Missing counts")
     }
@@ -83,7 +83,7 @@ check_input_counts = function(data){
       
       stop("Epistates should be + and -")
     }
-    if(! sum(data$counts >= 0)/nrow(data)){
+    if(! sum(data$count >= 0)/nrow(data)){
       
       stop("Counts must be positive")
     }
