@@ -1,290 +1,141 @@
-
-
-#' Fit a multivariate vaf spectrum with epigenetic tree model.
+#' Fit a PEPI model using Stan and update the PEPI object
 #'
-#' A PEPI fit with tree inference is returned.
+#' This function takes a PEPI object, fits a tumor evolutionary model
+#' using Stan, and updates the PEPI object with the fitted model and Stan data.
 #'
-#' @param x PEPI object containing VAF multivariate spectrum
-#' @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
-#' @param cmdstan_path String specifying the path to cmdstan folder
-#' @param max_depth Maximum number of levels
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param mu Mutation rate per division per bp per allele
-#' @param l length of the genome
-#' @param rho_n Purity of - sample
-#'  @param rho_p Purity of + sample
-#' @param nu_t Mean of the beta prior on fraction of truncal mutations
-#' @param qt Number of trials of the beta prior on fraction of truncal mutations
-#' @param rate_n Mean of the beta prior on the epimutation rate from - to +
-#' @param qn Number of trials for the beta prior on the epimutation rate from - to +
-#' @param rate_p Mean of the beta prior on the epimutation rate from + to -
-#' @param qp Number of trials for the beta prior on the epimutation rate from - to +
-#' @param k Number of trials for the beta prior on cluster centroids
-#' @param gamma Concentration of a Dirichlet distribution to split mutations at any node
-#' @return PEPI object
+#' @param pepi A PEPI object containing clade_statistics, Counts, and genomic_constants.
+#' @param model_type Character. The model prior to use: "logistic" (default), "gumbel", or "log".
+#' @param ms_driver_n Numeric vector. Prior mean for driver_n clusters. Default automatically set if NULL.
+#' @param sigma_driver_n Numeric vector. Prior SD for driver_n clusters. Default automatically set if NULL.
+#' @param ms_dc Numeric vector. Prior mean for DC clusters. Default automatically set if NULL.
+#' @param sigma_dc Numeric vector. Prior SD for DC clusters. Default automatically set if NULL.
+#' @param ms_cd Numeric vector. Prior mean for CD clusters. Default automatically set if NULL.
+#' @param sigma_cd Numeric vector. Prior SD for CD clusters. Default automatically set if NULL.
+#' @param alpha_lambda Numeric. Hyperparameter for lambda prior. Default 1.
+#' @param beta_lambda Numeric. Hyperparameter for lambda prior. Default 1.
+#' @param alpha_plus Numeric. Hyperparameter for positive epistate prior. Default 10.
+#' @param beta_plus Numeric. Hyperparameter for positive epistate prior. Default 250.
+#' @param alpha_minus Numeric. Hyperparameter for negative epistate prior. Default 1.
+#' @param beta_minus Numeric. Hyperparameter for negative epistate prior. Default 1.
+#' @param alpha_n Numeric. Hyperparameter for negative counts prior. Default 0.5.
+#' @param beta_n Numeric. Hyperparameter for negative counts prior. Default 20.
+#' @param alpha_p Numeric. Hyperparameter for positive counts prior. Default 0.2.
+#' @param beta_p Numeric. Hyperparameter for positive counts prior. Default 10.
+#' @param t_min Numeric. Minimum time prior. Default 0.
+#' @param ms_epi Numeric. Prior mean for epistate. Default 0.
+#' @param sigma_epi Numeric. Prior SD for epistate. Default 0.5.
+#' @param ccf_thr_clade Numeric. Threshold for clade CCF. Default 0.05.
+#' @param ccf_thr_count Numeric. Threshold for count CCF. Default 0.02.
+#' @param include_bp Logical. Whether to include base pair information. Default FALSE.
+#' @param n_chains Integer. Number of Stan chains. Default 4.
+#' @param adapt_delta Numeric. Stan adapt_delta parameter. Default 0.8.
+#' @param iter_warmup Integer. Number of warmup iterations. Default 1000.
+#' @param iter_sampling Integer. Number of sampling iterations. Default 1000.
+#'
+#' @return A PEPI object updated with:
+#' \item{stan_data}{The Stan data list used for fitting.}
+#' \item{fit}{The fitted \code{cmdstanr::CmdStanMCMC} object.}
+#'
 #' @examples
-#' fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
-#' max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
-#' mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-#' qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
-#' qp = 1e4,k = 1e4,gamma = 150)
+#' \dontrun{
+#' pepi_object <- fit_pepi(pepi_object, model_type = "logistic")
+#' }
+#' 
 #' @export
-
-fit_tree = function(x,path_to_model,cmdstan_path,
-                    max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
-                    mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-                    qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
-                    qp = 1e4,k = 1e4,gamma = 150){
+fit_pepi <- function(
+    pepi,
+    model_type = "logistic",
+    ms_driver_n = NULL,
+    sigma_driver_n = NULL,
+    ms_dc = NULL,
+    sigma_dc = NULL,
+    ms_cd = NULL,
+    sigma_cd = NULL,
+    alpha_lambda = 1, beta_lambda = 1,
+    alpha_plus = 10, beta_plus = 250,
+    alpha_minus = 1, beta_minus = 1,
+    alpha_n = 0.5, beta_n = 20,
+    alpha_p = 0.2, beta_p = 10,
+    t_min = 0,
+    ms_epi = 0,
+    sigma_epi = 0.5,
+    ccf_thr_clade = 0.05,
+    ccf_thr_count = 0.02,
+    include_bp = FALSE,
+    n_chains = 4,
+    adapt_delta = 0.8,
+    iter_warmup = 1000,
+    iter_sampling = 1000
+) {
   
-  dir.create(path_to_model)
-  cmdstanr::set_cmdstan_path(cmdstan_path)
-
-  spectrum = x$VAF
+  # --- Detect cmdstan path and Stan model file ---
+  if (!requireNamespace("cmdstanr", quietly = TRUE)) stop("Package 'cmdstanr' required.")
+  cmdstanr::set_cmdstan_path()
   
+  models_path <- file.path(getwd(), "models")
+  if (!model_type %in% c("logistic","gumbel","log")) stop("model_type must be 'logistic', 'gumbel', or 'log'.")
+  stan_file <- file.path(models_path, model_type, "model.stan")
+  if (!file.exists(stan_file)) stop("Stan model file not found: ", stan_file)
   
-  if(is.null(spectrum)){
-    
-    stop("no VAF spectrum") 
-    
-  }
+  # --- Extract Stan data from pepi ---
+  stan_data <- get_stan_data_pepi(pepi)
   
-  model = tree_inference_code(max_depth = max_depth,likelihood = T)
-
-if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_model)){ 
+  # --- Fill prior parameters ---
+  N_driver_n <- stan_data$N_driver_n
+  N_dc <- stan_data$N_dc
+  N_cd <- stan_data$N_cd
   
-  write_stan_file(
-    model,
-    dir = ".",
-    basename = paste0(path_to_model,"/tree_inference_depth_",max_depth,".stan"),
-    force_overwrite = FALSE,
-    hash_salt = ""
-  )
+  if (is.null(ms_driver_n)) ms_driver_n <- if (N_driver_n>0) rep(0,N_driver_n) else numeric(0)
+  if (is.null(sigma_driver_n)) sigma_driver_n <- if (N_driver_n>0) rep(1.5,N_driver_n) else numeric(0)
   
-}
+  if (is.null(ms_dc)) ms_dc <- if (N_dc>0) rep(0,N_dc) else numeric(0)
+  if (is.null(sigma_dc)) sigma_dc <- if (N_dc>0) rep(1.5,N_dc) else numeric(0)
   
-  data = list(
-    delta_m_n = spectrum %>% nrow(),
-    mu = mu,
-    l = l,
-    nu_t = nu_t,
-    qt = qt,
-    rate_n = rate_n,
-    qn = qn,
-    rate_p = rate_p,
-    qp = qp,
-    n = nrow(spectrum),
-    Nn = spectrum$Nx,
-    Np = spectrum$Ny,
-    DPn = spectrum$DPx,
-    DPp = spectrum$DPy,
-    gamma = gamma,
-    rho_n = rho_n,
-    rho_p = rho_p,
-    k = k)
+  if (is.null(ms_cd)) ms_cd <- if (N_cd>0) rep(0,N_cd) else numeric(0)
+  if (is.null(sigma_cd)) sigma_cd <- if (N_cd>0) rep(1.5,N_cd) else numeric(0)
   
-  file = paste0(path_to_model,"/tree_inference_depth_",max_depth,".stan")
-  
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                             init = init,
-                             output_samples = ndraws, 
-                             algorithm="fullrank")
-  
-  pepi = list(inference = list(tree = fit),stan_data = list(tree = data), max_depth = max_depth)
-  
-  x$inference$tree = fit
-  x$stan_data$tree = data
-  x$max_depth = max_depth
-  
-  return(x)
-  
-}
-
-
-#' Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
-#'
-#' A PEPI fit with fitness inference is returned.
-#'
-#' @param x PEPI object containing fitness and epimutation clocks inference
-#' @param path_to_model String specifying the path where we want to save the stan model for a given depth
-#' @param cmdstan_path String specifying the path to cmdstan folder
-#' @param threshold Threshold for tree pruning
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param mu Mutation rate per division per bp per allele
-#' @param l length of the genome
-#' @param ms Mean of lognormal prior for s
-#'  @param sigma Sigma parameter of lognormal prior for s
-#' @param k Number of trials for the beta prior on cluster centroids
-#' @return PEPI object
-#' @examples
-#' fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
-#' ndraws = 1000,init = NULL,seed = 45,
-#' mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
-#' @export
-
-fit_s = function(x,path_to_model,cmdstan_path,threshold = 0.1,
-                 ndraws = 1000,init = NULL,seed = 45,
-                 mu = 1e-7,l = 2.7*10^9,ms = -0.5, sigma = 0.5, k = 100){
-  
-  dir.create(path_to_model)
-  cmdstanr::set_cmdstan_path(cmdstan_path)
-  
-  if(is.null(x$inference$tree)){
-    
-    stop("no tree inference") 
-    
-  }
-
-  if(!is.null(x$inferred_tree)){  
-  x = get_average_tree(x,threshold = threshold)}
-  
-  tree = x$inferred_tree
-  
-  model = fitness_inference_code(tree,likelihood = T)
-
-if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
-  
-  write_stan_file(
-    model,
-    dir = ".",
-    basename = paste0(path_to_model,"/fitness_inference.stan"),
-    force_overwrite = FALSE,
-    hash_salt = ""
-  )
-
-}
-  
-  data = list(delta_t_n = 0,
-              mu = mu,
-              l = l,
-              ms = ms,
-              sigma = sigma,
-              k = k)
-  
-  param = tree %>% reshape2::melt() %>% 
-    mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
-      mutate(node = gsub(x = node,pattern = "\\+",replacement = "p")) %>% 
-    filter(variable %in% c("m","vaf_minus","vaf_plus")) %>% 
-      mutate(variable = paste0(variable,"_",node)) %>% dplyr::select(variable,value)
-  
-  extra_data = param$value
-  names(extra_data) = param$variable
-  
-  data = append(data,extra_data)
-  
-  file = paste0(path_to_model,"/fitness_inference.stan")
-  
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                             init = init,
-                             output_samples = ndraws, 
-                             algorithm="fullrank")
-  
-  x$inference$fitness = fit
-  x$stan_data$fitness = data
-  
-  return(x)
-  
-}
-
-
-
-
-#' A PEPI fit with cell counts inference is returned.
-#'
-#' @param x PEPI object containing cell counts data
-#' @param threshold Threshold for tree pruning
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param alpha_ln shape parameter for gamma prior on - growth rate
-#' @param beta_ln rate parameter for gamma prior on - growth rate
-#' @param alpha_lp shape parameter for gamma prior on + growth rate
-#' @param beta_lp rate parameter for gamma prior on + growth rate
-#' @param alpha_rn shape parameter for gamma prior on - effective switch rate
-#' @param beta_rn rate parameter for gamma prior on - effective switch rate
-#' @param alpha_rp shape parameter for gamma prior on + effective switch rate
-#' @param beta_rp rate parameter for gamma prior on + effective switch rate
-#' @return PEPI fit
-#' @examples
-#' fit_counts(x,path_to_model,cmdstan_path,
-#'                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
-#'                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
-#'                      alpha_rp = 1, beta_rp = 10)
-#' @export
-
-fit_counts = function(x,path_to_model,cmdstan_path,
-                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
-                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
-                      alpha_rp = 1, beta_rp = 10
-                      ){
-  
-  dir.create(path_to_model)
-  cmdstanr::set_cmdstan_path(cmdstan_path)
-  
-  if(is.null(x$counts)){
-    
-    stop("no cell counts") 
-    
-  }
-  
-  model = counts_inference_code(likelihood = T)
-  
-  if(! "regressionODE.stan" %in% list.files(path_to_model)){
-    
-    write_stan_file(
-      model,
-      dir = ".",
-      basename = paste0(path_to_model,"/regressionODE.stan"),
-      force_overwrite = FALSE,
-      hash_salt = ""
+  # --- Combine data and priors for Stan ---
+  stan_data <- c(
+    stan_data,
+    list(
+      ms_driver_n = ms_driver_n,
+      sigma_driver_n = sigma_driver_n,
+      ms_dc = ms_dc,
+      sigma_dc = sigma_dc,
+      ms_cd = ms_cd,
+      sigma_cd = sigma_cd,
+      alpha_lambda = alpha_lambda,
+      beta_lambda = beta_lambda,
+      alpha_plus = alpha_plus,
+      beta_plus = beta_plus,
+      alpha_minus = alpha_minus,
+      beta_minus = beta_minus,
+      t_min = t_min,
+      ms_epi = ms_epi,
+      sigma_epi = sigma_epi,
+      ccf_thr_count = ccf_thr_count,
+      ccf_thr_clade = ccf_thr_clade,
+      alpha_n = alpha_n,
+      beta_n = beta_n,
+      alpha_p = alpha_p,
+      beta_p = beta_p,
+      include_bp = include_bp
     )
-    
-  }
+  )
   
-  t0 = counts$time %>% min()
-  z0n = counts %>% filter(time == t0,epistate == "-") %>% pull(counts)
-  z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(counts)
-    
-  data  = list(
-    n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique() %>% length(),
-    z0 = c(z0n,z0p,0,0,0),
-    t0 = t0,
-    zminus = counts %>% filter(time > t0, epistate == "-") %>% pull(counts), 
-    zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(counts),
-    t = counts %>% filter(time > 0) %>% pull(time) %>% unique(),
-    alpha_ln = alpha_ln,
-    beta_ln = beta_ln,
-    alpha_lp = alpha_lp,
-    beta_lp = beta_lp,
-    alpha_rn = alpha_rn,
-    beta_rn = beta_rn,
-    alpha_rp = alpha_rp,
-    beta_rp = beta_rp 
-)
+  # --- Compile and fit Stan model ---
+  mod <- cmdstanr::cmdstan_model(stan_file)
+  fit <- mod$sample(
+    data = stan_data,
+    chains = n_chains,
+    iter_warmup = iter_warmup,
+    iter_sampling = iter_sampling,
+    adapt_delta = adapt_delta
+  )
   
- file = paste0(path_to_model,"/regressionODE.stan")
+  # --- Update PEPI object ---
+  pepi$stan_data <- stan_data
+  pepi$fit <- fit
   
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                        init = init,
-                        output_samples = ndraws, 
-                        algorithm="fullrank")
-  
-  x$inference$counts = fit
-  x$stan_data$counts = data
-  
-  return(x)
-  
+  return(pepi)
 }
-
-
-
-
