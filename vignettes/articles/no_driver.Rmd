@@ -230,7 +230,7 @@ We compare the ground truth with the inferred posterior distributions for $\omeg
 
 ## Posterior Predictive Checks
 
-```{r rewind-ppc}
+```{r no_driver-ppc}
 plot_posterior_predictive(pepi_obj, parameter = "m_clade[1]")
 ```
 
