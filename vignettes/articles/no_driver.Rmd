@@ -1,0 +1,435 @@
+|                                                       |
+|-------------------------------------------------------|
+| title: "Inference of Epigenetic Plasticity with PEPI" |
+| author: "PEPI Developers"                             |
+| date: "`r Sys.Date()`"                                |
+| output: html_document                                 |
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette illustrates a complete analysis workflow using the PEPI package. PEPI implements a Bayesian framework for quantifying epigenetic plasticity from bulk genomic data and longitudinal cell counts.
+
+We analyze two datasets included in the package:
+
+- no_driver_example: a system with a strongly heritable epigenetic state 
+- rewind_example: a system with a plastic (unstable) epigenetic state
+
+Both datasets were simulated with ProCess, a cancer evolution simulator available at https://github.com/caravagnalab/ProCESS. Cancer cells were collected at two time points and sorted according to their epistate. On both subset of cells, WGS is simulated in order to obtain a VAF coordinate for any time point and epistate. In these datasets the are not subclonal expansion associated with driver events. Both datasets are analyzed using the same statistical model, highlighting how different biological regimes lead to distinct posterior inferences.
+
+# Load Libraries
+
+```{r setup}
+library(PEPI)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(reshape2)
+```
+
+# Case 1: Heritable Epigenetic State (no_driver_example)
+
+## Forest Structure
+
+```{r no-driver-forest}
+forest <- PEPI::no_driver_example$forest
+plot_forest(forest)
+```
+
+The tree shows multiple transitions from $\ominus$ to $\oplus$ state, with a dominant early clade.
+The negative population is dominated by the first expansion, with few transitions from $\oplus$ to $\ominus$ state.
+
+
+## VAF Space
+
+```{r no-driver-vaf}
+muts <- PEPI::no_driver_example$muts
+
+get_branch = function(forest,cell_id,stop_id){
+  
+  s = cell_id
+  branch = s
+  
+  while(s > stop_id){
+    
+    s =  forest %>% filter(cell_id == s) %>% pull(ancestor)
+    if(s > stop_id){branch = c(branch,s)}
+  }
+  
+  return(branch)
+  
+}
+id = forest %>% filter(epistate == "+") %>% pull(cell_id) %>% min()
+
+ids = get_branch(forest,stop_id = 0,cell_id = id)
+
+muts = muts %>% mutate(label = ifelse(cell_id %in% ids,"first clade",
+                                      ifelse(cell_id == 0,"truncal","subclonal")))
+
+
+p1 <- plot_vaf(muts, variables = c("vaf_1_n", "vaf_1_p"))
+p2 <- plot_vaf(muts, variables = c("vaf_2_n", "vaf_2_p"))
+ggarrange(plotlist= list(p1$scatterplots[[1]],p2$scatterplots[[1]]),nrow = 1, ncol = 2,common.legend = T) 
+```
+
+Clear clustering in VAF space reflects coherent clonal structure. We observe in particular a cluster  revealing the expansion of the first clade. The stability of the $\oplus$ state is reflected by its low VAF variable in $\ominus$ sample.
+
+
+## PEPI object construction
+
+```{r no_driver obj construction}
+m = muts %>% filter(label == "first clade") %>% nrow()
+
+vaf = muts %>% filter(label == "first clade") %>% dplyr::select(starts_with("vaf")) %>% 
+  reshape2::melt() %>% group_by(variable) %>% summarize(v = mean(value)) %>% 
+  pivot_wider(names_from = variable,values_from = v)
+
+
+clade_statistics <- tibble(
+      cluster_name = "S",
+      n_muts = m,
+      vaf_1_n = vaf$vaf_1_n,
+      vaf_1_p = vaf$vaf_1_p,
+      vaf_2_n = vaf$vaf_2_n,
+      vaf_2_p = vaf$vaf_2_p,
+      is_clade = TRUE,
+      names = "first clade",
+      driver_type = "",
+      has_driver = FALSE,
+      rewind = FALSE
+)
+
+
+times = forest %>% filter(!is.na(sample)) %>% group_by(sample) %>% 
+  summarize(t = max(birth_time)) %>% pull(t) %>% sort()
+
+counts = no_driver_example$counts
+
+n_times = 2
+
+c1 = counts %>% filter(time >= times[1] - 0.01 & time < times[1] + 0.01)
+c1 = c1[c(nrow(c1)-1,nrow(c1)),]
+c2 = counts %>% filter(time >= times[2] - 0.01 & time < times[2] + 0.01)
+c2 = c2[c(nrow(c2)-1,nrow(c2)),]
+
+ztot  = c(c1 %>% pull(count) %>% sum(),c2 %>% pull(count) %>% sum())
+
+rho_1 = forest %>% filter(sample == "Sampling_1") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_1_n = (rho_1 %>% filter(epistate == "-") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+ccf_1_p = (rho_1 %>% filter(epistate == "+") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+
+rho_2 = forest %>% filter(sample == "Sampling_2") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_2_n = (rho_2 %>% filter(epistate == "-") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+ccf_2_p = (rho_2 %>% filter(epistate == "+") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+
+zminus = c(ccf_1_n,ccf_2_n)*ztot
+zplus =  c(ccf_1_p,ccf_2_p)*ztot
+
+
+counts <- tibble(
+  count_n = zminus,
+  count_p = zplus,
+  time = times
+)
+
+mu = no_driver_example$mu$mean
+  
+genomic_constants <- tibble(
+  variable = c("genome_length", "mu"),
+  value = c(51e6, mu)
+)
+
+pepi_obj = init(clade_statistics = clade_statistics,counts = counts,
+                genomic_constants = genomic_constants)
+
+pepi_obj
+```
+
+The object requires clade statistics (number of mutations, ccf), total cell counts at the different time points and genomic constants as mutation rate and genomic length.
+
+## Model Fitting
+
+```{r no-driver-fit}
+
+pepi_obj <- fit_pepi(
+  pepi_obj,
+  model_type = "logistic",
+  ms_driver_n = NULL,
+  sigma_driver_n = NULL,
+  ms_dc = NULL,
+  sigma_dc = NULL,
+  ms_cd = NULL,
+  sigma_cd = NULL,
+  alpha_lambda = 1, beta_lambda = 1,
+  alpha_plus = 10, beta_plus = 220,
+  alpha_minus = 10, beta_minus = 220,
+  alpha_n = 1, beta_n = 100,
+  alpha_p = 0.2, beta_p = 10,
+  t_min = -40,
+  ms_epi = 0.1, sigma_epi = 0.5,
+  ccf_thr_clade = 0.15, ccf_thr_count = 0.02,
+  include_bp = FALSE,
+  n_chains = 4, adapt_delta = 0.95,
+  iter_warmup = 1000, iter_sampling = 5000
+)
+```
+
+PEPI is performed with 4 parallel chains of 5000 samples and 1000 warmup iterations.
+
+## Posterior and Prior
+
+```{r no-driver-posterior}
+pepi_obj <- get_posterior(pepi_obj)
+pepi_obj <- get_prior(pepi_obj)
+```
+We collect prior and posterior from PEPI object.
+## Epigenetic Switching Rate
+
+```{r no-driver-s-epi}
+p_omega <- plot_inference(pepi_obj, parameter = c("omega_p"), log_scale = TRUE)
+
+# Data frame for the line
+vline_df <- data.frame(threshold = "Threshold", xval = 2.5e-02)
+
+# Add geom_vline with aesthetic mapping
+p_omega = p_omega +
+  geom_vline(data = vline_df,
+             aes(xintercept = xval, color = threshold),
+             linetype = "dashed") +
+  scale_color_manual(name = "Ground truth", values = "red")
+
+p_s <- plot_inference(
+  pepi_obj,
+  parameter = c("s_epi"), log_scale = F)
+  
+  # Data frame for the line
+  vline_df <- data.frame(threshold = "Threshold", xval = 0)
+  
+  # Add geom_vline with aesthetic mapping
+  p_s = p_s +
+    geom_vline(
+      data = vline_df,
+      aes(xintercept = xval, color = threshold),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(name = "Ground truth", values = "red"
+    )
+
+ggarrange(plotlist = list(p_omega,p_s),nrow = 1,ncol = 2,common.legend = T)
+```
+
+We compare the ground truth with the inferred posterior distributions for $\omega_\oplus$ and $s_\oplus$.
+
+
+## Posterior Predictive Checks
+
+```{r rewind-ppc}
+plot_posterior_predictive(pepi_obj, parameter = "m_clade[1]")
+```
+
+The predictive distribution aligns with observed number of mutation, indicating adequate model fit.
+
+
+# Case 2: Plastic Epigenetic State (rewind_example)
+
+## Forest Structure
+
+```{r rewind-forest}
+forest <- PEPI::rewind_example$forest
+plot_forest(forest)
+```
+
+Compared to the previous case, the lineage structure is more intertwined, reflecting epigenetic plasticity. In particular we can observe multiple epimutational transitions from $\ominus$ to $\oplus$ 
+
+## VAF Space
+
+```{r rewind-vaf}
+muts <- PEPI::rewind_example$muts
+
+id = forest %>% filter(epistate == "+") %>% pull(cell_id) %>% min()
+
+ids = get_branch(forest,stop_id = 0,cell_id = id)
+
+muts = muts %>% mutate(label = ifelse(cell_id %in% ids,"first clade",
+                                      ifelse(cell_id == 0,"truncal","subclonal")))
+
+
+p1 <- plot_vaf(muts, variables = c("vaf_1_n", "vaf_1_p"))
+p2 <- plot_vaf(muts, variables = c("vaf_2_n", "vaf_2_p"))
+ggarrange(plotlist= list(p1$scatterplots[[1]],p2$scatterplots[[1]]),nrow = 1, ncol = 2,
+          common.legend = T) 
+```
+
+VAF clade cluster is at high frequency in both samples, consistent with state rewiring.
+
+```{r obj_rew_constr}
+
+m = muts %>% filter(label == "first clade") %>% nrow()
+
+vaf = muts %>% filter(label == "first clade") %>% dplyr::select(starts_with("vaf")) %>% 
+  reshape2::melt() %>% group_by(variable) %>% summarize(v = median(value)) %>% 
+  pivot_wider(names_from = variable,values_from = v)
+
+
+clade_statistics <- tibble(
+      cluster_name = "S",
+      n_muts = m,
+      vaf_1_n = vaf$vaf_1_n,
+      vaf_1_p = vaf$vaf_1_p,
+      vaf_2_n = vaf$vaf_2_n,
+      vaf_2_p = vaf$vaf_2_p,
+      is_clade = TRUE,
+      names = "first clade",
+      driver_type = "",
+      has_driver = FALSE,
+      rewind = T
+)
+
+
+times = forest %>% filter(!is.na(sample)) %>% group_by(sample) %>% 
+  summarize(t = max(birth_time)) %>% pull(t) %>% sort()
+
+counts = rewind_example$counts
+
+n_times = 2
+
+c1 = counts %>% filter(time >= times[1] - 0.01 & time < times[1] + 0.01)
+c1 = c1[c(nrow(c1)-1,nrow(c1)),]
+c2 = counts %>% filter(time >= times[2] - 0.01 & time < times[2] + 0.01)
+c2 = c2[c(nrow(c2)-1,nrow(c2)),]
+
+ztot  = c(c1 %>% pull(count) %>% sum(),c2 %>% pull(count) %>% sum())
+
+rho_1 = forest %>% filter(sample == "Sampling_1") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_1_n = (rho_1 %>% filter(epistate == "-") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+ccf_1_p = (rho_1 %>% filter(epistate == "+") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+
+rho_2 = forest %>% filter(sample == "Sampling_2") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_2_n = (rho_2 %>% filter(epistate == "-") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+ccf_2_p = (rho_2 %>% filter(epistate == "+") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+
+zminus = c(ccf_1_n,ccf_2_n)*ztot
+zplus =  c(ccf_1_p,ccf_2_p)*ztot
+
+
+counts <- tibble(
+  count_n = zminus,
+  count_p = zplus,
+  time = times
+)
+
+mu = rewind_example$mu$mean
+  
+genomic_constants <- tibble(
+  variable = c("genome_length", "mu"),
+  value = c(51e6, mu)
+)
+
+pepi_obj = init(clade_statistics = clade_statistics,counts = counts,
+                genomic_constants = genomic_constants)
+
+pepi_obj
+
+```
+## Model Fitting
+
+After constructed the PEPI object we performed the inference
+ with 4 chains of 5000 samples and warmupt of 1000 samples.
+ 
+```{r rewind-fit}
+pepi_obj <- fit_pepi(
+  pepi_obj,
+  model_type = "logistic",
+  ms_driver_n = NULL,
+  sigma_driver_n = NULL,
+  ms_dc = NULL,
+  sigma_dc = NULL,
+  ms_cd = NULL,
+  sigma_cd = NULL,
+  alpha_lambda = 6, beta_lambda = 5,
+  alpha_plus = 25, beta_plus = 50,
+  alpha_minus = 10, beta_minus = 125,
+  alpha_n = 0.5, beta_n = 2,
+  alpha_p = 0.2, beta_p = 10,
+  t_min = -50,
+  ms_epi = 0.1, sigma_epi = 0.5,
+  ccf_thr_clade = 0.3, ccf_thr_count = 0.05,
+  include_bp = T,
+  n_chains = 4, adapt_delta = 0.95,
+  iter_warmup = 1000, iter_sampling = 5000
+)
+```
+
+## Posterior Inference
+
+```{r rewind-posterior}
+pepi_obj <- get_posterior(pepi_obj)
+pepi_obj <- get_prior(pepi_obj)
+p_omega <- plot_inference(pepi_obj, parameter = c("omega_p"), log_scale = TRUE)
+
+# Data frame for the line
+vline_df <- data.frame(threshold = "Threshold", xval = 2.5e-02)
+
+# Add geom_vline with aesthetic mapping
+p_omega = p_omega +
+  geom_vline(data = vline_df,
+             aes(xintercept = xval, color = threshold),
+             linetype = "dashed") +
+  scale_color_manual(name = "Ground truth", values = "red")
+
+p_s <- plot_inference(
+  pepi_obj,
+  parameter = c("s_epi"), log_scale = F)
+  
+  # Data frame for the line
+  vline_df <- data.frame(threshold = "Threshold", xval = 0.2)
+  
+  # Add geom_vline with aesthetic mapping
+  p_s = p_s +
+    geom_vline(
+      data = vline_df,
+      aes(xintercept = xval, color = threshold),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(name = "Ground truth", values = "red"
+    )
+  
+  p_n <- plot_inference(
+  pepi_obj,
+  parameter = c("omega_n"), log_scale = T)
+  
+  # Data frame for the line
+  vline_df <- data.frame(threshold = "Threshold", xval = 0.5)
+  
+  # Add geom_vline with aesthetic mapping
+  p_n = p_n +
+    geom_vline(
+      data = vline_df,
+      aes(xintercept = xval, color = threshold),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(name = "Ground truth", values = "red"
+    )
+
+ggarrange(plotlist = list(p_omega,p_s,p_n),nrow = 1,ncol = 3,common.legend = T)
+```
+
+We compare the ground truth with the inferred posterior distributions for $\omega_\oplus$, $s_\oplus$ and 
+$\omega_n$.
+
+
+## Posterior Predictive Checks
+
+```{r rewind-ppc}
+plot_posterior_predictive(pepi_obj, parameter = "z_clade[1,1,1]")
+```
+
+The predictive distribution aligns with observed clade size in the $\ominus$ sample, indicating adequate model fit.
+

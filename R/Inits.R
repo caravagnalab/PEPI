@@ -40,6 +40,7 @@
 #' )
 #'
 #' pepi <- init(clade_statistics, counts, genomic_constants)
+
 init <- function(clade_statistics, counts, genomic_constants) {
   
   check_input_vaf(clade_statistics)
@@ -47,9 +48,9 @@ init <- function(clade_statistics, counts, genomic_constants) {
   check_genomic_constants(genomic_constants)
   
   pepi <- list(
-    VAF = clade_statistics,
-    Counts = counts,
-    Genomic_constants = genomic_constants
+    clade_statistics = clade_statistics,
+    counts = counts,
+    genomic_constants = genomic_constants
   )
   
   class(pepi) <- "PEPI"

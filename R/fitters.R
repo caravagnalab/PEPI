@@ -15,8 +15,8 @@
 #' @param beta_lambda Numeric. Hyperparameter for lambda prior. Default 1.
 #' @param alpha_plus Numeric. Hyperparameter for positive epistate prior. Default 10.
 #' @param beta_plus Numeric. Hyperparameter for positive epistate prior. Default 250.
-#' @param alpha_minus Numeric. Hyperparameter for negative epistate prior. Default 1.
-#' @param beta_minus Numeric. Hyperparameter for negative epistate prior. Default 1.
+#' @param alpha_minus Numeric. Hyperparameter for negative epistate prior. Default 10.
+#' @param beta_minus Numeric. Hyperparameter for negative epistate prior. Default 250.
 #' @param alpha_n Numeric. Hyperparameter for negative counts prior. Default 0.5.
 #' @param beta_n Numeric. Hyperparameter for negative counts prior. Default 20.
 #' @param alpha_p Numeric. Hyperparameter for positive counts prior. Default 0.2.
@@ -31,6 +31,8 @@
 #' @param adapt_delta Numeric. Stan adapt_delta parameter. Default 0.8.
 #' @param iter_warmup Integer. Number of warmup iterations. Default 1000.
 #' @param iter_sampling Integer. Number of sampling iterations. Default 1000.
+#' @param seed Integer. Seed of the inference. Default 1.
+#' @param parallel_chains Integer. Number of chains to run in parallel. Default 1
 #'
 #' @return A PEPI object updated with:
 #' \item{stan_data}{The Stan data list used for fitting.}
@@ -53,7 +55,7 @@ fit_pepi <- function(
     sigma_cd = NULL,
     alpha_lambda = 1, beta_lambda = 1,
     alpha_plus = 10, beta_plus = 250,
-    alpha_minus = 1, beta_minus = 1,
+    alpha_minus = 10, beta_minus = 250,
     alpha_n = 0.5, beta_n = 20,
     alpha_p = 0.2, beta_p = 10,
     t_min = 0,
@@ -65,7 +67,8 @@ fit_pepi <- function(
     n_chains = 4,
     adapt_delta = 0.8,
     iter_warmup = 1000,
-    iter_sampling = 1000
+    iter_sampling = 1000,
+    seed = 1
 ) {
   
   # --- Detect cmdstan path and Stan model file ---
@@ -128,9 +131,11 @@ fit_pepi <- function(
   fit <- mod$sample(
     data = stan_data,
     chains = n_chains,
+    parallel_chains = parallel_chains,
     iter_warmup = iter_warmup,
     iter_sampling = iter_sampling,
-    adapt_delta = adapt_delta
+    adapt_delta = adapt_delta,
+    seed = seed
   )
   
   # --- Update PEPI object ---

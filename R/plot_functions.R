@@ -14,14 +14,14 @@ plot_inference <- function(pepi, parameter, log_scale = FALSE) {
     pepi$prior %>% filter(variable == parameter)
   )
   
-  p <- ggplot(draws, aes(x = value, fill = type, alpha = type)) +
-    geom_histogram(position = "identity", bins = 100) +
-    theme_minimal() +
+  p <- ggplot(draws, aes(x = value, alpha = type)) +
+    geom_histogram(position = "identity", bins = 100,fill = "steelblue") +
+    theme_bw() +
     scale_alpha_manual(values = c(posterior = 1, prior = 0.5)) +
     labs(x = parameter, y = "Count") +
-    theme(legend.position = "top")
+    theme(legend.position = "top") 
   
-  if (log_scale) p <- p + scale_x_log10()
+  if (log_scale) p <- p + scale_x_log10() 
   
   return(p)
 }
@@ -31,30 +31,99 @@ plot_inference <- function(pepi, parameter, log_scale = FALSE) {
 #'
 #' @param pepi A PEPI object with `posterior` extracted.
 #' @param parameter Name of the posterior predictive variable (starts with "pred").
-#' @param obs Optional data frame with columns: variable and exp (observed value).
-#' @param ncol Number of columns in facet_wrap if assembling multiple variables.
 #' @param log_scale Logical, whether to plot x-axis on log scale.
 #' @return A ggplot object.
 #' @export
-plot_posterior_predictive <- function(pepi, parameter, obs = NULL, ncol = 4, log_scale = TRUE) {
+plot_posterior_predictive <- function(pepi, parameter, log_scale = TRUE) {
   if (is.null(pepi$posterior)) stop("Posterior not found. Run get_posterior() first.")
   
-  draws <- pepi$posterior %>% filter(variable == parameter)
+  draws <- pepi$posterior %>% mutate(variable = 
+                      gsub(x = variable,pattern = "_pred",replacement = "")) %>% 
+          filter(variable == parameter)
+  
   if (nrow(draws) == 0) stop("Parameter not found in posterior draws.")
   
   p <- ggplot(draws, aes(x = value)) +
     geom_histogram(fill = "steelblue", bins = 100, position = "stack") +
-    theme_minimal() +
+    theme_bw() +
     labs(x = parameter, y = "Count")
   
-  if (!is.null(obs)) {
-    p <- p + geom_vline(data = obs %>% filter(variable == parameter), 
-                        aes(xintercept = exp), linetype = "dashed", color = "red")
+  get_parameter_value <- function(pepi, parameter) {
+    
+    # Parse variable name and indices
+    if (grepl("\\[", parameter)) {
+      var <- strsplit(parameter, split = "\\[")[[1]][1]
+      indices <- gsub("\\]", "", strsplit(strsplit(parameter, "\\[")[[1]][2], ",")[[1]])
+      indices <- as.numeric(indices)
+    } else {
+      var <- parameter
+      indices <- NULL
+    }
+    
+    # If variable starts with z_ → compute from ccf_* arrays
+    if (startsWith(var, "z_")) {
+      type <- sub("z_", "", var)  # wt, clade, dc_driver, dc_clade, cd_driver, cd_clade
+      ccf_name <- switch(type,
+                         "wt" = "ccf_wt",
+                         "clade" = "ccf_clade",
+                         "dc_driver" = "ccf_dc_driver",
+                         "dc_clade" = "ccf_dc_clade",
+                         "cd_driver" = "ccf_cd_driver",
+                         "cd_clade" = "ccf_cd_clade",
+                         stop("Unknown z_* type: ", type))
+      
+      if (!ccf_name %in% names(pepi$stan_data)) stop("CCF array not found: ", ccf_name)
+      ccf <- pepi$stan_data[[ccf_name]]
+      
+      if (length(indices) == 2) {
+        # z_wt[i,j] → clade i, time j, epistate = last index
+        val <- ccf[indices[1], indices[2]]
+        epistate <- indices[2]
+        if (type == "wt") {
+          val <- val * ifelse(epistate == 1, pepi$stan_data$zminus[indices[2]],
+                              pepi$stan_data$zplus[indices[2]])
+        }
+        return(val)
+      }
+      
+      if (length(indices) == 3) {
+        val <- ccf[indices[1], indices[2], indices[3]]
+        epistate <- indices[3]
+        time_idx <- indices[2]
+        val <- val * ifelse(epistate == 1, pepi$stan_data$zminus[time_idx],
+                            pepi$stan_data$zplus[time_idx])
+        return(val)
+      }
+      
+      stop("Unsupported number of indices for z_* variable: ", parameter)
+      
+    } else {
+      # regular variable in stan_data
+      if (!var %in% names(pepi$stan_data)) stop("Variable ", var, " not found in pepi$stan_data")
+      val <- pepi$stan_data[[var]]
+      
+      if (is.null(indices)) return(val)
+      
+      if (length(indices) == 1) return(val[indices[1]])
+      if (length(indices) == 2) return(val[indices[1], indices[2]])
+      if (length(indices) == 3) return(val[indices[1], indices[2], indices[3]])
+      
+      stop("Unsupported number of indices for parameter: ", parameter)
+    }
   }
+  
+  
+  
+  exp = get_parameter_value(pepi, parameter = parameter) 
+  
+  
+    p <- p + geom_vline(aes(xintercept = exp), linetype = "dashed", color = "red")
+    
   
   if (log_scale) p <- p + scale_x_log10()
   
   return(p)
+
 }
 
 
@@ -81,7 +150,7 @@ plot_forest <- function(forest) {
     dplyr::pull(species)
   
   # Assign a ggsci color palette
-  species_colors <- ggsci::pal_igv()(length(species))
+  species_colors <- ggsci::pal_nejm()(length(species))
   names(species_colors) <- species
   
   nodes <- forest
@@ -134,7 +203,7 @@ plot_forest <- function(forest) {
                                          size = .data$sample)) +
     ggplot2::scale_shape_manual(values = c(0:nsamples + 1)) +
     ggplot2::scale_color_manual(values = species_colors) +
-    ggplot2::theme_minimal() +
+    ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::labs(shape = "Sample", x = NULL, y = "Cell division") +
     ggplot2::guides(size = "none",
@@ -185,6 +254,9 @@ plot_vaf <- function(muts, variables = NULL, vaf_cut = 0.02) {
     clusters <- unique(muts$label)
     cls <- ggsci::pal_simpsons()(length(clusters))
     names(cls) <- clusters
+    if("subclonal" %in% names(cls)){
+      cls["subclonal"] = "gainsboro"
+    }
   }
   
   # Marginal histograms
@@ -194,13 +266,13 @@ plot_vaf <- function(muts, variables = NULL, vaf_cut = 0.02) {
     
     p <- ggplot(y %>% filter(VAF > vaf_cut & VAF < 0.7)) +
       geom_histogram(aes(x = VAF), binwidth = 0.01, fill = "steelblue") +
-      labs(x = col)
+      labs(x = col) + theme_bw()
     
     if (has_label) {
       p <- ggplot(y %>% filter(VAF > vaf_cut & VAF < 0.7)) +
         geom_histogram(aes(x = VAF, fill = label), binwidth = 0.01) +
         scale_fill_manual(values = cls) +
-        labs(x = col)
+        labs(x = col) + theme_bw()
     }
     
     p
@@ -221,13 +293,13 @@ plot_vaf <- function(muts, variables = NULL, vaf_cut = 0.02) {
       
       p <- ggplot(y %>% filter(VAF_1 < 0.7 & VAF_2 < 0.7)) +
         geom_point(aes(x = VAF_1, y = VAF_2), color = "steelblue") +
-        labs(x = g$lab1[i], y = g$lab2[i])
+        labs(x = g$lab1[i], y = g$lab2[i]) + theme_bw()
       
       if (has_label) {
         p <- ggplot(y %>% filter(VAF_1 < 0.7 & VAF_2 < 0.7)) +
           geom_point(aes(x = VAF_1, y = VAF_2, color = label)) +
           scale_color_manual(values = cls) +
-          labs(x = g$lab1[i], y = g$lab2[i])
+          labs(x = g$lab1[i], y = g$lab2[i]) + theme_bw()
       }
       
       p

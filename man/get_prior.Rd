@@ -2,24 +2,16 @@
 % Please edit documentation in R/getters.R
 \name{get_prior}
 \alias{get_prior}
-\title{to fix
-Get draws from prior used for the inference}
+\title{Extract and save prior in a PEPI object}
 \usage{
-get_prior(x, model_types = c("tree", "counts"), ndraws = 1000)
+get_prior(pepi)
 }
 \arguments{
-\item{x}{PEPI object}
-
-\item{model_types}{list of models we want the prior}
-
-\item{ndraws}{Number of draws}
+\item{pepi}{A PEPI object containing a Stan fit (`fit`).}
 }
 \value{
-A PEPI object with prior draws
+The updated PEPI object with prior saved in pepi$prior.
 }
 \description{
-Prior draws are generated from PEPI object.
-}
-\examples{
-get_prior(x,model_type = c("tree","counts"),ndraws = 1000)
+Extract and save prior in a PEPI object
 }

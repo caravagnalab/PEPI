@@ -2,22 +2,18 @@
 % Please edit documentation in R/checkers.R
 \name{check_input_vaf}
 \alias{check_input_vaf}
-\title{Check if VAF input data has the correct form.
-Check if the input data has the correct fields and stop if someone is missing.}
+\title{Check clade_statistics input for arbitrary time points}
 \usage{
-check_input_vaf(data)
+check_input_vaf(clade_statistics)
 }
 \arguments{
-\item{data}{Dataset to analyze. It must be a dataframe with number of variants and depth 
-for any mutation and sample.}
+\item{clade_statistics}{A tibble or data.frame with clade-level statistics.
+Must include columns `cluster_name`, `n_muts`, `is_clade`, `names`, `driver_type`, `has_driver`, `rewind`
+and VAF columns named `vaf_k_n` and `vaf_k_p` for k = 1, ..., N.}
 }
 \value{
-PEPI object
+Invisibly returns TRUE if checks pass; stops with error otherwise.
 }
 \description{
-Check if VAF input data has the correct form.
-Check if the input data has the correct fields and stop if someone is missing.
-}
-\examples{
-check_input_vaf(data)
+Check clade_statistics input for arbitrary time points
 }

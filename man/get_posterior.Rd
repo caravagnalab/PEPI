@@ -2,19 +2,16 @@
 % Please edit documentation in R/getters.R
 \name{get_posterior}
 \alias{get_posterior}
-\title{Get posterior distribution from PEPI object.}
+\title{Extract and save posterior in a PEPI object}
 \usage{
-get_posterior(fit)
+get_posterior(pepi)
 }
 \arguments{
-\item{x}{PEPI object}
+\item{pepi}{A PEPI object containing a Stan fit (`fit`).}
 }
 \value{
-A PEPI object with posterior draws
+The updated PEPI object with posterior saved in pepi$posterior.
 }
 \description{
-Posterior draws are extracted from the fit.
-}
-\examples{
-get_posterior(x)
+Extract and save posterior in a PEPI object
 }

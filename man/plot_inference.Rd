@@ -2,21 +2,20 @@
 % Please edit documentation in R/plot_functions.R
 \name{plot_inference}
 \alias{plot_inference}
-\title{Plot posterior and prior distributions.}
+\title{Plot prior vs posterior for a parameter in a PEPI object}
 \usage{
-plot_inference(x, params = NULL)
+plot_inference(pepi, parameter, log_scale = FALSE)
 }
 \arguments{
-\item{params}{A list of parameters}
+\item{pepi}{A PEPI object with `posterior` and `prior` extracted.}
 
-\item{post}{Posterior draws}
+\item{parameter}{Name of the parameter to plot.}
+
+\item{log_scale}{Logical, whether to plot x-axis on log scale.}
 }
 \value{
-A plot with posterior and prior distributions
+A ggplot object.
 }
 \description{
-Posterior and prior draws histograms are plotted for any required parameter.
-}
-\examples{
-plot_inference(x,params = c("rn","rp"))
+Plot prior vs posterior for a parameter in a PEPI object
 }

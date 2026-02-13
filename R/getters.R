@@ -8,7 +8,7 @@
 get_stan_data_pepi <- function(pepi) {
   
   clade_statistics <- pepi$clade_statistics
-  counts <- pepi$Counts
+  counts <- pepi$counts
   genomic_constants <- pepi$genomic_constants
   
   n_times <- get_n_times(pepi)
@@ -36,11 +36,16 @@ get_stan_data_pepi <- function(pepi) {
   ## Helper to extract VAF arrays
   ## ---------------------------
   extract_ccf <- function(df) {
-    if(nrow(df) == 0) return(array(0, dim = c(0, n_times, 2)))
+    if (nrow(df) == 0) return(array(0, dim = c(0, n_times, 2)))
     arr <- array(0, dim = c(nrow(df), n_times, 2))
     for (j in seq_len(n_times)) {
-      arr[, j, 1] <- 2 * df[[paste0("vaf_", j, "_n")]]
-      arr[, j, 2] <- 2 * df[[paste0("vaf_", j, "_p")]]
+      col_n <- paste0("vaf_", j, "_n")
+      col_p <- paste0("vaf_", j, "_p")
+      if (!(col_n %in% colnames(df)) || !(col_p %in% colnames(df))) {
+        stop("VAF columns missing: ", col_n, " or ", col_p)
+      }
+      arr[, j, 1] <- 2 * df[[col_n]]
+      arr[, j, 2] <- 2 * df[[col_p]]
     }
     arr
   }
@@ -48,36 +53,71 @@ get_stan_data_pepi <- function(pepi) {
   ## ---------------------------
   ## Clades
   ## ---------------------------
-  clades <- clade_statistics %>% filter(is_clade, !has_driver)
-  ccf_clade <- extract_ccf(clades)
-  m_clade <- clades$m
+  if (N_clades > 0) {
+    clades <- clade_statistics %>% dplyr::filter(is_clade, !has_driver)
+    ccf_clade <- extract_ccf(clades)
+    m_clade <- clades$n_muts
+  } else {
+    ccf_clade <- vector(mode="numeric", length=0)
+    m_clade <- vector(mode="numeric", length=0)
+  }
   
   ## ---------------------------
   ## Driver negative
   ## ---------------------------
-  drivers_n <- clade_statistics %>% filter(has_driver, driver_type == "driver_n")
-  ccf_driver_n <- extract_ccf(drivers_n)
-  m_driver_n <- drivers_n$m
+  if (N_driver_n > 0) {
+    drivers_n <- clade_statistics %>% dplyr::filter(has_driver, driver_type == "driver_n")
+    ccf_driver_n <- extract_ccf(drivers_n)
+    m_driver_n <- drivers_n$n_muts
+  } else {
+    ccf_driver_n <- vector(mode="numeric", length=0)
+    m_driver_n <- vector(mode="numeric", length=0)
+  }
   
   ## ---------------------------
   ## DC and CD
   ## ---------------------------
   build_pair <- function(type) {
-    df <- clade_statistics %>% filter(has_driver, driver_type == type)
-    list(
-      m = matrix(df$m, ncol = 2, byrow = TRUE),
-      ccf_driver = extract_ccf(df),
-      ccf_clade = extract_ccf(df)
-    )
+    df <- clade_statistics %>% dplyr::filter(has_driver, driver_type == type)
+    if (nrow(df) == 0) {
+      list(
+        n_muts = vector(mode="numeric", length=0),
+        ccf_driver = vector(mode="numeric", length=0),
+        ccf_clade = vector(mode="numeric", length=0)
+      )
+    } else {
+      ccf_d <- extract_ccf(df)
+      ccf_c <- extract_ccf(df)
+      # CD: clade minus driver
+      if (type == "cd") {
+        ccf_c <- pmax(0, ccf_c - ccf_d)
+      }
+      list(
+        n_muts = matrix(df$n_muts, ncol = 2, byrow = TRUE),
+        ccf_driver = ccf_d,
+        ccf_clade = ccf_c
+      )
+    }
   }
   
   dc <- build_pair("dc")
   cd <- build_pair("cd")
   
   ## ---------------------------
-  ## Wild type
+  ## Wild type (subtract only existing drivers)
   ## ---------------------------
   ccf_wt <- array(1, dim = c(n_times, 2))
+  
+  subtract_drivers <- function(ccf_array) {
+    if (length(ccf_array) > 0) {
+      colSums_ccf <- apply(ccf_array, c(2, 3), sum)
+      ccf_wt <<- pmax(0, ccf_wt - colSums_ccf)
+    }
+  }
+  
+  subtract_drivers(ccf_driver_n)
+  subtract_drivers(dc$ccf_driver)
+  subtract_drivers(cd$ccf_driver)
   
   ## ---------------------------
   ## Counts and genomic constants
@@ -86,10 +126,10 @@ get_stan_data_pepi <- function(pepi) {
   zplus  <- counts$count_p
   
   mu <- genomic_constants %>%
-    dplyr::filter(variable == "mutation_rate") %>% pull(value)
+    dplyr::filter(variable == "mu") %>% dplyr::pull(value)
   
   l <- genomic_constants %>%
-    dplyr::filter(variable == "genome_length") %>% pull(value)
+    dplyr::filter(variable == "genome_length") %>% dplyr::pull(value)
   
   ## ---------------------------
   ## Return Stan-ready list
@@ -107,11 +147,11 @@ get_stan_data_pepi <- function(pepi) {
     m_driver_n = m_driver_n,
     ccf_driver_n = ccf_driver_n,
     
-    m_dc = dc$m,
+    m_dc = dc$n_muts,
     ccf_dc_driver = dc$ccf_driver,
     ccf_dc_clade = dc$ccf_clade,
     
-    m_cd = cd$m,
+    m_cd = cd$n_muts,
     ccf_cd_driver = cd$ccf_driver,
     ccf_cd_clade = cd$ccf_clade,
     
@@ -126,6 +166,8 @@ get_stan_data_pepi <- function(pepi) {
 }
 
 
+
+
 #' Infer number of time points from a PEPI object
 #'
 #' @param pepi A PEPI object.
@@ -135,7 +177,7 @@ get_stan_data_pepi <- function(pepi) {
 get_n_times <- function(pepi) {
   
   clade_statistics <- pepi$clade_statistics
-  counts <- pepi$Counts
+  counts <- pepi$counts
   
   vaf_cols <- grep("^vaf_[0-9]+_[np]$", colnames(clade_statistics), value = TRUE)
   
