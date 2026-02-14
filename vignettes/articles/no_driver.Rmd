@@ -21,7 +21,14 @@ We analyze two datasets included in the package:
 - no_driver_example: a system with a strongly heritable epigenetic state 
 - rewind_example: a system with a plastic (unstable) epigenetic state
 
-Both datasets were simulated with ProCess, a cancer evolution simulator available at https://github.com/caravagnalab/ProCESS. Cancer cells were collected at two time points and sorted according to their epistate. On both subset of cells, WGS is simulated in order to obtain a VAF coordinate for any time point and epistate. In these datasets the are not subclonal expansion associated with driver events. Both datasets are analyzed using the same statistical model, highlighting how different biological regimes lead to distinct posterior inferences.
+Both datasets were simulated with ProCess, a cancer evolution simulator available at https://github.com/caravagnalab/ProCESS. Cancer cells were collected at two time points and sorted according to their epistate. On both subset of cells, WGS is simulated in order to obtain a VAF coordinate for any time point and epistate.
+
+We will:
+
+• visualize the lineage tree
+• inspect VAF structure
+• fit a PEPI epigenetic model
+• compare posterior estimates with ground truth
 
 # Load Libraries
 

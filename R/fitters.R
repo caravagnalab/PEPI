@@ -65,6 +65,7 @@ fit_pepi <- function(
     ccf_thr_count = 0.02,
     include_bp = FALSE,
     n_chains = 4,
+    parallel_chains = 4,
     adapt_delta = 0.8,
     iter_warmup = 1000,
     iter_sampling = 1000,

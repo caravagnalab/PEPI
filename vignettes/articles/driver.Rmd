@@ -1,0 +1,277 @@
+|                                                       |
+|-------------------------------------------------------|
+| title: "Inference of Epigenetic Plasticity with Driver events with PEPI" |
+| author: "PEPI Developers"                             |
+| date: "`r Sys.Date()`"                                |
+| output: html_document                                 |
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Introduction
+
+This vignette illustrates how PEPI can be used to analyze systems in which
+selective driver mutations interact with epigenetic state dynamics.
+
+Unlike the other examples, here clonal expansion is driven by
+genetic selection, potentially confounding epigenetic inheritance signals.
+PEPI explicitly models this interaction in a unified Bayesian framework.
+The dataset is simulated with ProCess, a cancer evolution simulator available at https://github.com/caravagnalab/ProCESS. Cancer cells were collected at two time points and sorted according to their epistate. On both subset of cells, WGS is simulated in order to obtain a VAF coordinate for any time point and epistate.
+
+We will:
+
+• visualize the lineage tree and driver placement
+• inspect VAF structure
+• fit a joint driver–epigenetic model
+• interpret posterior estimates
+
+# Load Libraries
+
+```{r setup}
+library(PEPI)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(reshape2)
+```
+
+# Forest Structure
+
+```{r no-driver-forest}
+forest <- PEPI::driver_example$forest
+PEPI::plot_forest(forest)
+```
+
+The lineage tree shows a dominant expanding branch seeded by a driver event.
+Epigenetic states are partially conserved but not perfectly aligned with clonal
+structure, indicating interaction between selection and state switching.
+
+
+## VAF Space
+
+```{r no-driver-vaf}
+muts <- PEPI::driver_example$muts
+
+get_branch = function(forest,cell_id,stop_id){
+  
+  s = cell_id
+  branch = s
+  
+  while(s > stop_id){
+    
+    s =  forest %>% filter(cell_id == s) %>% pull(ancestor)
+    if(s > stop_id){branch = c(branch,s)}
+  }
+  
+  return(branch)
+  
+}
+
+id_B = forest %>% as_tibble() %>% filter(mutant == "B") %>% pull(cell_id) %>% min()
+
+id_cl = forest %>% as_tibble() %>% filter(mutant == "B",epistate == "+") %>% pull(cell_id) %>% min()
+
+branch_dr = get_branch(forest,cell_id = id_B,stop = 0)
+branch_cl = get_branch(forest,cell_id = id_cl,stop = id_B)
+
+muts = muts %>% mutate(label = ifelse(cell_id %in% branch_dr,"driver",
+    ifelse(cell_id %in% branch_cl,"first nested clade","subclonal"))) %>%
+  mutate(label = ifelse(cell_id == 0,"truncal",label))
+
+
+p1 <- PEPI::plot_vaf(muts, variables = c("vaf_1_n", "vaf_1_p"))
+p2 <- PEPI::plot_vaf(muts, variables = c("vaf_2_n", "vaf_2_p"))
+ggarrange(plotlist= list(p1$scatterplots[[1]],p2$scatterplots[[1]]),nrow = 1, ncol = 2,common.legend = T) 
+```
+
+Driver-associated mutations form a high-VAF cluster. This cluster reaches a higher VAF in the
+$\oplus$ sample because, at the time of driver emergence, the $\oplus$ population is smaller,
+and the driver therefore expands while competing with fewer cells. We also observe a distinct
+cluster associated with the first nested clade within the driver lineage.
+
+
+
+## PEPI object construction
+
+```{r no_driver obj construction}
+m_clade = muts %>% filter(label == "first nested clade") %>% nrow()
+m_driver = muts %>% filter(label == "driver") %>% nrow()
+
+vaf_clade = muts %>% filter(label == "first nested clade") %>% dplyr::select(starts_with("vaf")) %>% 
+  reshape2::melt() %>% group_by(variable) %>% summarize(v = mean(value)) %>% 
+  pivot_wider(names_from = variable,values_from = v)
+
+vaf_driver = muts %>% filter(label == "driver",cell_id == id_B) %>% dplyr::select(starts_with("vaf"))%>%  reshape2::melt() %>% filter(value < Inf) %>% 
+  group_by(variable) %>% summarize(v = mean(value)) %>% 
+  pivot_wider(names_from = variable,values_from = v)
+
+
+clade_statistics <- tibble(
+      cluster_name = c("S1","S2"),
+      n_muts = c(m_clade,m_driver),
+      vaf_1_n = c(vaf_clade$vaf_1_n,vaf_driver$vaf_1_n),
+      vaf_1_p = c(vaf_clade$vaf_1_p,vaf_driver$vaf_1_p),
+      vaf_2_n = c(vaf_clade$vaf_2_n,vaf_driver$vaf_2_n),
+      vaf_2_p = c(vaf_clade$vaf_2_p,vaf_driver$vaf_2_p),
+      is_clade = c(TRUE,FALSE),
+      names = c("B","B"),
+      driver_type = c("dc","dc"),
+      has_driver = c(TRUE,TRUE),
+      rewind = c(FALSE,FALSE)
+)
+
+
+times = forest %>% filter(!is.na(sample)) %>% group_by(sample) %>% 
+  summarize(t = max(birth_time)) %>% pull(t) %>% sort()
+
+counts = driver_example$counts
+
+n_times = 2
+
+c1 = counts %>% filter(time >= times[1] - 0.01 & time < times[1] + 0.01)
+c1 = c1[c(nrow(c1)-1,nrow(c1)),]
+c2 = counts %>% filter(time >= times[2] - 0.01 & time < times[2] + 0.01)
+c2 = c2[c(nrow(c2)-1,nrow(c2)),]
+
+ztot  = c(c1 %>% pull(count) %>% sum(),c2 %>% pull(count) %>% sum())
+
+rho_1 = forest %>% filter(sample == "Sampling_1") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_1_n = (rho_1 %>% filter(epistate == "-") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+ccf_1_p = (rho_1 %>% filter(epistate == "+") %>% pull(n))/(rho_1 %>% pull(n) %>% sum())
+
+rho_2 = forest %>% filter(sample == "Sampling_2") %>% group_by(epistate) %>% summarize(n = length(cell_id))
+ccf_2_n = (rho_2 %>% filter(epistate == "-") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+ccf_2_p = (rho_2 %>% filter(epistate == "+") %>% pull(n))/(rho_2 %>% pull(n) %>% sum())
+
+zminus = c(ccf_1_n,ccf_2_n)*ztot
+zplus =  c(ccf_1_p,ccf_2_p)*ztot
+
+
+counts <- tibble(
+  count_n = zminus,
+  count_p = zplus,
+  time = times
+)
+
+mu = driver_example$mu$mean
+  
+genomic_constants <- tibble(
+  variable = c("genome_length", "mu"),
+  value = c(51e6, mu)
+)
+
+pepi_obj = init(clade_statistics = clade_statistics,counts = counts,
+                genomic_constants = genomic_constants)
+
+pepi_obj
+```
+
+The object requires clade statistics (number of mutations, ccf), total cell counts at the different time points and genomic constants as mutation rate and genomic length.
+
+## Model Fitting
+
+```{r driver-fit}
+
+pepi_obj <- fit_pepi(
+  pepi_obj,
+  model_type = "logistic",
+  ms_driver_n = NULL,
+  sigma_driver_n = NULL,
+  ms_dc = -2,
+  sigma_dc = 1.5,
+  ms_cd = NULL,
+  sigma_cd = NULL,
+  alpha_lambda = 0.6, beta_lambda = 1,
+  alpha_plus = 10, beta_plus = 220,
+  alpha_minus = 10, beta_minus = 220,
+  alpha_n = 10, beta_n = 1e5,
+  alpha_p = 0.2, beta_p = 10,
+  t_min = -40,
+  ms_epi = 0.1, sigma_epi = 0.5,
+  ccf_thr_clade = 0.1, ccf_thr_count = 0.02,
+  include_bp = T,
+  n_chains = 4, 
+  parallel_chains = 4,
+  adapt_delta = 0.98,
+  iter_warmup = 1000, iter_sampling = 5000
+)
+```
+
+PEPI is performed with 4 parallel chains of 5000 samples and 1000 warmup iterations.
+
+## Posterior and Prior
+
+```{r driver-posterior}
+pepi_obj <- PEPI::get_posterior(pepi_obj)
+pepi_obj <- PEPI::get_prior(pepi_obj)
+```
+We collect prior and posterior from PEPI object.
+## Epigenetic Switching Rate
+
+```{r driver-s-epi}
+p_omega <- PEPI::plot_inference(pepi_obj, parameter = c("omega_p"), log_scale = TRUE)
+
+# Data frame for the line
+vline_df <- data.frame(threshold = "Threshold", xval = 5e-3)
+
+# Add geom_vline with aesthetic mapping
+p_omega = p_omega +
+  geom_vline(data = vline_df,
+             aes(xintercept = xval, color = threshold),
+             linetype = "dashed") +
+  scale_color_manual(name = "Ground truth", values = "red")
+
+p_s <- PEPI::plot_inference(
+  pepi_obj,
+  parameter = c("s_epi"), log_scale = F)
+  
+  # Data frame for the line
+  vline_df <- data.frame(threshold = "Threshold", xval = 0.3)
+  
+  # Add geom_vline with aesthetic mapping
+  p_s = p_s +
+    geom_vline(
+      data = vline_df,
+      aes(xintercept = xval, color = threshold),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(name = "Ground truth", values = "red"
+    )
+  
+  p_sd <- PEPI::plot_inference(
+  pepi_obj,
+  parameter = c("s_dc[1]"), log_scale = F)
+  
+  # Data frame for the line
+  vline_df <- data.frame(threshold = "Threshold", xval = 0.25)
+  
+  # Add geom_vline with aesthetic mapping
+  p_sd = p_sd +
+    geom_vline(
+      data = vline_df,
+      aes(xintercept = xval, color = threshold),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(name = "Ground truth", values = "red"
+    ) + xlim(0,1)
+
+ggarrange(plotlist = list(p_omega,p_s,p_sd),nrow = 1,ncol = 3,common.legend = T)
+```
+
+We compare the ground truth with the inferred posterior distributions for $\omega_\oplus$, $s_\oplus$ and $s_\mathrm{dc}$
+
+
+## Posterior Predictive Checks
+
+```{r no_driver-ppc}
+PEPI::plot_posterior_predictive(pepi_obj, parameter = "z_dc_driver[1,1,2]")
+```
+
+The predictive distribution aligns with observed number of mutation, indicating adequate model fit.
+
+

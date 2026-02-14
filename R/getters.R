@@ -86,8 +86,8 @@ get_stan_data_pepi <- function(pepi) {
         ccf_clade = vector(mode="numeric", length=0)
       )
     } else {
-      ccf_d <- extract_ccf(df)
-      ccf_c <- extract_ccf(df)
+      ccf_d <- extract_ccf(df %>% filter(!is_clade))
+      ccf_c <- extract_ccf(df %>% filter(is_clade))
       # CD: clade minus driver
       if (type == "cd") {
         ccf_c <- pmax(0, ccf_c - ccf_d)
@@ -106,18 +106,32 @@ get_stan_data_pepi <- function(pepi) {
   ## ---------------------------
   ## Wild type (subtract only existing drivers)
   ## ---------------------------
-  ccf_wt <- array(1, dim = c(n_times, 2))
+  ## ---------------------------
+  ## Wild-type CCF
+  ## ---------------------------
   
-  subtract_drivers <- function(ccf_array) {
-    if (length(ccf_array) > 0) {
-      colSums_ccf <- apply(ccf_array, c(2, 3), sum)
-      ccf_wt <<- pmax(0, ccf_wt - colSums_ccf)
+  ccf_wt <- matrix(1, n_times, 2)
+  
+  if (N_driver_n > 0) {
+    for (k in seq_len(dim(ccf_driver_n)[1])) {
+      ccf_wt <- ccf_wt - ccf_driver_n[k,,]
     }
   }
   
-  subtract_drivers(ccf_driver_n)
-  subtract_drivers(dc$ccf_driver)
-  subtract_drivers(cd$ccf_driver)
+  if (N_dc > 0) {
+    for (k in 1:N_dc) {
+      ccf_wt <- ccf_wt - dc$ccf_driver[k,,]
+    }
+  }
+  
+  if (N_cd > 0) {
+    for (k in seq_len(dim(cd$ccf_driver)[1])) {
+      ccf_wt <- ccf_wt - cd$ccf_driver[k,,]
+    }
+  }
+  
+  ccf_wt[ccf_wt < 0] = 0
+  
   
   ## ---------------------------
   ## Counts and genomic constants
