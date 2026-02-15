@@ -1,0 +1,152 @@
+---
+title: "PEPI: Exploring Epigenetic Dynamics in Longitudinal Experiments"
+author: "PEPI developers"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PEPI Epigenetic Dynamics Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(PEPI)
+library(dplyr)
+library(ggplot2)
+```
+
+## Introduction
+
+The vignette is intended to introduce the context and notation used by PEPI, an inference framework to quantify epigenetic dynamics from longitudinal WGS data. Cells are sorted according to a marker that represents an abstract phenotype, which can be either expressed (positive, $\oplus$) or not expressed (negative, $\ominus$). At multiple time points, cells are collected and sequenced separately for the positive and negative populations.
+
+The goal of PEPI is to quantify the dynamics of epigenetic states by combining two sources of information:
+
+1. **Variant allele frequencies (VAFs)** measured across the genome in each sorted population.  
+2. **Longitudinal cell counts** of positive and negative cells at each sampling time.
+
+PEPI leverages the multivariate VAF spectrum together with the longitudinal counts to infer switching rates between states and the fitness of clonal populations. This allows distinguishing heritable (stable) epigenetic states from plastic (unstable) states.
+
+For a detailed description of the underlying mathematical model, see: *Integrating clonal evolution and cell plasticity in chronic lymphocytic leukaemia with bimodal CD49d expression*, in preparation.
+
+
+## Clade Types
+
+In PEPI, clades are categorized based on the presence of driver mutations and their relationship with the lineage structure. These categories help the model capture different evolutionary scenarios and estimate fitness effects accurately.
+
+- **driver_n** – A driver mutation that appears in cells with the negative epistate (⊖) but does not give rise to a detectable clade.  
+  *Interpretation:* The mutation is present in a few cells, and its subclonal expansion is too small to detect. PEPI uses this to model the fitness effect of the driver without observing a full clade expansion.
+
+- **dc** – A driver mutation that is associated with an observed nested clade.  
+  *Interpretation:* The driver arose in a cell, and the descendants formed a clade that can be traced in the lineage tree. PEPI treats this as a driver with clade, modeling its impact on both clade growth and epigenetic switching.
+
+- **cd** – A subclonal expansion nested within an existing clade.  
+  *Interpretation:* A new driver or selective event occurs inside an existing clade, creating a nested pattern. PEPI uses this to capture subclonal heterogeneity and the interactions between nested expansions.
+
+- **clade** – A wild-type clade, i.e., a clade without any detected driver mutations.  
+  *Interpretation:* Represents the background population of cells that evolve without selective drivers, used to infer baseline epigenetic dynamics.
+
+Together, these clade types allow PEPI to distinguish driver-driven expansions from epigenetic effects and accurately model complex lineage structures in bulk and longitudinal data.
+
+## Dataset Exploration
+
+PEPI works on longitudinal datasets where cells are sorted by a marker that represents an abstract phenotype. The marker can be either expressed (positive, ⊕) or not expressed (negative, ⊖). At multiple time points, cells are collected and whole-genome sequencing (WGS) is performed separately on positive and negative cells.
+
+Each dataset in PEPI contains three main components:
+
+- **muts** – a table of mutations with variant allele frequencies (VAFs) measured in negative (⊖) and positive (⊕) cells at each time point. Each row corresponds to a mutation, and columns include VAFs for different time points and sorted populations.
+
+- **counts** – longitudinal counts of negative (⊖) and positive (⊕) cells at each sampled time point.
+
+- **genomic_constants** – contains **mu** (baseline mutation rate) and **genome_length** (total length of the simulated genomic region; here 51e6 bp because the datasets were simulated for chromosome 22).
+
+These components are assembled into a PEPI object with the following structure:
+
+- `$clade_statistics` – summary of clade-level statistics, including the number of mutations, VAFs, driver type, and whether a clade is detected.
+
+- `$counts` – observed counts of negative and positive cells.
+
+- `$genomic_constants` – mutation rate (**mu**) and genome length (**genome_length**).
+
+Two synthetic datasets are included with PEPI:
+
+- **No Driver Example (`no_driver_example`)** – a system with a stable epigenetic state and no detectable driver mutations.
+
+- **Driver Example (`driver_example`)** – a system containing a driver mutation associated with a detectable nested clade.
+
+These datasets are analyzed in two dedicated vignettes (`no_driver` and `driver`) to illustrate how the package works. The structure of the PEPI object is consistent across datasets and uses the following nomenclature:
+
+- `cluster_name` – identifier of each clade.  
+- `driver_type` – type of driver associated with a clade (e.g., dc, cd, driver_n, or empty for wild-type clades).  
+- `has_driver` – logical indicating whether a driver is present.  
+- `is_clade` – logical indicating whether the mutations form a clade.
+
+### No Driver Example
+
+```{r no_driver_data}
+# Load example dataset
+muts_no_driver <- PEPI::no_driver_example$muts
+counts_no_driver <- PEPI::no_driver_example$counts
+mu_no_driver <- PEPI::no_driver_example$mu$mean
+
+# Summarize clade statistics
+clade_statistics_no_driver <- tibble(
+  cluster_name = "S",
+  n_muts = nrow(muts_no_driver),
+  vaf_1_n = mean(muts_no_driver$vaf_1_n),
+  vaf_1_p = mean(muts_no_driver$vaf_1_p),
+  vaf_2_n = mean(muts_no_driver$vaf_2_n),
+  vaf_2_p = mean(muts_no_driver$vaf_2_p),
+  is_clade = TRUE,
+  names = "first clade",
+  driver_type = "",
+  has_driver = FALSE,
+  rewind = FALSE
+)
+clade_statistics_no_driver
+
+# Explore counts and genomic constants
+counts_no_driver
+genomic_constants_no_driver <- tibble(
+  variable = c("genome_length", "mu"),
+  value = c(51e6, mu_no_driver)
+)
+genomic_constants_no_driver
+```
+
+### Driver Example
+
+```{r driver_data}
+# Load example dataset
+muts_driver <- PEPI::driver_example$muts
+counts_driver <- PEPI::driver_example$counts
+mu_driver <- PEPI::driver_example$mu$mean
+
+# Summarize clade statistics
+clade_statistics_driver <- tibble(
+  cluster_name = c("S1","S2"),
+  n_muts = c(nrow(muts_driver[muts_driver$cell_id %in% 1:264,]),
+             nrow(muts_driver[muts_driver$cell_id %in% 265:576,])),
+  vaf_1_n = c(mean(muts_driver$vaf_1_n[1:264]), mean(muts_driver$vaf_1_n[265:576])),
+  vaf_1_p = c(mean(muts_driver$vaf_1_p[1:264]), mean(muts_driver$vaf_1_p[265:576])),
+  vaf_2_n = c(mean(muts_driver$vaf_2_n[1:264]), mean(muts_driver$vaf_2_n[265:576])),
+  vaf_2_p = c(mean(muts_driver$vaf_2_p[1:264]), mean(muts_driver$vaf_2_p[265:576])),
+  is_clade = c(TRUE, FALSE),
+  names = c("B","B"),
+  driver_type = c("dc","dc"),
+  has_driver = c(TRUE,TRUE),
+  rewind = c(FALSE,FALSE)
+)
+clade_statistics_driver
+
+# Explore counts and genomic constants
+counts_driver
+genomic_constants_driver <- tibble(
+  variable = c("genome_length", "mu"),
+  value = c(51e6, mu_driver)
+)
+genomic_constants_driver
+```
