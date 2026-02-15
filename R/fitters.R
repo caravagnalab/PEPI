@@ -8,17 +8,17 @@
 #' This function fits the PEPI Bayesian model to bulk sequencing and
 #' longitudinal population counts, jointly inferring clonal structure,
 #' driver expansions, epigenetic switching, and fitness advantages of
-#' the positive epistate (\eqn{\oplus}).
+#' the positive epistate (⊕).
 #'
 #' @param pepi A PEPI object containing clade statistics, counts, and genomic constants.
 #'
-#' @param model_type Character. Functional form of the \eqn{\omega_{\oplus}} prior.
+#' @param model_type Character. Functional form of the ω_⊕ prior.
 #'   Options: "logistic" (default), "gumbel", or "log".
 #'
-#' @param ms_driver_n Numeric vector. Mean (\eqn{\mu}) of the lognormal prior for
+#' @param ms_driver_n Numeric vector. Mean (μ) of the lognormal prior for
 #'   drivers of type \code{driver_n}. Default automatically set if \code{NULL}.
 #'
-#' @param sigma_driver_n Numeric vector. Standard deviation (\eqn{\sigma}) of the
+#' @param sigma_driver_n Numeric vector. Standard deviation (σ) of the
 #'   lognormal prior for drivers of type \code{driver_n}. Default automatically set if \code{NULL}.
 #'
 #' @param ms_dc Numeric vector. Mean of the lognormal prior for dc drivers.
@@ -34,42 +34,42 @@
 #'   Default automatically set if \code{NULL}.
 #'
 #' @param alpha_lambda Numeric. Shape parameter of the Gamma prior on the baseline
-#'   population growth rate \eqn{\lambda}.
+#'   population growth rate λ.
 #'
 #' @param beta_lambda Numeric. Rate parameter of the Gamma prior on the baseline
-#'   population growth rate \eqn{\lambda}.
+#'   population growth rate λ.
 #'
 #' @param alpha_plus Numeric. Shape parameter of the Gamma prior on the variance
-#'   of Gaussian observation noise for counts in the \eqn{\oplus} epistate.
+#'   of Gaussian observation noise for counts in the ⊕ epistate.
 #'
 #' @param beta_plus Numeric. Rate parameter of the Gamma prior on the variance
-#'   of Gaussian observation noise for counts in the \eqn{\oplus} epistate.
+#'   of Gaussian observation noise for counts in the ⊕ epistate.
 #'
 #' @param alpha_minus Numeric. Shape parameter of the Gamma prior on the variance
-#'   of Gaussian observation noise for counts in the \eqn{\ominus} epistate.
+#'   of Gaussian observation noise for counts in the ⊖ epistate.
 #'
 #' @param beta_minus Numeric. Rate parameter of the Gamma prior on the variance
-#'   of Gaussian observation noise for counts in the \eqn{\ominus} epistate.
+#'   of Gaussian observation noise for counts in the ⊖ epistate.
 #'
 #' @param alpha_n Numeric. Shape parameter of the Gamma prior on the epigenetic
-#'   switching rate \eqn{\omega_n} (\eqn{\ominus \to \oplus}).
+#'   switching rate ω_n (⊖ → ⊕).
 #'
-#' @param beta_n Numeric. Rate parameter of the Gamma prior on \eqn{\omega_n}.
+#' @param beta_n Numeric. Rate parameter of the Gamma prior on ω_n.
 #'
 #' @param alpha_p Numeric. Shape parameter of the Gamma prior on the epigenetic
-#'   switching rate \eqn{\omega_p} (\eqn{\oplus \to \ominus}).
+#'   switching rate ω_p (⊕ → ⊖).
 #'
-#' @param beta_p Numeric. Rate parameter of the Gamma prior on \eqn{\omega_p}.
+#' @param beta_p Numeric. Rate parameter of the Gamma prior on ω_p.
 #'
 #' @param t_min Numeric. Lower bound for the prior on the time to the most recent
 #'   common ancestor (MRCA) of clades and driver lineages, relative to the most recent
 #'   sampling time.
 #'
-#' @param ms_epi Numeric. Mean (\eqn{\mu}) of the lognormal prior on the fitness
-#'   advantage of the positive epistate (\eqn{\oplus}).
+#' @param ms_epi Numeric. Mean (μ) of the lognormal prior on the fitness
+#'   advantage of the positive epistate (⊕).
 #'
-#' @param sigma_epi Numeric. Standard deviation (\eqn{\sigma}) of the lognormal prior
-#'   on the fitness advantage of the positive epistate (\eqn{\oplus}).
+#' @param sigma_epi Numeric. Standard deviation (σ) of the lognormal prior
+#'   on the fitness advantage of the positive epistate (⊕).
 #'
 #' @param ccf_thr_clade Numeric. Minimum cancer cell fraction (CCF) threshold for
 #'   clades to be included in the inference.
@@ -78,7 +78,7 @@
 #'   included in the inference.
 #'
 #' @param include_bp Logical. If TRUE, includes branching-process–based terms for the
-#'   total positive (\eqn{\oplus}) counts at the first time point in the likelihood.
+#'   total positive (⊕) counts at the first time point in the likelihood.
 #'   Default FALSE.
 #'
 #' @param n_chains Integer. Number of Markov chains to run in Stan. Default 4.
@@ -99,11 +99,9 @@
 #' @return A PEPI object updated with:
 #' \item{stan_data}{The Stan data list used for fitting.}
 #' \item{fit}{The fitted \code{cmdstanr::CmdStanMCMC} object.}
-#'
-#' @examples
-#' pepi_object <- fit_pepi(pepi_object, model_type = "logistic")
-#'
+#' 
 #' @export
+
 
 
 fit_pepi <- function(

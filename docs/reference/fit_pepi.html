@@ -89,95 +89,118 @@ using Stan, and updates the PEPI object with the fitted model and Stan data.</p>
 
 
 <dt id="arg-model-type">model_type<a class="anchor" aria-label="anchor" href="#arg-model-type"></a></dt>
-<dd><p>Character. Functional form of the $_ prior. Options: "logistic" (default), "gumbel", or "log".</p></dd>
+<dd><p>Character. Functional form of the ω_⊕ prior.
+Options: "logistic" (default), "gumbel", or "log".</p></dd>
 
 
 <dt id="arg-ms-driver-n">ms_driver_n<a class="anchor" aria-label="anchor" href="#arg-ms-driver-n"></a></dt>
-<dd><p>Numeric vector. Mean (\(\mu\)) of the lognormal prior for drivers of type <code>driver_n</code>. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Mean (μ) of the lognormal prior for
+drivers of type <code>driver_n</code>. Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-sigma-driver-n">sigma_driver_n<a class="anchor" aria-label="anchor" href="#arg-sigma-driver-n"></a></dt>
-<dd><p>Numeric vector. Standard deviation (\(\sigma\)) of the lognormal prior for drivers of type <code>driver_n</code>. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Standard deviation (σ) of the
+lognormal prior for drivers of type <code>driver_n</code>. Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-ms-dc">ms_dc<a class="anchor" aria-label="anchor" href="#arg-ms-dc"></a></dt>
-<dd><p>Numeric vector. Mean of the lognormal prior for dc drivers. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Mean of the lognormal prior for dc drivers.
+Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-sigma-dc">sigma_dc<a class="anchor" aria-label="anchor" href="#arg-sigma-dc"></a></dt>
-<dd><p>Numeric vector. Standard deviation of the lognormal prior for dc drivers. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Standard deviation of the lognormal prior for dc drivers.
+Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-ms-cd">ms_cd<a class="anchor" aria-label="anchor" href="#arg-ms-cd"></a></dt>
-<dd><p>Numeric vector. Mean of the lognormal prior for dc drivers. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Mean of the lognormal prior for cd drivers.
+Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-sigma-cd">sigma_cd<a class="anchor" aria-label="anchor" href="#arg-sigma-cd"></a></dt>
-<dd><p>Numeric vector. Standard deviation of the lognormal prior for cd drivers. Default automatically set if <code>NULL</code>.</p></dd>
+<dd><p>Numeric vector. Standard deviation of the lognormal prior for cd drivers.
+Default automatically set if <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-alpha-lambda">alpha_lambda<a class="anchor" aria-label="anchor" href="#arg-alpha-lambda"></a></dt>
-<dd><p>Numeric. Shape parameter of the Gamma prior on baseline population growth rate \(\lambda\).</p></dd>
+<dd><p>Numeric. Shape parameter of the Gamma prior on the baseline
+population growth rate λ.</p></dd>
 
 
 <dt id="arg-beta-lambda">beta_lambda<a class="anchor" aria-label="anchor" href="#arg-beta-lambda"></a></dt>
-<dd><p>Numeric. Rate parameter of the Gamma prior on baseline population growth rate \(\lambda\).</p></dd>
+<dd><p>Numeric. Rate parameter of the Gamma prior on the baseline
+population growth rate λ.</p></dd>
 
 
 <dt id="arg-alpha-plus">alpha_plus<a class="anchor" aria-label="anchor" href="#arg-alpha-plus"></a></dt>
-<dd><p>Numeric. Shape parameter of the Gamma prior on variance of Gaussian observation noise for counts in the  epistate.</p></dd>
+<dd><p>Numeric. Shape parameter of the Gamma prior on the variance
+of Gaussian observation noise for counts in the ⊕ epistate.</p></dd>
 
 
 <dt id="arg-beta-plus">beta_plus<a class="anchor" aria-label="anchor" href="#arg-beta-plus"></a></dt>
-<dd><p>Numeric. Rate parameter of the Gamma prior on variance of Gaussian observation noise for counts in the  epistate.</p></dd>
+<dd><p>Numeric. Rate parameter of the Gamma prior on the variance
+of Gaussian observation noise for counts in the ⊕ epistate.</p></dd>
 
 
 <dt id="arg-alpha-minus">alpha_minus<a class="anchor" aria-label="anchor" href="#arg-alpha-minus"></a></dt>
-<dd><p>Numeric. Shape parameter of the Gamma prior on variance of Gaussian observation noise for counts in the  epistate.</p></dd>
+<dd><p>Numeric. Shape parameter of the Gamma prior on the variance
+of Gaussian observation noise for counts in the ⊖ epistate.</p></dd>
 
 
 <dt id="arg-beta-minus">beta_minus<a class="anchor" aria-label="anchor" href="#arg-beta-minus"></a></dt>
-<dd><p>Numeric. Rate parameter of the Gamma prior on variance of Gaussian observation noise for counts in the  epistate.</p></dd>
+<dd><p>Numeric. Rate parameter of the Gamma prior on the variance
+of Gaussian observation noise for counts in the ⊖ epistate.</p></dd>
 
 
 <dt id="arg-alpha-n">alpha_n<a class="anchor" aria-label="anchor" href="#arg-alpha-n"></a></dt>
-<dd><p>Numeric. Shape parameter of the Gamma prior on epigenetic switching rate \(\omega_n\) (  ).</p></dd>
+<dd><p>Numeric. Shape parameter of the Gamma prior on the epigenetic
+switching rate ω_n (⊖ → ⊕).</p></dd>
 
 
 <dt id="arg-beta-n">beta_n<a class="anchor" aria-label="anchor" href="#arg-beta-n"></a></dt>
-<dd><p>Numeric. Rate parameter of the Gamma prior on \(\omega_n\).</p></dd>
+<dd><p>Numeric. Rate parameter of the Gamma prior on ω_n.</p></dd>
 
 
 <dt id="arg-alpha-p">alpha_p<a class="anchor" aria-label="anchor" href="#arg-alpha-p"></a></dt>
-<dd><p>Numeric. Shape parameter of the Gamma prior on epigenetic switching rate \(\omega_p\) (  ).</p></dd>
+<dd><p>Numeric. Shape parameter of the Gamma prior on the epigenetic
+switching rate ω_p (⊕ → ⊖).</p></dd>
 
 
 <dt id="arg-beta-p">beta_p<a class="anchor" aria-label="anchor" href="#arg-beta-p"></a></dt>
-<dd><p>Numeric. Rate parameter of the Gamma prior on \(\omega_p\).</p></dd>
+<dd><p>Numeric. Rate parameter of the Gamma prior on ω_p.</p></dd>
 
 
 <dt id="arg-t-min">t_min<a class="anchor" aria-label="anchor" href="#arg-t-min"></a></dt>
-<dd><p>Numeric. Lower bound for the prior on the time to the most recent common ancestor (MRCA) of clades and driver lineages, relative to the most recent sampling time.</p></dd>
+<dd><p>Numeric. Lower bound for the prior on the time to the most recent
+common ancestor (MRCA) of clades and driver lineages, relative to the most recent
+sampling time.</p></dd>
 
 
 <dt id="arg-ms-epi">ms_epi<a class="anchor" aria-label="anchor" href="#arg-ms-epi"></a></dt>
-<dd><p>Numeric. Mean (\(\mu\)) of the lognormal prior on the fitness advantage of the positive epistate ().</p></dd>
+<dd><p>Numeric. Mean (μ) of the lognormal prior on the fitness
+advantage of the positive epistate (⊕).</p></dd>
 
 
 <dt id="arg-sigma-epi">sigma_epi<a class="anchor" aria-label="anchor" href="#arg-sigma-epi"></a></dt>
-<dd><p>Numeric. Standard deviation (\(\sigma\)) of the lognormal prior on the fitness advantage of the positive epistate ().</p></dd>
+<dd><p>Numeric. Standard deviation (σ) of the lognormal prior
+on the fitness advantage of the positive epistate (⊕).</p></dd>
 
 
 <dt id="arg-ccf-thr-clade">ccf_thr_clade<a class="anchor" aria-label="anchor" href="#arg-ccf-thr-clade"></a></dt>
-<dd><p>Numeric. Minimum cancer cell fraction (CCF) threshold for clades to be included in the inference.</p></dd>
+<dd><p>Numeric. Minimum cancer cell fraction (CCF) threshold for
+clades to be included in the inference.</p></dd>
 
 
 <dt id="arg-ccf-thr-count">ccf_thr_count<a class="anchor" aria-label="anchor" href="#arg-ccf-thr-count"></a></dt>
-<dd><p>Numeric. Minimum CCF threshold for population counts to be included in the inference.</p></dd>
+<dd><p>Numeric. Minimum CCF threshold for population counts to be
+included in the inference.</p></dd>
 
 
 <dt id="arg-include-bp">include_bp<a class="anchor" aria-label="anchor" href="#arg-include-bp"></a></dt>
-<dd><p>Logical. If TRUE, includes branching-process–based terms for the total positive (\(\oplus\)) counts at the first time point in the likelihood. Default FALSE.</p></dd>
+<dd><p>Logical. If TRUE, includes branching-process–based terms for the
+total positive (⊕) counts at the first time point in the likelihood.
+Default FALSE.</p></dd>
 
 
 <dt id="arg-n-chains">n_chains<a class="anchor" aria-label="anchor" href="#arg-n-chains"></a></dt>
@@ -189,15 +212,18 @@ using Stan, and updates the PEPI object with the fitted model and Stan data.</p>
 
 
 <dt id="arg-adapt-delta">adapt_delta<a class="anchor" aria-label="anchor" href="#arg-adapt-delta"></a></dt>
-<dd><p>Numeric. Target acceptance probability for the Stan NUTS sampler. Default 0.8.</p></dd>
+<dd><p>Numeric. Target acceptance probability for the Stan NUTS sampler.
+Default 0.8.</p></dd>
 
 
 <dt id="arg-iter-warmup">iter_warmup<a class="anchor" aria-label="anchor" href="#arg-iter-warmup"></a></dt>
-<dd><p>Integer. Number of warmup (burn-in) iterations per chain. Default 1000.</p></dd>
+<dd><p>Integer. Number of warmup (burn-in) iterations per chain.
+Default 1000.</p></dd>
 
 
 <dt id="arg-iter-sampling">iter_sampling<a class="anchor" aria-label="anchor" href="#arg-iter-sampling"></a></dt>
-<dd><p>Integer. Number of sampling iterations per chain. Default 1000.</p></dd>
+<dd><p>Integer. Number of sampling iterations per chain.
+Default 1000.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
@@ -206,8 +232,7 @@ using Stan, and updates the PEPI object with the fitted model and Stan data.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A fitted PEPI object containing posterior samples, prior draws, and derived quantities.</p>
-<p>A PEPI object updated with:</p>
+    <p>A PEPI object updated with:</p>
 <dl><dt>stan_data</dt>
 <dd><p>The Stan data list used for fitting.</p></dd>
 
@@ -221,17 +246,9 @@ using Stan, and updates the PEPI object with the fitted model and Stan data.</p>
 <p>This function fits the PEPI Bayesian model to bulk sequencing and
 longitudinal population counts, jointly inferring clonal structure,
 driver expansions, epigenetic switching, and fitness advantages of
-the positive epistate (\(\oplus\)).</p>
+the positive epistate (⊕).</p>
     </div>
 
-    <div class="section level2">
-    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">pepi_object</span> <span class="op">&lt;-</span> <span class="fu">fit_pepi</span><span class="op">(</span><span class="va">pepi_object</span>, model_type <span class="op">=</span> <span class="st">"logistic"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
-<span class="r-in"><span></span></span>
-</code></pre></div>
-    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
