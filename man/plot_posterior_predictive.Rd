@@ -4,22 +4,12 @@
 \alias{plot_posterior_predictive}
 \title{Plot posterior predictive for a parameter}
 \usage{
-plot_posterior_predictive(
-  pepi,
-  parameter,
-  obs = NULL,
-  ncol = 4,
-  log_scale = TRUE
-)
+plot_posterior_predictive(pepi, parameter, log_scale = TRUE)
 }
 \arguments{
 \item{pepi}{A PEPI object with `posterior` extracted.}
 
 \item{parameter}{Name of the posterior predictive variable (starts with "pred").}
-
-\item{obs}{Optional data frame with columns: variable and exp (observed value).}
-
-\item{ncol}{Number of columns in facet_wrap if assembling multiple variables.}
 
 \item{log_scale}{Logical, whether to plot x-axis on log scale.}
 }

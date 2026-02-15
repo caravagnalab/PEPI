@@ -17,8 +17,8 @@ fit_pepi(
   beta_lambda = 1,
   alpha_plus = 10,
   beta_plus = 250,
-  alpha_minus = 1,
-  beta_minus = 1,
+  alpha_minus = 10,
+  beta_minus = 250,
   alpha_n = 0.5,
   beta_n = 20,
   alpha_p = 0.2,
@@ -30,69 +30,77 @@ fit_pepi(
   ccf_thr_count = 0.02,
   include_bp = FALSE,
   n_chains = 4,
+  parallel_chains = 4,
   adapt_delta = 0.8,
   iter_warmup = 1000,
-  iter_sampling = 1000
+  iter_sampling = 1000,
+  seed = 1
 )
 }
 \arguments{
-\item{pepi}{A PEPI object containing clade_statistics, Counts, and genomic_constants.}
+\item{pepi}{A PEPI object containing clade statistics, counts, and genomic constants.}
 
-\item{model_type}{Character. The model prior to use: "logistic" (default), "gumbel", or "log".}
+\item{model_type}{Character. Functional form of the $\omega_\oplus prior. Options: "logistic" (default), "gumbel", or "log".}
 
-\item{ms_driver_n}{Numeric vector. Prior mean for driver_n clusters. Default automatically set if NULL.}
+\item{ms_driver_n}{Numeric vector. Mean (\eqn{\mu}) of the lognormal prior for drivers of type \code{driver_n}. Default automatically set if \code{NULL}.}
 
-\item{sigma_driver_n}{Numeric vector. Prior SD for driver_n clusters. Default automatically set if NULL.}
+\item{sigma_driver_n}{Numeric vector. Standard deviation (\eqn{\sigma}) of the lognormal prior for drivers of type \code{driver_n}. Default automatically set if \code{NULL}.}
 
-\item{ms_dc}{Numeric vector. Prior mean for DC clusters. Default automatically set if NULL.}
+\item{ms_dc}{Numeric vector. Mean of the lognormal prior for dc drivers. Default automatically set if \code{NULL}.}
 
-\item{sigma_dc}{Numeric vector. Prior SD for DC clusters. Default automatically set if NULL.}
+\item{sigma_dc}{Numeric vector. Standard deviation of the lognormal prior for dc drivers. Default automatically set if \code{NULL}.}
 
-\item{ms_cd}{Numeric vector. Prior mean for CD clusters. Default automatically set if NULL.}
+\item{ms_cd}{Numeric vector. Mean of the lognormal prior for dc drivers. Default automatically set if \code{NULL}.}
 
-\item{sigma_cd}{Numeric vector. Prior SD for CD clusters. Default automatically set if NULL.}
+\item{sigma_cd}{Numeric vector. Standard deviation of the lognormal prior for cd drivers. Default automatically set if \code{NULL}.}
 
-\item{alpha_lambda}{Numeric. Hyperparameter for lambda prior. Default 1.}
+\item{alpha_lambda}{Numeric. Shape parameter of the Gamma prior on baseline population growth rate \eqn{\lambda}.}
 
-\item{beta_lambda}{Numeric. Hyperparameter for lambda prior. Default 1.}
+\item{beta_lambda}{Numeric. Rate parameter of the Gamma prior on baseline population growth rate \eqn{\lambda}.}
 
-\item{alpha_plus}{Numeric. Hyperparameter for positive epistate prior. Default 10.}
+\item{alpha_plus}{Numeric. Shape parameter of the Gamma prior on variance of Gaussian observation noise for counts in the \oplus epistate.}
 
-\item{beta_plus}{Numeric. Hyperparameter for positive epistate prior. Default 250.}
+\item{beta_plus}{Numeric. Rate parameter of the Gamma prior on variance of Gaussian observation noise for counts in the \oplus epistate.}
 
-\item{alpha_minus}{Numeric. Hyperparameter for negative epistate prior. Default 1.}
+\item{alpha_minus}{Numeric. Shape parameter of the Gamma prior on variance of Gaussian observation noise for counts in the \ominus epistate.}
 
-\item{beta_minus}{Numeric. Hyperparameter for negative epistate prior. Default 1.}
+\item{beta_minus}{Numeric. Rate parameter of the Gamma prior on variance of Gaussian observation noise for counts in the \ominus epistate.}
 
-\item{alpha_n}{Numeric. Hyperparameter for negative counts prior. Default 0.5.}
+\item{alpha_n}{Numeric. Shape parameter of the Gamma prior on epigenetic switching rate \eqn{\omega_n} (\ominus \to \oplus).}
 
-\item{beta_n}{Numeric. Hyperparameter for negative counts prior. Default 20.}
+\item{beta_n}{Numeric. Rate parameter of the Gamma prior on \eqn{\omega_n}.}
 
-\item{alpha_p}{Numeric. Hyperparameter for positive counts prior. Default 0.2.}
+\item{alpha_p}{Numeric. Shape parameter of the Gamma prior on epigenetic switching rate \eqn{\omega_p} (\oplus \to \ominus).}
 
-\item{beta_p}{Numeric. Hyperparameter for positive counts prior. Default 10.}
+\item{beta_p}{Numeric. Rate parameter of the Gamma prior on \eqn{\omega_p}.}
 
-\item{t_min}{Numeric. Minimum time prior. Default 0.}
+\item{t_min}{Numeric. Lower bound for the prior on the time to the most recent common ancestor (MRCA) of clades and driver lineages, relative to the most recent sampling time.}
 
-\item{ms_epi}{Numeric. Prior mean for epistate. Default 0.}
+\item{ms_epi}{Numeric. Mean (\eqn{\mu}) of the lognormal prior on the fitness advantage of the positive epistate (\oplus).}
 
-\item{sigma_epi}{Numeric. Prior SD for epistate. Default 0.5.}
+\item{sigma_epi}{Numeric. Standard deviation (\eqn{\sigma}) of the lognormal prior on the fitness advantage of the positive epistate (\oplus).}
 
-\item{ccf_thr_clade}{Numeric. Threshold for clade CCF. Default 0.05.}
+\item{ccf_thr_clade}{Numeric. Minimum cancer cell fraction (CCF) threshold for clades to be included in the inference.}
 
-\item{ccf_thr_count}{Numeric. Threshold for count CCF. Default 0.02.}
+\item{ccf_thr_count}{Numeric. Minimum CCF threshold for population counts to be included in the inference.}
 
-\item{include_bp}{Logical. Whether to include base pair information. Default FALSE.}
+\item{include_bp}{Logical. If TRUE, includes branching-process–based terms for the total positive (\eqn{\oplus}) counts at the first time point in the likelihood. Default FALSE.}
 
-\item{n_chains}{Integer. Number of Stan chains. Default 4.}
+\item{n_chains}{Integer. Number of Markov chains to run in Stan. Default 4.}
 
-\item{adapt_delta}{Numeric. Stan adapt_delta parameter. Default 0.8.}
+\item{parallel_chains}{Integer. Number of chains to run in parallel. Default 1.}
 
-\item{iter_warmup}{Integer. Number of warmup iterations. Default 1000.}
+\item{adapt_delta}{Numeric. Target acceptance probability for the Stan NUTS sampler. Default 0.8.}
 
-\item{iter_sampling}{Integer. Number of sampling iterations. Default 1000.}
+\item{iter_warmup}{Integer. Number of warmup (burn-in) iterations per chain. Default 1000.}
+
+\item{iter_sampling}{Integer. Number of sampling iterations per chain. Default 1000.}
+
+\item{seed}{Integer. Random seed for reproducibility. Default 1.}
 }
 \value{
+A fitted PEPI object containing posterior samples, prior draws, and derived quantities.
+
 A PEPI object updated with:
 \item{stan_data}{The Stan data list used for fitting.}
 \item{fit}{The fitted \code{cmdstanr::CmdStanMCMC} object.}
@@ -100,6 +108,14 @@ A PEPI object updated with:
 \description{
 This function takes a PEPI object, fits a tumor evolutionary model
 using Stan, and updates the PEPI object with the fitted model and Stan data.
+}
+\details{
+Fit the PEPI Bayesian model
+
+This function fits the PEPI Bayesian model to bulk sequencing and
+longitudinal population counts, jointly inferring clonal structure,
+driver expansions, epigenetic switching, and fitness advantages of
+the positive epistate (\eqn{\oplus}).
 }
 \examples{
 \dontrun{

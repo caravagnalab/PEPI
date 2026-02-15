@@ -1,13 +1,14 @@
 ---
-title: "PEPI: Exploring Epigenetic Dynamics in Longitudinal Experiments"
+title: "PEPI: Dataset Structure and Notation"
 author: "PEPI developers"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{PEPI Epigenetic Dynamics Vignette}
+  %\VignetteIndexEntry{PEPI Dataset Structure}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
