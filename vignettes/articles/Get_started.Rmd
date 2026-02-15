@@ -4,7 +4,7 @@ author: "PEPI developers"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{PEPI Dataset Structure}
+  %\VignetteIndexEntry{01-Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -151,3 +151,4 @@ genomic_constants_driver <- tibble(
 )
 genomic_constants_driver
 ```
+

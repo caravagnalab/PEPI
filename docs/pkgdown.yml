@@ -1,8 +1,11 @@
-pandoc: 2.19.2
-pkgdown: 2.0.6
+pandoc: 3.1.11
+pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
-  Counts_inference: Counts_inference.html
-  VAF_inference: VAF_inference.html
-last_built: 2023-12-11T11:36Z
-
+  articles/Get_started: Get_started.html
+  articles/pepi_inference_1.wt: pepi_inference_1.wt.html
+  articles/pepi_inference_2.driver: pepi_inference_2.driver.html
+last_built: 2026-02-15T21:27Z
+urls:
+  reference: https://caravagnalab.github.io/PEPI/reference
+  article: https://caravagnalab.github.io/PEPI/articles

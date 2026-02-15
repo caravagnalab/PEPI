@@ -1,0 +1,43 @@
+url: https://caravagnalab.github.io/PEPI/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Available data
+    desc: Synthetic datasets included in the package.
+    contents:
+      - no_driver_example
+      - rewind_example
+      - driver_example
+
+  - title: Create PEPI object
+    desc: Functions to create the PEPI object and check the format of input data.
+    contents:
+      - init
+      - check_input_vaf
+      - check_input_count
+      - check_genomic_constants
+
+  - title: Fit model
+    desc: Function to fit the PEPI model and get results.
+    contents:
+      - fit_pepi
+      
+  - title: Getters
+    desc: Function get stan input data and posteriors from fit.
+    contents:
+      - get_stan_data_pepi
+      - get_n_times
+      - get_posterior 
+      - get_prior
+
+  - title: Plot fit
+    desc: Functions to visualize data and results of the PEPI model.
+    contents:
+      - plot_inference 
+      - plot_posterior_predictive
+      - plot_forest
+      - plot_vaf 
+
+

@@ -4,7 +4,7 @@ author: "PEPI developers"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{PEPI inference example with driver}
+  %\VignetteIndexEntry{03-Driver Example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -276,6 +276,6 @@ We compare the ground truth with the inferred posterior distributions for $\omeg
 PEPI::plot_posterior_predictive(pepi_obj, parameter = "z_dc_driver[1,1,2]")
 ```
 
-The predictive distribution aligns with observed number of mutation, indicating adequate model fit.
+The predictive distribution aligns with observed driver counts, indicating adequate model fit.
 
 

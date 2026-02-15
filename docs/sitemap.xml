@@ -1,105 +1,56 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Counts_inference.html</loc>
-  </url>
-  <url>
-    <loc>/articles/VAF_inference.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_tail_muts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculate_ccf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_input_counts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_input_vaf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/counts_inference_code.html</loc>
-  </url>
-  <url>
-    <loc>/reference/filter_nodes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fit_counts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fit_s.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fit_tree.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fitness_inference_code.html</loc>
-  </url>
-  <url>
-    <loc>/reference/generate_nodes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/generate_spectrum.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_average_counts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_average_tree.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_clusters.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_colors.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_pepi_theme.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_posterior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_prior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/init_counts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/init_vaf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_counts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_inference.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_marginal.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_multivariate.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_tree.html</loc>
-  </url>
-  <url>
-    <loc>/reference/tree_inference_code.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://caravagnalab.github.io/PEPI/404.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/Counts_inference.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/Get_started.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/VAF_inference.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/driver.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/index.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/no_driver.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/pepi_inference.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/pepi_inference_1.wt.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/pepi_inference_2.driver.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/pepi_inference_driver.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/authors.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/index.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/add_tail_muts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/calculate_ccf.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/check_genomic_constants.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/check_input_count.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/check_input_counts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/check_input_vaf.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/counts_inference_code.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/driver_example.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/filter_nodes.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/fit_counts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/fit_pepi.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/fit_s.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/fit_tree.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/fitness_inference_code.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/generate_nodes.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/generate_spectrum.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_average_counts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_average_tree.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_clusters.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_colors.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_n_times.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_pepi_theme.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_posterior.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_prior.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/get_stan_data_pepi.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/index.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/init.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/init_counts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/init_vaf.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/no_driver_example.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_counts.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_forest.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_inference.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_marginal.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_multivariate.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_posterior_predictive.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_tree.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_vaf.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/rewind_example.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/tree_inference_code.html</loc></url>
 </urlset>
+

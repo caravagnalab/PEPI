@@ -1,57 +1,34 @@
 Package: PEPI
 Type: Package
-Title: PEPI - Bayesian method for quantifying plasticity from genomics data
+Title: PEPI - Quantifying Epigenetic Dynamics from Genomics Data
 Version: 1.0.0
-Date: 2023-12-5
-Author: Riccardo Bergamin
-Maintainer: Riccardo Bergamin <rbergamin@units.it>
 Authors@R: c(
-    person("Riccardo", "Bergamin", "rbergamin@units.it", role = c("aut", "cre")),
-    person("Giulio", "Caravagna", "gcaravagn@gmail.com", role = c("ctb"),
-      comment = c(ORCID = "0000-0003-4240-3265")),
-    person("Clara", "Canavese", "arnold@sissa.com", role = c("ctb"))
-  )
-Description: PEPI is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
-  The first application deals with the study of a latent branching process augmented with genetic mutations that are accumulated 
-  at every division with constant mutation rate, independently of the epigenetic state, and measured by bulk whole-genome DNA 
-  sequencing (a common NGS technology).We consider an experimental design where cells are sorted (i.e., separated) based on their epimutation state (+ versus −) prior 
-  to sequencing, and Variant Allele Frequencies (VAFs) are generated from two samples. 
-  With two samples, the VAFs spectrum is bi-variate as any mutation is identified by two coordinates in VAF space. 
-  Our intuition is to associate to a VAF spectrum a tree where branches and nodes have an interpretation in terms of 
-  epigenetic dynamics: a branch is a trajectory of a cycling cell which goes through a certain number of divisions, 
-  and the length of the edge corresponds to the cumulative number mutations arrived on the genome. 
-  Tree leaves correspond to most recent common ancestors (MRCAs) of subpopulations of cells in our sample, 
-  sorted by the marker state, and each clade of cells forms a cluster in VAF space. For every node two outgoing branches correspond to epi-positive and epi-negative cells and the stochastic 
-  tree-generation process starting from a collection of mutations is a hierarchical stick-breaking process. 
-  This approach allows for trees of unbounded width and depth, where data can live at any node as in infinite 
-  mixtures with a latent dependency structure.The second application deals with the analysis of a time series of cell counts. We consider a longitudinal 
-  experiment where cells are sorted based on their epimutation state and counted at different times.
-  We implemented a non-linear Bayesian regression model where mean and variance of the number of cells at different
-  time points are obtained by solving an ordinary differential equation describing the growth and 
-  switching dynamics of the two populations. Inferring the latent parameters driving the branching process,
-  we can predict cell counts at arbitrary time points.
-License: GPL-3
+    person("Riccardo", "Bergamin", email = "rbergamin@units.it", role=c("aut","cre")),
+    person("Giulio", "Caravagna", email = "gcaravagn@gmail.com", role=c("ctb")),
+    person("Clara", "Canavese", email = "arnold@sissa.com", role=c("ctb")))
+Maintainer: Riccardo Bergamin <rbergamin@units.it>
+Description: PEPI is a package implementing a Bayesian framework for studying epigenetic dynamics from longitudinal genomics data. It combines variant allele frequencies (VAFs) from sorted positive (⊕) and negative (⊖) cells with longitudinal cell counts to infer clade-level dynamics, epigenetic switching rates, and the impact of driver mutations.
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Depends:
-    R (>= 4.2.2),
+Depends: 
+    R (>= 4.2.2)
 Imports: 
-    rstan,
-    cmdstanr,
     dplyr,
     ggplot2,
+    ggpubr,
     ggraph,
     ape,
     ggtree,
     treeio,
-    ggpubr
-RoxygenNote: 7.3.2
-Suggests: knitr,
-    rmarkdown
-Remotes:
-    caravagn/easypar,
-    caravagn/VIBER
+    rstan,
+    cmdstanr
+RoxygenNote: 7.3.3
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Additional_repositories: https://mc-stan.org/r-packages/
+Config/testthat/edition: 3
+URL: https://caravagnalab.github.io/PEPI/, https://github.com/caravagnalab/PEPI
 VignetteBuilder: knitr
-URL: https://github.com/caravagnalab/PEPI,
-    https://caravagnalab.github.io/PEPI/
-BugReports: https://github.com/caravagnalab/PEPI/issues
