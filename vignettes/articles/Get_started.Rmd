@@ -38,17 +38,18 @@ For a detailed description of the underlying mathematical model, see: *Integrati
 
 In PEPI, clades are categorized based on the presence of driver mutations and their relationship with the lineage structure. These categories help the model capture different evolutionary scenarios and estimate fitness effects accurately.
 
-- **driver_n** – A driver mutation that appears in cells with the negative epistate (⊖) but does not give rise to a detectable clade.  
-  *Interpretation:* The mutation is present in a few cells, and its subclonal expansion is too small to detect. PEPI uses this to model the fitness effect of the driver without observing a full clade expansion.
+- **clade** – A wild-type clade, i.e., a clade without any detected driver mutations.  
+  *Interpretation:* Represents the background population of cells that evolve without selective drivers, used to infer baseline epigenetic dynamics.
 
 - **dc** – A driver mutation that is associated with an observed nested clade.  
   *Interpretation:* The driver arose in a cell, and the descendants formed a clade that can be traced in the lineage tree. PEPI treats this as a driver with clade, modeling its impact on both clade growth and epigenetic switching.
+  
+- **driver_n** – A driver mutation that appears in cells with the negative epistate (⊖) but does not give rise to a detectable clade.  
+  *Interpretation:* The mutation is present in a fraction of cells and may be shared across the two epistates, without giving rise to a directly observable nested clade. PEPI uses this to model the fitness effect of the driver without observing a full clade expansion.
 
 - **cd** – A subclonal expansion nested within an existing clade.  
   *Interpretation:* A new driver or selective event occurs inside an existing clade, creating a nested pattern. PEPI uses this to capture subclonal heterogeneity and the interactions between nested expansions.
 
-- **clade** – A wild-type clade, i.e., a clade without any detected driver mutations.  
-  *Interpretation:* Represents the background population of cells that evolve without selective drivers, used to infer baseline epigenetic dynamics.
 
 Together, these clade types allow PEPI to distinguish driver-driven expansions from epigenetic effects and accurately model complex lineage structures in bulk and longitudinal data.
 

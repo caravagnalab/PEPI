@@ -66,7 +66,7 @@
                         <h4 data-toc-skip class="author">PEPI
 developers</h4>
             
-            <h4 data-toc-skip class="date">2026-02-15</h4>
+            <h4 data-toc-skip class="date">2026-02-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/caravagnalab/PEPI/blob/HEAD/vignettes/articles/Get_started.Rmd" class="external-link"><code>vignettes/articles/Get_started.Rmd</code></a></small>
       <div class="d-none name"><code>Get_started.Rmd</code></div>
@@ -115,26 +115,26 @@ mutations and their relationship with the lineage structure. These
 categories help the model capture different evolutionary scenarios and
 estimate fitness effects accurately.</p>
 <ul>
-<li><p><strong>driver_n</strong> – A driver mutation that appears in
-cells with the negative epistate (⊖) but does not give rise to a
-detectable clade.<br><em>Interpretation:</em> The mutation is present in a few cells, and its
-subclonal expansion is too small to detect. PEPI uses this to model the
-fitness effect of the driver without observing a full clade
-expansion.</p></li>
+<li><p><strong>clade</strong> – A wild-type clade, i.e., a clade without
+any detected driver mutations.<br><em>Interpretation:</em> Represents the background population of cells
+that evolve without selective drivers, used to infer baseline epigenetic
+dynamics.</p></li>
 <li><p><strong>dc</strong> – A driver mutation that is associated with
 an observed nested clade.<br><em>Interpretation:</em> The driver arose in a cell, and the descendants
 formed a clade that can be traced in the lineage tree. PEPI treats this
 as a driver with clade, modeling its impact on both clade growth and
 epigenetic switching.</p></li>
+<li><p><strong>driver_n</strong> – A driver mutation that appears in
+cells with the negative epistate (⊖) but does not give rise to a
+detectable clade.<br><em>Interpretation:</em> The mutation is present in a fraction of cells
+and may be shared across the two epistates, without giving rise to a
+directly observable nested clade. PEPI uses this to model the fitness
+effect of the driver without observing a full clade expansion.</p></li>
 <li><p><strong>cd</strong> – A subclonal expansion nested within an
 existing clade.<br><em>Interpretation:</em> A new driver or selective event occurs inside
 an existing clade, creating a nested pattern. PEPI uses this to capture
 subclonal heterogeneity and the interactions between nested
 expansions.</p></li>
-<li><p><strong>clade</strong> – A wild-type clade, i.e., a clade without
-any detected driver mutations.<br><em>Interpretation:</em> Represents the background population of cells
-that evolve without selective drivers, used to infer baseline epigenetic
-dynamics.</p></li>
 </ul>
 <p>Together, these clade types allow PEPI to distinguish driver-driven
 expansions from epigenetic effects and accurately model complex lineage
