@@ -25,6 +25,12 @@ Return a list of initialization values for some parameters through some euristic
 }
 \examples{
 \dontrun{
-get_init_values(spectrum,K = 10,alpha = 10,samples = 1, pi_cutoff = 0.01)
+# requires the VIBER package (github.com/caravagn/VIBER), not on CRAN
+set.seed(1)
+spectrum = data.frame(
+  Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+  Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50)
+)
+get_init_values(spectrum, K = 10, alpha = 10, samples = 1, pi_cutoff = 0.01)
 }
 }

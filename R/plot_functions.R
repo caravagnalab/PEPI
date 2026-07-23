@@ -7,9 +7,15 @@
 #' @param spectrum VAF spectrum with cluster labels
 #' @return A multivariate plot
 #' @examples
-#' \dontrun{
+#' library(dplyr)
+#' library(ggplot2)
+#' set.seed(1)
+#' spectrum = data.frame(
+#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50),
+#'   node = sample(c("-","+"), 50, replace = TRUE)
+#' )
 #' plot_multivariate(spectrum)
-#' }
 #' @export
 
 plot_multivariate = function(spectrum){
@@ -37,9 +43,16 @@ ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x =
 #' @param spectrum VAF spectrum with cluster labels
 #' @return Two marginal histograms.
 #' @examples
-#' \dontrun{
+#' library(dplyr)
+#' library(ggplot2)
+#' library(ggpubr)
+#' set.seed(1)
+#' spectrum = data.frame(
+#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50),
+#'   node = sample(c("-","+"), 50, replace = TRUE)
+#' )
 #' plot_marginal(spectrum)
-#' }
 #' @export
 
 plot_marginal = function(spectrum){
@@ -72,7 +85,26 @@ py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return Plot of predicted vs observed counts.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
+#' library(ggplot2)
 #' plot_counts_multirates(x)
 #' }
 #' @export
@@ -99,7 +131,26 @@ plot_counts_multirates = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return Plot of predicted vs observed fractions.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
+#' library(ggplot2)
 #' plot_fractions(x)
 #' }
 #' @export
@@ -126,7 +177,26 @@ plot_fractions = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return Plot of predicted vs observed CCF.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
+#' library(ggplot2)
 #' plot_ccf(x)
 #' }
 #' @export
@@ -154,7 +224,26 @@ plot_ccf = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return Plot of predicted vs observed mutation counts.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
+#' library(ggplot2)
 #' plot_mutations(x)
 #' }
 #' @export
@@ -192,7 +281,26 @@ plot_mutations = function(x){
 #' @param groups A vector of groups to include (wt/driver/driver_n/driver_p/dc/clade_wt/global).
 #' @return A plot with posterior and prior distributions.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
+#' library(ggplot2)
 #' plot_inference(x,params = c("lambda_n","s_epi"))
 #' }
 #' @export

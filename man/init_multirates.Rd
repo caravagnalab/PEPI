@@ -23,7 +23,11 @@ A PEPI object holding the tables required to build the data list for
 \code{check_input_multirates()} for the required table schema.
 }
 \examples{
-\dontrun{
-init_multirates(tables, m_trunk = 120)
-}
+sim = simulate_multirates_tree(
+  sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+  lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+  clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+  mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+)
+x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 }

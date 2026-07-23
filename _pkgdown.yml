@@ -8,6 +8,15 @@ authors:
   Giulio Caravagna:
     href: https://www.caravagnalab.org/
 
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - articles/Model_notation
+  - articles/Multirates_inference
+  - articles/Convergence_diagnostics
+  - articles/Variational_vs_MCMC
+
 reference:
 - title: Input & data construction
   desc: Functions to validate a multirates input and build the corresponding Stan data list.

@@ -26,6 +26,12 @@ Clusters with centroids VAF coordiates and relative proportion are given.
 }
 \examples{
 \dontrun{
-get_viber_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
+# requires the VIBER package (github.com/caravagn/VIBER), not on CRAN
+set.seed(1)
+data = data.frame(
+  Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+  Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50)
+)
+get_viber_clusters(data, K = 10, alpha = 1, samples = 1, pi_cutoff = 0.01)
 }
 }

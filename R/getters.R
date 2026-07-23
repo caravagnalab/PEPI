@@ -97,8 +97,25 @@
 #'   by \code{fit_multirates()}.
 #' @return `x` with `x$posterior$multirates` populated.
 #' @examples
-#' \dontrun{
-#' get_posterior_multirates(x)
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
 #' }
 #' @export
 
@@ -296,7 +313,25 @@ get_posterior_multirates = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return A tibble with posterior mean/95%CI and the matching observed count.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
 #' get_predicted_counts(x)
 #' }
 #' @export
@@ -321,7 +356,25 @@ get_predicted_counts = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return A tibble with posterior mean/95%CI and the matching observed fraction.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
 #' get_predicted_fractions(x)
 #' }
 #' @export
@@ -346,7 +399,25 @@ get_predicted_fractions = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return A tibble with posterior mean/95%CI and the matching observed CCF.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
 #' get_predicted_ccf(x)
 #' }
 #' @export
@@ -374,7 +445,25 @@ get_predicted_ccf = function(x){
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
 #' @return A tibble with posterior mean/95%CI and the matching observed mutation count.
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 500, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' x = get_posterior_multirates(x)
 #' get_predicted_mutations(x)
 #' }
 #' @export
@@ -408,7 +497,13 @@ get_predicted_mutations = function(x){
 #' @return a tibble with clusters names, mixing proportion and vaf coordinates
 #' @examples
 #' \dontrun{
-#' get_viber_clusters(data,K = 10,alpha = 1,samples = 1, pi_cutoff = 0.01)
+#' # requires the VIBER package (github.com/caravagn/VIBER), not on CRAN
+#' set.seed(1)
+#' data = data.frame(
+#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50)
+#' )
+#' get_viber_clusters(data, K = 10, alpha = 1, samples = 1, pi_cutoff = 0.01)
 #' }
 
 get_viber_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.01){
@@ -455,7 +550,13 @@ get_viber_clusters = function(data,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.0
 #' @return a list with initialization values
 #' @examples
 #' \dontrun{
-#' get_init_values(spectrum,K = 10,alpha = 10,samples = 1, pi_cutoff = 0.01)
+#' # requires the VIBER package (github.com/caravagn/VIBER), not on CRAN
+#' set.seed(1)
+#' spectrum = data.frame(
+#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
+#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50)
+#' )
+#' get_init_values(spectrum, K = 10, alpha = 10, samples = 1, pi_cutoff = 0.01)
 #' }
 #' @export
 
@@ -538,9 +639,8 @@ get_init_values = function(spectrum,K = 10,alpha = 10,samples = 1,pi_cutoff = 0.
 #' @return Named list of colors.
 #' @keywords internal
 #' @examples
-#' \dontrun{
-#' get_colors(max_depth = 2)
-#' }
+#' library(dplyr)
+#' PEPI:::get_colors(max_depth = 2)
 
 get_colors = function(max_depth){
 
@@ -577,9 +677,7 @@ get_colors = function(max_depth){
 #' @return a ggplot theme.
 #' @keywords internal
 #' @examples
-#' \dontrun{
-#' get_pepi_theme()
-#' }
+#' PEPI:::get_pepi_theme()
 
 get_pepi_theme = function(){
 

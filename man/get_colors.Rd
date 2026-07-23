@@ -16,8 +16,7 @@ Named list of colors.
 A list of colors labelled by nodes is generated.
 }
 \examples{
-\dontrun{
-get_colors(max_depth = 2)
-}
+library(dplyr)
+PEPI:::get_colors(max_depth = 2)
 }
 \keyword{internal}

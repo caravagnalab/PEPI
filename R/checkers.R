@@ -10,9 +10,13 @@
 #' @param tables Named list of tibbles, see \code{init_multirates()}.
 #' @return Invisibly TRUE if valid, otherwise stops with a descriptive message.
 #' @examples
-#' \dontrun{
-#' check_input_multirates(tables)
-#' }
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' check_input_multirates(sim$tables)
 #' @export
 
 check_input_multirates = function(tables){
