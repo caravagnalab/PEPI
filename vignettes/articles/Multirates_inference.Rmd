@@ -1,0 +1,132 @@
+---
+title: "Multirates inference"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(PEPI)
+library(cmdstanr)
+library(dplyr)
+library(ggplot2)
+```
+
+PEPI's unified model (`inst/multirates_positive_s.stan`) jointly infers, from
+multi-sample VAF-derived CCF data collected at several sampling times:
+
+- the base growth rate `lambda_n` and epigenetic fitness `s_epi` of a
+  wild-type ("wt") background population switching between "-" and "+"
+  epistates at rates `omega_n_wt`/`omega_p_wt`;
+- any number of **driver** clades (their own fitness `s_driver` and switch
+  rates), **driver-only** clades confined to a single epistate
+  (`driver_n`/`driver_p`), and **driver+clade** combos (`dc`, a driver
+  acquisition followed by a further epimutation-switch event); and
+- **wt-background clades** (`clades_wt`), sub-lineages of the wt population
+  tracked for their own epistate composition.
+
+## Simulate a synthetic dataset
+
+We simulate one driver clade and one wt-background clade, both acquired
+before the first sampling time, and observed at three time points. Data are
+generated with the same deterministic growth/switch ODE the Stan model
+itself assumes as its likelihood mean; `kappa` is kept modest here so the
+simulated CCF/fraction noise is not razor-sharp, which keeps the model's
+default initialization well-behaved for this small illustrative dataset.
+
+```{r}
+
+set.seed(1908)
+
+sim = simulate_multirates_tree(
+  sampling_times = c(3, 6, 9),
+  tmrca = 1, t_min = 0,
+  lambda_n = 1, s_epi = 0.15,
+  omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+  drivers = list(
+    list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+        omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+        ms_driver = -0.5, sigma_driver = 0.5,
+        alpha_n_driver = 1, beta_n_driver = 10,
+        alpha_p_driver = 1, beta_p_driver = 10)
+  ),
+  clades_wt = list(
+    list(id = "c1", t_clade_wt = 1.5)
+  ),
+  mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1,
+  seed = 42
+)
+
+sim$tables$population_sizes
+sim$tables$driver_muts
+sim$tables$driver_ccf
+sim$truth
+
+```
+
+## Fit the model
+
+```{r}
+
+x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+
+x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+                   method = "variational", ndraws = 1000, seed = 45,
+                   mu = 1e-7, l = 2.7e9, t_min = 0,
+                   ms_epi = 0, sigma_epi = 0.5,
+                   alpha_lambda = 1, beta_lambda = 1,
+                   alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
+                   min_kappa = 5, max_kappa = 200,
+                   min_sigma_count = 0.01, max_sigma_count = 1)
+
+```
+
+## Extract the posterior
+
+```{r}
+
+x = get_posterior_multirates(x)
+x$posterior$multirates
+
+```
+
+## Predicted vs observed
+
+```{r, fig.width=8, fig.height=6}
+plot_counts_multirates(x)
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_fractions(x)
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_ccf(x)
+```
+
+```{r, fig.width=8, fig.height=5}
+plot_mutations(x)
+```
+
+## Posterior vs prior, and ground-truth recovery
+
+```{r, fig.width=8, fig.height=5}
+
+plot_inference(x, params = c("lambda_n","s_epi","s_driver","omega_n_wt","omega_p_wt")) +
+  geom_vline(
+    data = data.frame(
+      facet = c("lambda_n","s_epi","omega_n_wt","omega_p_wt","s_driver[KRAS]"),
+      truth = c(sim$truth$lambda_n, sim$truth$s_epi, sim$truth$omega_n_wt,
+               sim$truth$omega_p_wt, sim$truth$s_driver[["KRAS"]])
+    ),
+    aes(xintercept = truth), linetype = "dashed", color = "red"
+  )
+
+```
+
+The dashed red lines mark the ground-truth values used to simulate the data;
+posterior histograms should bracket them.

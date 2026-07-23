@@ -16,5 +16,7 @@ Two marginal histograms.
 Two marginal histograms are generated from a labelled dataset.
 }
 \examples{
+\dontrun{
 plot_marginal(spectrum)
+}
 }

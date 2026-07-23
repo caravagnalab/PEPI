@@ -17,5 +17,7 @@ A multivariate plot
 A multivariate plot is generated from a labelled dataset
 }
 \examples{
+\dontrun{
 plot_multivariate(spectrum)
+}
 }

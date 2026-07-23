@@ -1,47 +1,29 @@
-#' Create a PEPI object of VAF type.
+#' Create a PEPI object for the unified multirates model.
 #'
-#' A PEPI object vaf type is created.
+#' A PEPI object holding the tables required to build the data list for
+#' \code{inst/multirates_positive_s.stan} is created. See
+#' \code{check_input_multirates()} for the required table schema.
 #'
-#' @param data Dataset to analyze. It must be a dataframe with number of variants and depth for any mutation and sample
-#' @return PEPI object
+#' @param tables Named list of tibbles: \code{population_sizes}, \code{wt_ccf}
+#'   (required), and any subset of \code{driver_muts}/\code{driver_ccf},
+#'   \code{driver_n_muts}/\code{driver_n_ccf}, \code{driver_p_muts}/\code{driver_p_ccf},
+#'   \code{dc_muts}/\code{dc_ccf}, \code{clades_wt}/\code{clades_wt_ccf} (optional).
+#' @param m_trunk Number of truncal mutations.
+#' @return PEPI object of class "PEPI_Multirates"
 #' @examples
-#' init_vaf(data)
+#' \dontrun{
+#' init_multirates(tables, m_trunk = 120)
+#' }
 #' @export
 
+init_multirates = function(tables, m_trunk = 0L){
 
-init_vaf = function(data){
-  
-  check_input_vaf(data)
-  
-  pepi = list(VAF = data)
-  
-  class(pepi) = "PEPI_VAF"
-  
+  check_input_multirates(tables)
+
+  pepi = list(multirates = tables, m_trunk = m_trunk)
+
+  class(pepi) = "PEPI_Multirates"
+
   return(pepi)
-  
+
 }
-
-#' Create a PEPI object of Counts type.
-#'
-#' A PEPI object of vaf type or counts type is created.
-#'
-#' @param data Dataframe containing with number of cell counts of - and + cells at different time points
-#' @return PEPI object
-#' @examples
-#' init_counts(data)
-#' @export
-
-
-init_counts = function(data){
-  
-  check_input_counts(data)
-  
-  pepi = list(counts = data)
-  
-  class(pepi) = "PEPI_Counts"
-  
-  return(pepi)
-  
-}
-
-

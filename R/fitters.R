@@ -1,298 +1,129 @@
-
-
-#' Fit a multivariate vaf spectrum with epigenetic tree model.
+#' Build a default set of initial values for the multirates model.
 #'
-#' A PEPI fit with tree inference is returned.
+#' Several time parameters have bounds that depend on the *sampled* value of
+#' `tmrca` (e.g. `t_clade_wt` is bounded above by the earliest sampling time,
+#' below by `tmrca`), so Stan's default random initialization frequently
+#' draws an infeasible `tmrca` and fails before sampling starts. This builds
+#' a single feasible starting point instead.
 #'
-#' @param x PEPI object containing VAF multivariate spectrum
-#' @param path_to_model String specifying the path where we wannt to save the stan model for a given depth
-#' @param cmdstan_path String specifying the path to cmdstan folder
-#' @param max_depth Maximum number of levels
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param mu Mutation rate per division per bp per allele
-#' @param l length of the genome
-#' @param rho_n Purity of - sample
-#'  @param rho_p Purity of + sample
-#' @param nu_t Mean of the beta prior on fraction of truncal mutations
-#' @param qt Number of trials of the beta prior on fraction of truncal mutations
-#' @param rate_n Mean of the beta prior on the epimutation rate from - to +
-#' @param qn Number of trials for the beta prior on the epimutation rate from - to +
-#' @param rate_p Mean of the beta prior on the epimutation rate from + to -
-#' @param qp Number of trials for the beta prior on the epimutation rate from - to +
-#' @param k Number of trials for the beta prior on cluster centroids
-#' @param gamma Concentration of a Dirichlet distribution to split mutations at any node
-#' @return PEPI object
-#' @examples
-#' fit_tree(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",
-#' max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
-#' mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-#' qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
-#' qp = 1e4,k = 1e4,gamma = 150)
-#' @export
+#' @param data Stan data list, as built by \code{build_stan_data_multirates()}.
+#' @return A list (of length 1) suitable for cmdstanr's `init` argument.
+#' @keywords internal
 
-fit_tree = function(x,path_to_model,cmdstan_path,
-                    max_depth = 2,ndraws = 1000,init = NULL,seed = 15,
-                    mu = 1e-7,l = 2.7*10^9,rho_n = 1,rho_p = 1,nu_t = 0.1,
-                    qt = 1e4,rate_n = 1e-3,qn = 1e4,rate_p = 1e-3,
-                    qp = 1e4,k = 1e4,gamma = 150){
-  
-  dir.create(path_to_model)
-  cmdstanr::set_cmdstan_path(cmdstan_path)
+.multirates_default_init = function(data){
 
-  spectrum = x$VAF
-  
-  
-  if(is.null(spectrum)){
-    
-    stop("no VAF spectrum") 
-    
+  t_min = data$t_min
+  tmax = data$times[1]
+  earliest_sample = data$times[data$sampling_index[1]]
+
+  tmrca0 = t_min + 0.3 * (earliest_sample - t_min)
+
+  init = list(tmrca = tmrca0)
+
+  if(data$N_clades_wt > 0){
+    init$t_clade_wt = rep(tmrca0 + 0.5 * (earliest_sample - tmrca0), data$N_clades_wt)
   }
-  
-  model = tree_inference_code(max_depth = max_depth,likelihood = T)
-
-if(! paste0("tree_inference_depth_",max_depth,".stan") %in% list.files(path_to_model)){ 
-  
-  write_stan_file(
-    model,
-    dir = ".",
-    basename = paste0(path_to_model,"/tree_inference_depth_",max_depth,".stan"),
-    force_overwrite = FALSE,
-    hash_salt = ""
-  )
-  
-}
-  
-  data = list(
-    delta_m_n = spectrum %>% nrow(),
-    mu = mu,
-    l = l,
-    nu_t = nu_t,
-    qt = qt,
-    rate_n = rate_n,
-    qn = qn,
-    rate_p = rate_p,
-    qp = qp,
-    n = nrow(spectrum),
-    Nn = spectrum$Nx,
-    Np = spectrum$Ny,
-    DPn = spectrum$DPx,
-    DPp = spectrum$DPy,
-    gamma = gamma,
-    rho_n = rho_n,
-    rho_p = rho_p,
-    k = k)
-  
-  file = paste0(path_to_model,"/tree_inference_depth_",max_depth,".stan")
-  
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                             init = init,
-                             output_samples = ndraws, 
-                             algorithm="fullrank")
-  
-  pepi = list(inference = list(tree = fit),stan_data = list(tree = data), max_depth = max_depth)
-  
-  x$inference$tree = fit
-  x$stan_data$tree = data
-  x$max_depth = max_depth
-  
-  return(x)
-  
-}
-
-
-#' Infer epimutation clocks in number of cell divisions and fitness of + cells with respect to - cells.
-#'
-#' A PEPI fit with fitness inference is returned.
-#'
-#' @param x PEPI object containing fitness and epimutation clocks inference
-#' @param path_to_model String specifying the path where we want to save the stan model for a given depth
-#' @param cmdstan_path String specifying the path to cmdstan folder
-#' @param threshold Threshold for tree pruning
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param mu Mutation rate per division per bp per allele
-#' @param l length of the genome
-#' @param ms Mean of lognormal prior for s
-#'  @param sigma Sigma parameter of lognormal prior for s
-#' @param k Number of trials for the beta prior on cluster centroids
-#' @return PEPI object
-#' @examples
-#' fit_s(x,path_to_model = "models",cmdstan_path = "my_cmdstan/",threshold = 0.1,
-#' ndraws = 1000,init = NULL,seed = 45,
-#' mu = 1e-7,l = 2.7*10^9,ms = -0.5,sigma = 0.5,k = 100)
-#' @export
-
-fit_s = function(x,path_to_model,cmdstan_path,threshold = 0.1,
-                 ndraws = 1000,init = NULL,seed = 45,
-                 mu = 1e-7,l = 2.7*10^9,ms = -0.5, sigma = 0.5, k = 100){
-  
-  dir.create(path_to_model)
-  cmdstanr::set_cmdstan_path(cmdstan_path)
-  
-  if(is.null(x$inference$tree)){
-    
-    stop("no tree inference") 
-    
+  if(data$N_driver > 0){
+    init$t_driver = rep(tmrca0 + 0.5 * (tmax - tmrca0), data$N_driver)
+  }
+  if(data$N_driver_n > 0){
+    init$t_driver_n = rep(tmrca0 + 0.5 * (tmax - tmrca0), data$N_driver_n)
+  }
+  if(data$N_driver_p > 0){
+    init$t_driver_p = rep(tmrca0 + 0.5 * (tmax - tmrca0), data$N_driver_p)
   }
 
-  if(!is.null(x$inferred_tree)){  
-  x = get_average_tree(x,threshold = threshold)}
-  
-  tree = x$inferred_tree
-  
-  model = fitness_inference_code(tree,likelihood = T)
-
-if(! "/fitness_inference.stan" %in% list.files(path_to_model)){
-  
-  write_stan_file(
-    model,
-    dir = ".",
-    basename = paste0(path_to_model,"/fitness_inference.stan"),
-    force_overwrite = FALSE,
-    hash_salt = ""
-  )
+  list(init)
 
 }
-  
-  data = list(delta_t_n = 0,
-              mu = mu,
-              l = l,
-              ms = ms,
-              sigma = sigma,
-              k = k)
-  
-  param = tree %>% reshape2::melt() %>% 
-    mutate(node = gsub(x = node,pattern = "-",replacement = "n")) %>% 
-      mutate(node = gsub(x = node,pattern = "\\+",replacement = "p")) %>% 
-    filter(variable %in% c("m","vaf_minus","vaf_plus")) %>% 
-      mutate(variable = paste0(variable,"_",node)) %>% dplyr::select(variable,value)
-  
-  extra_data = param$value
-  names(extra_data) = param$variable
-  
-  data = append(data,extra_data)
-  
-  file = paste0(path_to_model,"/fitness_inference.stan")
-  
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                             init = init,
-                             output_samples = ndraws, 
-                             algorithm="fullrank")
-  
-  x$inference$fitness = fit
-  x$stan_data$fitness = data
-  
-  return(x)
-  
-}
 
 
-
-
-#' A PEPI fit with cell counts inference is returned.
+#' Fit the unified multirates model.
 #'
-#' @param x PEPI object containing cell counts data
-#' @param threshold Threshold for tree pruning
-#' @param ndraws Number of draws from the posterior
-#' @param init List of initialization parameters
-#' @param seed Seed of the computation
-#' @param alpha_ln shape parameter for gamma prior on - growth rate
-#' @param beta_ln rate parameter for gamma prior on - growth rate
-#' @param alpha_lp shape parameter for gamma prior on + growth rate
-#' @param beta_lp rate parameter for gamma prior on + growth rate
-#' @param alpha_rn shape parameter for gamma prior on - effective switch rate
-#' @param beta_rn rate parameter for gamma prior on - effective switch rate
-#' @param alpha_rp shape parameter for gamma prior on + effective switch rate
-#' @param beta_rp rate parameter for gamma prior on + effective switch rate
-#' @return PEPI fit
+#' Compiles and runs \code{inst/multirates_positive_s.stan} on a
+#' \code{PEPI_Multirates} object built with \code{init_multirates()}.
+#'
+#' @param x PEPI_Multirates object.
+#' @param cmdstan_path String specifying the path to the cmdstan installation.
+#' @param method "variational" (default, fast approximate posterior) or "sample" (full MCMC).
+#' @param ndraws Number of posterior draws (variational: output_samples; sample: iter_sampling).
+#' @param chains Number of MCMC chains (only used when method = "sample").
+#' @param seed Seed of the computation.
+#' @param init List of initialization values, or NULL to use a built-in
+#'   default (see \code{.multirates_default_init()}).
+#' @param mu Mutation rate per division per bp per allele.
+#' @param l Length of the genome.
+#' @param t_min Lower bound for the tmrca prior.
+#' @param ms_epi,sigma_epi Lognormal prior hyperparameters for s_epi.
+#' @param alpha_lambda,beta_lambda Gamma prior hyperparameters for lambda_n.
+#' @param alpha_n_wt,beta_n_wt,alpha_p_wt,beta_p_wt Gamma prior hyperparameters
+#'   for the wt switch rates omega_n_wt/omega_p_wt.
+#' @param min_kappa,max_kappa Uniform prior bounds for kappa.
+#' @param min_sigma_count,max_sigma_count Uniform prior bounds for sigma_count.
+#' @param include_poisson,include_trunk Stan model switches (0/1).
+#' @return PEPI_Multirates object with `inference$multirates`, `stan_data$multirates`
+#'   and `index_maps` populated.
 #' @examples
-#' fit_counts(x,path_to_model,cmdstan_path,
-#'                      ndraws = 1000,init = NULL,seed = 45, alpha_ln = 1.5,
-#'                      beta_ln = 1, alpha_lp = 1.5, beta_lp = 1, alpha_rn = 1, beta_rn = 10,
-#'                      alpha_rp = 1, beta_rp = 10)
+#' \dontrun{
+#' fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
+#'   method = "variational", ndraws = 1000, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 10, max_kappa = 1000,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' }
 #' @export
 
-fit_counts = function(x,cmdstan_path,
-                      ndraws = 1000,init = NULL,seed = 45, alpha_n = 0.2,
-                      beta_n = 10, alpha_p = 0.2, beta_p = 10,
-                      alpha_lambda = 1,  beta_lambda  = 1,
-                      ms_epi = 0.1,
-                      sigma_epi = 0.5
-                      ){
-  
-  
-  
+fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
+                          method = c("variational","sample"),
+                          ndraws = 1000, chains = 4, seed = 45, init = NULL,
+                          mu = 1e-7, l = 2.7e9, t_min = 0,
+                          ms_epi = 0, sigma_epi = 0.5,
+                          alpha_lambda = 1, beta_lambda = 1,
+                          alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
+                          min_kappa = 10, max_kappa = 1000,
+                          min_sigma_count = 0.01, max_sigma_count = 1,
+                          include_poisson = 1L, include_trunk = 1L){
+
+  method = match.arg(method)
+
   cmdstanr::set_cmdstan_path(cmdstan_path)
-  
-  if(is.null(x$counts)){
-    
-    stop("no cell counts") 
-    
+
+  if(is.null(x$multirates)){
+    stop("no multirates input tables")
   }
-  
-  # model = counts_inference_code(likelihood = T)
-  
-  # if(! "regressionODE.stan" %in% list.files(path_to_model)){
-  #   
-  #   write_stan_file(
-  #     model,
-  #     dir = ".",
-  #     basename = paste0(path_to_model,"/regressionODE.stan"),
-  #     force_overwrite = FALSE,
-  #     hash_salt = ""
-  #   )
-  #   
-  # }
-  
-  t0 = counts$time %>% min()
-  z0n = counts %>% filter(time == t0,epistate == "-") %>% pull(count)
-  z0p = counts %>% filter(time == t0,epistate == "+") %>% pull(count)
-    
-  data  = list(
-    n_times = counts %>% filter(time > t0) %>% pull(time) %>% unique() %>% length(),
-    z0 = c(z0n,z0p,0,0,0),
-    t0 = t0,
-    zminus = counts %>% filter(time > t0, epistate == "-") %>% pull(count), 
-    zplus = counts %>% filter(time > t0, epistate == "+") %>% pull(count),
-    t = counts %>% filter(time > t0) %>% pull(time) %>% unique(),
-    alpha_n = alpha_n,
-    beta_n = beta_n,
-    alpha_p = alpha_p ,
-    beta_p =  beta_p,
-    alpha_lambda = alpha_lambda ,
-    beta_lambda =  beta_lambda ,
-    ms_epi =  ms_epi,
-    sigma_epi = sigma_epi
-)
-  
- file = system.file(
-   "stan",
-   "regressionODE.stan",
-   package = "PEPI"
- )
-  
-  mod = cmdstan_model(file)
-  
-  fit = mod$variational(data = data, seed = seed,
-                        init = init,
-                        output_samples = ndraws,
-                        algorithm="fullrank")
-  
-  
-  x$inference$counts = fit
-  x$stan_data$counts = data
-  
+
+  built = build_stan_data_multirates(x, mu = mu, l = l, t_min = t_min,
+            ms_epi = ms_epi, sigma_epi = sigma_epi,
+            alpha_lambda = alpha_lambda, beta_lambda = beta_lambda,
+            alpha_n_wt = alpha_n_wt, beta_n_wt = beta_n_wt,
+            alpha_p_wt = alpha_p_wt, beta_p_wt = beta_p_wt,
+            min_kappa = min_kappa, max_kappa = max_kappa,
+            min_sigma_count = min_sigma_count, max_sigma_count = max_sigma_count,
+            include_poisson = include_poisson, include_trunk = include_trunk)
+
+  if(is.null(init)){
+    init = .multirates_default_init(built$data)
+  }
+
+  mod = cmdstanr::cmdstan_model(system.file("multirates_positive_s.stan", package = "PEPI"))
+
+  fit = if(method == "variational"){
+
+    mod$variational(data = built$data, seed = seed, init = init,
+                    output_samples = ndraws, algorithm = "fullrank")
+
+  }else{
+
+    mod$sample(data = built$data, seed = seed, init = init,
+              chains = chains, iter_sampling = ndraws)
+
+  }
+
+  x$inference$multirates = fit
+  x$stan_data$multirates = built$data
+  x$index_maps = built$index_maps
+
   return(x)
-  
+
 }
-
-
-
-

@@ -2,21 +2,26 @@
 % Please edit documentation in R/plot_functions.R
 \name{plot_inference}
 \alias{plot_inference}
-\title{Plot posterior and prior distributions.}
+\title{Plot posterior and prior distributions of the unified multirates model's parameters.}
 \usage{
-plot_inference(x, params = NULL)
+plot_inference(x, params = NULL, groups = NULL)
 }
 \arguments{
-\item{params}{A list of parameters}
+\item{x}{PEPI_Multirates object, after \code{get_posterior_multirates()}.}
 
-\item{post}{Posterior draws}
+\item{params}{A vector of canonical parameter names (e.g. "lambda_n", "s_driver").}
+
+\item{groups}{A vector of groups to include (wt/driver/driver_n/driver_p/dc/clade_wt/global).}
 }
 \value{
-A plot with posterior and prior distributions
+A plot with posterior and prior distributions.
 }
 \description{
-Posterior and prior draws histograms are plotted for any required parameter.
+Posterior and prior draws histograms are plotted for any required parameter,
+using the raw ("param" family) rows of \code{get_posterior_multirates()}'s output.
 }
 \examples{
-plot_inference(x,params = c("rn","rp"))
+\dontrun{
+plot_inference(x,params = c("lambda_n","s_epi"))
+}
 }

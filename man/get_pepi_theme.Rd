@@ -13,5 +13,8 @@ a ggplot theme.
 A ggplot theme is generated.
 }
 \examples{
+\dontrun{
 get_pepi_theme()
 }
+}
+\keyword{internal}
