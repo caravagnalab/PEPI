@@ -91,7 +91,8 @@ comparison = bind_rows(
 ggplot(comparison) +
   geom_density(aes(x = value, fill = method), alpha = 0.5) +
   facet_wrap(~facet, scales = "free") +
-  get_pepi_theme()
+  theme_light(base_size = 10) +
+  theme(legend.position = "bottom")
 
 ```
 
