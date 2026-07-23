@@ -1,6 +1,8 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://caravagnalab.github.io/PEPI/404.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/Convergence_diagnostics.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/articles/Multirates_inference.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/articles/Variational_vs_MCMC.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/articles/index.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/authors.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/index.html</loc></url>
@@ -21,13 +23,22 @@
 <url><loc>https://caravagnalab.github.io/PEPI/reference/init_multirates.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/pipe.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/pivot_ccf.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_acf.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_ccf.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_counts_multirates.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_diagnostics.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_divergences.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_energy.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_ess.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_fractions.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_inference.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_marginal.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_multivariate.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/plot_mutations.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_pairs.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_rhat.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_trace.html</loc></url>
+<url><loc>https://caravagnalab.github.io/PEPI/reference/plot_treedepth.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/simulate_Z.html</loc></url>
 <url><loc>https://caravagnalab.github.io/PEPI/reference/simulate_multirates_tree.html</loc></url>
 </urlset>
