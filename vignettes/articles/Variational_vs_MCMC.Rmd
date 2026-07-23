@@ -34,7 +34,11 @@ posteriors directly, to build intuition for when the difference matters.
 
 ## Simulate data and fit both ways
 
-```{r}
+Stan's own sampler console output is suppressed below for readability - it
+normally includes informational messages about rejected initial values
+during warmup, which are expected and not a sign of a problem here.
+
+```{r, results = "hide", message = FALSE}
 
 set.seed(42)
 
