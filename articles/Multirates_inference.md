@@ -155,15 +155,15 @@ x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
 #> ------------------------------------------------------------ 
 #> Rejecting initial value: 
 #>   Error evaluating the log probability at the initial value. 
-#> Exception: lub_constrain: lb is 4.87392, but must be less than 3.000000 (in '/tmp/RtmpXzPQde/model-1e9d4af68df0.stan', line 353, column 2 to column 81) 
+#> Exception: lub_constrain: lb is 4.87392, but must be less than 3.000000 (in '/tmp/Rtmp3MQ6OR/model-1e945193d9be.stan', line 353, column 2 to column 81) 
 #> Rejecting initial value: 
 #>   Error evaluating the log probability at the initial value. 
-#> Exception: lub_constrain: lb is 5.59741, but must be less than 3.000000 (in '/tmp/RtmpXzPQde/model-1e9d4af68df0.stan', line 353, column 2 to column 81) 
+#> Exception: lub_constrain: lb is 5.59741, but must be less than 3.000000 (in '/tmp/Rtmp3MQ6OR/model-1e945193d9be.stan', line 353, column 2 to column 81) 
 #> Rejecting initial value: 
 #>   Error evaluating the log probability at the initial value. 
-#> Exception: lub_constrain: lb is 6.88754, but must be less than 3.000000 (in '/tmp/RtmpXzPQde/model-1e9d4af68df0.stan', line 353, column 2 to column 81) 
-#> Gradient evaluation took 8.3e-05 seconds 
-#> 1000 transitions using 10 leapfrog steps per transition would take 0.83 seconds. 
+#> Exception: lub_constrain: lb is 6.88754, but must be less than 3.000000 (in '/tmp/Rtmp3MQ6OR/model-1e945193d9be.stan', line 353, column 2 to column 81) 
+#> Gradient evaluation took 7.1e-05 seconds 
+#> 1000 transitions using 10 leapfrog steps per transition would take 0.71 seconds. 
 #> Adjust your expectations accordingly! 
 #> Begin eta adaptation. 
 #> Iteration:   1 / 250 [  0%]  (Adaptation) 
