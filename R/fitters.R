@@ -102,18 +102,18 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
             min_sigma_count = min_sigma_count, max_sigma_count = max_sigma_count,
             include_poisson = include_poisson, include_trunk = include_trunk)
 
-  if(is.null(init)){
-    init = .multirates_default_init(built$data)
-  }
-
   mod = cmdstanr::cmdstan_model(system.file("multirates_positive_s.stan", package = "PEPI"))
 
   fit = if(method == "variational"){
+
+    if(is.null(init)) init = .multirates_default_init(built$data)
 
     mod$variational(data = built$data, seed = seed, init = init,
                     output_samples = ndraws, algorithm = "fullrank")
 
   }else{
+
+    if(is.null(init)) init = rep(.multirates_default_init(built$data), chains)
 
     mod$sample(data = built$data, seed = seed, init = init,
               chains = chains, iter_sampling = ndraws)

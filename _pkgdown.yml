@@ -40,4 +40,23 @@ reference:
 - title: Plotting functions
   desc: Functions to plot data, predictions and posterior/prior distributions.
   contents:
-  - starts_with("plot_")
+  - plot_counts_multirates
+  - plot_fractions
+  - plot_ccf
+  - plot_mutations
+  - plot_inference
+  - plot_multivariate
+  - plot_marginal
+
+- title: Convergence diagnostics
+  desc: Thin bayesplot wrappers for fits obtained with `fit_multirates(..., method = "sample")`.
+  contents:
+  - plot_diagnostics
+  - plot_trace
+  - plot_rhat
+  - plot_ess
+  - plot_acf
+  - plot_divergences
+  - plot_energy
+  - plot_treedepth
+  - plot_pairs

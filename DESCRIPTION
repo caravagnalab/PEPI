@@ -42,6 +42,7 @@ Imports:
     tidyr,
     expm,
     posterior,
+    bayesplot,
     tibble,
     ggplot2,
     ggpubr,
