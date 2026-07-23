@@ -6,10 +6,10 @@ Date: 2023-12-5
 Author: Riccardo Bergamin
 Maintainer: Riccardo Bergamin <rbergamin@units.it>
 Authors@R: c(
-    person("Riccardo", "Bergamin", "rbergamin@units.it", role = c("aut", "cre")),
-    person("Giulio", "Caravagna", "gcaravagn@gmail.com", role = c("ctb"),
+    person("Riccardo", "Bergamin", email = "rbergamin@units.it", role = c("aut", "cre")),
+    person("Giulio", "Caravagna", email = "gcaravagn@gmail.com", role = c("ctb"),
       comment = c(ORCID = "0000-0003-4240-3265")),
-    person("Clara", "Canavese", "arnold@sissa.com", role = c("ctb"))
+    person("Clara", "Canavese", email = "arnold@sissa.com", role = c("ctb"))
   )
 Description: PEPI is a package that implements a statistical model for studying epigenetic dynamics from genomics data and cell counts.
   The first application deals with the study of a latent branching process augmented with genetic mutations that are accumulated 
@@ -35,25 +35,27 @@ Encoding: UTF-8
 LazyData: true
 Depends:
     R (>= 4.2.2),
-Imports: 
-    rstan,
+Imports:
     cmdstanr,
     dplyr,
-    MCMCprecision,
-    VGAM,
+    magrittr,
+    tidyr,
+    expm,
+    posterior,
+    tibble,
     ggplot2,
-    ape,
-    ggtree,
-    treeio,
     ggpubr,
-    parallel
-RoxygenNote: 7.2.3
+    ggsci
+RoxygenNote: 7.3.3
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Remotes:
     caravagn/easypar,
     caravagn/VIBER
 VignetteBuilder: knitr
-URL: https://github.com/caravagnalab/PEPI,
-    https://caravagnalab.github.io/PEPI/
+Additional_repositories: https://mc-stan.org/r-packages/
+URL: https://caravagnalab.github.io/PEPI/,
+    https://github.com/caravagnalab/PEPI
 BugReports: https://github.com/caravagnalab/PEPI/issues

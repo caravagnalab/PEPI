@@ -1,0 +1,43 @@
+url: https://caravagnalab.github.io/PEPI/
+
+template:
+  bootstrap: 5
+  bootswatch: simplex
+
+authors:
+  Giulio Caravagna:
+    href: https://www.caravagnalab.org/
+
+reference:
+- title: Input & data construction
+  desc: Functions to validate a multirates input and build the corresponding Stan data list.
+  contents:
+  - init_multirates
+  - check_input_multirates
+  - build_stan_data_multirates
+
+- title: Fitting
+  desc: Functions to fit the unified multirates model.
+  contents:
+  - fit_multirates
+
+- title: Synthetic data
+  desc: Functions to simulate synthetic driver/clade CCF trajectories for testing and demonstration.
+  contents:
+  - simulate_multirates_tree
+
+- title: Getters
+  desc: Functions to extract posterior draws and predicted quantities from a fit.
+  contents:
+  - get_posterior_multirates
+  - get_predicted_counts
+  - get_predicted_fractions
+  - get_predicted_ccf
+  - get_predicted_mutations
+  - get_viber_clusters
+  - get_init_values
+
+- title: Plotting functions
+  desc: Functions to plot data, predictions and posterior/prior distributions.
+  contents:
+  - starts_with("plot_")
