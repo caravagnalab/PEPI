@@ -30,8 +30,9 @@ inline `*_prior` draws) is parsed into one long tidy table with columns
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Convergence_diagnostics.html">Convergence diagnostics</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Model_notation.html">Model and notation</a></li>
     <li><a class="dropdown-item" href="../articles/Multirates_inference.html">Multirates inference</a></li>
+    <li><a class="dropdown-item" href="../articles/Convergence_diagnostics.html">Convergence diagnostics</a></li>
     <li><a class="dropdown-item" href="../articles/Variational_vs_MCMC.html">Variational vs MCMC inference</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -80,9 +81,86 @@ by <code><a href="fit_multirates.html">fit_multirates()</a></code>.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu">get_posterior_multirates</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">=</span> <span class="fu"><a href="simulate_multirates_tree.html">simulate_multirates_tree</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  sampling_times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">6</span>, <span class="fl">9</span><span class="op">)</span>, tmrca <span class="op">=</span> <span class="fl">1</span>, t_min <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  lambda_n <span class="op">=</span> <span class="fl">1</span>, s_epi <span class="op">=</span> <span class="fl">0.15</span>, omega_n_wt <span class="op">=</span> <span class="fl">5e-3</span>, omega_p_wt <span class="op">=</span> <span class="fl">2e-3</span>,</span></span>
+<span class="r-in"><span>  drivers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"KRAS"</span>, t_driver <span class="op">=</span> <span class="fl">2</span>, s_driver <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
+<span class="r-in"><span>      omega_n_driver <span class="op">=</span> <span class="fl">5e-3</span>, omega_p_driver <span class="op">=</span> <span class="fl">2e-3</span>,</span></span>
+<span class="r-in"><span>      ms_driver <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>, sigma_driver <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>      alpha_n_driver <span class="op">=</span> <span class="fl">1</span>, beta_n_driver <span class="op">=</span> <span class="fl">10</span>, alpha_p_driver <span class="op">=</span> <span class="fl">1</span>, beta_p_driver <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  clades_wt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"c1"</span>, t_clade_wt <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  mu <span class="op">=</span> <span class="fl">1e-7</span>, l <span class="op">=</span> <span class="fl">2.7e9</span>, kappa <span class="op">=</span> <span class="fl">20</span>, sigma_count <span class="op">=</span> <span class="fl">0.1</span>, seed <span class="op">=</span> <span class="fl">42</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="init_multirates.html">init_multirates</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">tables</span>, m_trunk <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">$</span><span class="va">m_trunk</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="fit_multirates.html">fit_multirates</a></span><span class="op">(</span><span class="va">x</span>, cmdstan_path <span class="op">=</span> <span class="fu">cmdstanr</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/cmdstanr/reference/set_cmdstan_path.html" class="external-link">cmdstan_path</a></span><span class="op">(</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  method <span class="op">=</span> <span class="st">"variational"</span>, ndraws <span class="op">=</span> <span class="fl">500</span>, seed <span class="op">=</span> <span class="fl">45</span>,</span></span>
+<span class="r-in"><span>  mu <span class="op">=</span> <span class="fl">1e-7</span>, l <span class="op">=</span> <span class="fl">2.7e9</span>, t_min <span class="op">=</span> <span class="fl">0</span>, ms_epi <span class="op">=</span> <span class="fl">0</span>, sigma_epi <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>  alpha_lambda <span class="op">=</span> <span class="fl">1</span>, beta_lambda <span class="op">=</span> <span class="fl">1</span>, alpha_n_wt <span class="op">=</span> <span class="fl">1</span>, beta_n_wt <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  alpha_p_wt <span class="op">=</span> <span class="fl">1</span>, beta_p_wt <span class="op">=</span> <span class="fl">10</span>, min_kappa <span class="op">=</span> <span class="fl">5</span>, max_kappa <span class="op">=</span> <span class="fl">200</span>,</span></span>
+<span class="r-in"><span>  min_sigma_count <span class="op">=</span> <span class="fl">0.01</span>, max_sigma_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> CmdStan path set to: /home/runner/.cmdstan/cmdstan-2.39.0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Init values were only set for a subset of parameters. </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Missing init values for the following parameters:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> lambda_n, s_epi, omega_p_wt, omega_n_wt, bc_wt, U_wt, W_wt, bc_clade_wt, s_driver, bc_driver, U_driver, W_driver, s_driver_n, t_driver_n, bc_driver_n, s_driver_p, t_driver_p, bc_driver_p, s_dc, delta_t_dc, bc_driver_dc, bc_clade_dc, U_dc, W_dc, omega_p_dc, omega_n_dc, omega_p_driver, omega_n_driver, kappa, sigma_count</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> To disable this message use options(cmdstanr_warn_inits = FALSE).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------ </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> EXPERIMENTAL ALGORITHM: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   This procedure has not been thoroughly tested and may be unstable </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   or buggy. The interface is subject to change. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------ </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rejecting initial value: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Error evaluating the log probability at the initial value. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Exception: lub_constrain: lb is 4.87392, but must be less than 3.000000 (in '/tmp/RtmpAjDVJG/model-1be660c054e.stan', line 353, column 2 to column 81) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rejecting initial value: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Error evaluating the log probability at the initial value. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Exception: lub_constrain: lb is 5.59741, but must be less than 3.000000 (in '/tmp/RtmpAjDVJG/model-1be660c054e.stan', line 353, column 2 to column 81) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rejecting initial value: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Error evaluating the log probability at the initial value. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Exception: lub_constrain: lb is 6.88754, but must be less than 3.000000 (in '/tmp/RtmpAjDVJG/model-1be660c054e.stan', line 353, column 2 to column 81) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gradient evaluation took 8.1e-05 seconds </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1000 transitions using 10 leapfrog steps per transition would take 0.81 seconds. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adjust your expectations accordingly! </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Begin eta adaptation. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration:   1 / 250 [  0%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration:  50 / 250 [ 20%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 100 / 250 [ 40%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 150 / 250 [ 60%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 200 / 250 [ 80%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 250 / 250 [100%]  (Adaptation) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Success! Found best value [eta = 0.1]. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Begin stochastic gradient ascent. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   iter             ELBO   delta_ELBO_mean   delta_ELBO_med   notes  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    100        -4217.949             1.000            1.000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    200         -806.620             2.615            4.229 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    300         -315.630             2.262            1.556 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    400         -212.549             1.817            1.556 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    500         -161.714             1.517            1.000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    600         -126.474             1.310            1.000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    700          -90.461             1.180            0.485 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    800          -78.260             1.052            0.485 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    900          -74.109             0.941            0.398 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1000          -67.179             0.858            0.398 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1100          -62.939             0.764            0.314   MAY BE DIVERGING... INSPECT ELBO </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1200          -58.695             0.349            0.279 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1300          -57.094             0.196            0.156 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1400          -55.924             0.149            0.103 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1500          -54.715             0.120            0.072 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1600          -53.765             0.094            0.067 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1700          -53.733             0.054            0.056 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1800          -52.085             0.042            0.032 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1900          -51.622             0.037            0.028 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2000          -50.928             0.028            0.022 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2100          -51.332             0.022            0.021 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2200          -51.179             0.015            0.018 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2300          -51.188             0.013            0.014 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2400          -50.887             0.011            0.009   MEDIAN ELBO CONVERGED </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Drawing a sample of size 500 from the approximate posterior...  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> COMPLETED. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Finished in  0.3 seconds.</span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">=</span> <span class="fu">get_posterior_multirates</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
