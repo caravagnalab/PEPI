@@ -47,6 +47,13 @@ jobs:
           cmdstanr::install_cmdstan(version = "2.35.0", cores = parallel::detectCores())
         shell: Rscript {0}
 
+      - name: Debug fit
+        run: |
+          sessionInfo()
+          print(cmdstanr::cmdstan_version())
+          source(system.file("examples", "fit_example.R", package = "PEPI"))
+        shell: Rscript {0}
+
       - name: Deploy package
         run: |
           git config --local user.name "$GITHUB_ACTOR"
