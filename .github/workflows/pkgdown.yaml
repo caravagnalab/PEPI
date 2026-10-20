@@ -49,9 +49,15 @@ jobs:
 
       - name: Debug fit
         run: |
-          sessionInfo()
           print(cmdstanr::cmdstan_version())
-          source(system.file("examples", "fit_example.R", package = "PEPI"))
+          library(PEPI)
+          library(dplyr)
+          setwd("vignettes/articles")
+          source("example_fit.R", echo = FALSE)
+          print(x$inference$multirates$output_files())
+          print(x$inference$multirates$return_codes())
+          print(plot_diagnostics(x))
+          rmarkdown::render("Convergence_diagnostics.Rmd", output_dir = tempdir())
         shell: Rscript {0}
 
       - name: Deploy package
