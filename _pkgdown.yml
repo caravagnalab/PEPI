@@ -15,7 +15,6 @@ articles:
   - articles/Model_notation
   - articles/Data_generation
   - articles/Multirates_inference
-  - articles/inference_v2
   - articles/Convergence_diagnostics
 
 reference:
