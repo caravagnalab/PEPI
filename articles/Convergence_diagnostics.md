@@ -6,66 +6,72 @@ library(PEPI)
 library(cmdstanr)
 #> This is cmdstanr version 0.8.0
 #> - CmdStanR documentation and vignettes: mc-stan.org/cmdstanr
-#> - CmdStan path: /home/runner/.cmdstan/cmdstan-2.39.0
-#> - CmdStan version: 2.39.0
+#> - CmdStan path: /home/runner/.cmdstan/cmdstan-2.35.0
+#> - CmdStan version: 2.35.0
+#> 
+#> A newer version of CmdStan is available. See ?install_cmdstan() to install it.
+#> To disable this check set option or environment variable cmdstanr_no_ver_check=TRUE.
 library(bayesplot)
-#> This is bayesplot version 1.15.0
+#> This is bayesplot version 1.16.0
 #> - Online documentation and vignettes at mc-stan.org/bayesplot
 #> - bayesplot theme set to bayesplot::theme_default()
 #>    * Does _not_ affect other ggplot2 plots
 #>    * See ?bayesplot_theme_set for details on theme setting
+library(dplyr)
+#> 
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
 ```
 
 [`fit_multirates()`](https://caravagnalab.github.io/PEPI/reference/fit_multirates.md)
-defaults to `method = "variational"` (ADVI), a fast approximation with
-no notion of chains, R-hat, divergences or treedepth. Whenever you need
-to trust a result - not just eyeball it - fit with `method = "sample"`
-(full Hamiltonian Monte Carlo / NUTS) instead, and use the diagnostics
-below to check the chains actually converged. These are thin wrappers
-around [bayesplot](https://mc-stan.org/bayesplot/), which already knows
-how to read a `cmdstanr` fit directly, so there is no PEPI-specific
-plotting logic to learn.
+samples the posterior with Hamiltonian Monte Carlo (NUTS). Before
+trusting a result, check that the chains actually converged. The
+diagnostics below are thin wrappers around
+[bayesplot](https://mc-stan.org/bayesplot/), which already knows how to
+read a `cmdstanr` fit directly, so there is no PEPI-specific plotting
+logic to learn.
 
-## Simulate data and fit with MCMC
+## The fit
 
-Stan’s own sampler console output is suppressed below for readability -
-it normally includes informational messages about rejected initial
-values during warmup, which are expected and not a sign of a problem
-here.
+We use the fit of `vignette("Multirates_inference")`: the same data,
+priors and sampler settings (4 chains, 1000 warmup and 5000 sampling
+iterations, `adapt_delta = 0.99`, `max_treedepth = 15`). The code is
+hidden here; see that article for the details.
 
 ``` r
 
-
-set.seed(42)
-
-sim = simulate_multirates_tree(
-  sampling_times = c(3, 6, 9),
-  tmrca = 1, t_min = 0,
-  lambda_n = 1, s_epi = 0.15,
-  omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-  drivers = list(
-    list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-        omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-        ms_driver = -0.5, sigma_driver = 0.5,
-        alpha_n_driver = 1, beta_n_driver = 10,
-        alpha_p_driver = 1, beta_p_driver = 10)
-  ),
-  clades_wt = list(
-    list(id = "c1", t_clade_wt = 1.5)
-  ),
-  mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1,
-  seed = 42
+x = fit_multirates(
+  x,
+  seed = 31,
+  chains = 4,
+  parallel_chains = 4,
+  ndraws = 5000,
+  adapt_delta = 0.99,
+  max_treedepth = 15,
+  init = rep(list(list(omega_p_wt = 3e-3, omega_p_driver = 3e-3)), 4),
+  mu = mu$mean,
+  l = 51e06,
+  t_min = -20,
+  ms_epi = -0.8,
+  sigma_epi = 0.9,
+  alpha_lambda = 10,
+  beta_lambda = 10,
+  alpha_n_wt = 1,
+  beta_n_wt = 1e4,
+  alpha_p_wt = 0.2,
+  beta_p_wt = 10,
+  min_kappa = 3000,
+  max_kappa = 5000,
+  min_sigma_count = 0.05,
+  max_sigma_count = 0.15,
+  include_poisson = 1,
+  include_trunk = 0
 )
-
-x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-
-x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-                   method = "sample", chains = 2, ndraws = 200, seed = 45,
-                   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-                   alpha_lambda = 1, beta_lambda = 1,
-                   alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
-                   min_kappa = 5, max_kappa = 200,
-                   min_sigma_count = 0.01, max_sigma_count = 1)
 ```
 
 ## One-call dashboard
@@ -78,15 +84,11 @@ figure.
 ``` r
 
 plot_diagnostics(x)
-#> Warning: Groups with fewer than two datapoints have been dropped.
-#> ℹ Set `drop = FALSE` to consider such groups for position adjustment purposes.
-#> Groups with fewer than two datapoints have been dropped.
-#> ℹ Set `drop = FALSE` to consider such groups for position adjustment purposes.
 #> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 #> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 ```
 
-![](Convergence_diagnostics_files/figure-html/unnamed-chunk-3-1.png)
+![](Convergence_diagnostics_files/figure-html/unnamed-chunk-5-1.png)
 
 - **R-hat** (top left): the potential scale reduction factor, one point
   per parameter. Values close to 1 mean the chains agree with each
@@ -114,10 +116,11 @@ zoom in on a specific subset.
 
 ``` r
 
-plot_trace(x, params = c("lambda_n", "s_epi", "s_driver"))
+plot_trace(x, params = c("lambda_n", "s_epi", "s_driver", "t_driver"))
+#> No divergences to plot.
 ```
 
-![](Convergence_diagnostics_files/figure-html/unnamed-chunk-4-1.png)
+![](Convergence_diagnostics_files/figure-html/unnamed-chunk-6-1.png)
 
 Trace plots overlay each chain’s path through the parameter space over
 iterations; well-mixed chains look like “fuzzy caterpillars” with no
@@ -125,20 +128,20 @@ trend and substantial overlap between chains.
 
 ``` r
 
-plot_acf(x, params = c("lambda_n", "s_epi", "s_driver"))
+plot_acf(x, params = c("lambda_n", "s_epi", "s_driver", "t_driver"))
 ```
 
-![](Convergence_diagnostics_files/figure-html/unnamed-chunk-5-1.png)
+![](Convergence_diagnostics_files/figure-html/unnamed-chunk-7-1.png)
 
 Autocorrelation should decay quickly with lag; slow decay is the same
 problem the effective-sample-size panel flags, just visualised directly.
 
 ``` r
 
-plot_pairs(x, params = c("lambda_n", "s_epi"))
+plot_pairs(x, params = c("lambda_n", "s_epi", "s_driver"))
 ```
 
-![](Convergence_diagnostics_files/figure-html/unnamed-chunk-6-1.png)
+![](Convergence_diagnostics_files/figure-html/unnamed-chunk-8-1.png)
 
 Pairs plots are the standard way to spot the funnel-shaped geometries
 that cause divergences (marked in red, if any) - a divergence cluster
@@ -150,7 +153,7 @@ parameters are hard to sample jointly.
 plot_treedepth(x)
 ```
 
-![](Convergence_diagnostics_files/figure-html/unnamed-chunk-7-1.png)![](Convergence_diagnostics_files/figure-html/unnamed-chunk-7-2.png)
+![](Convergence_diagnostics_files/figure-html/unnamed-chunk-9-1.png)![](Convergence_diagnostics_files/figure-html/unnamed-chunk-9-2.png)
 
 Chains that repeatedly hit the maximum treedepth are being cut off
 before making a U-turn; this hurts sampling efficiency (though, unlike
@@ -166,6 +169,7 @@ divergences, it does not necessarily bias the posterior).
   `min_kappa`/ `max_kappa`, `min_sigma_count`/`max_sigma_count` bounds,
   or gamma priors on the switch rates `omega_*` closer to the scale you
   actually expect).
-- **Both persist**: fall back to `method = "variational"` for fast
-  iteration while adjusting the model/data, and only switch to
-  `method = "sample"` once instructed as a final check.
+- **Both persist**: check that the priors are consistent with the data
+  (see the prior vs posterior plots of
+  `vignette("Multirates_inference")`), and consider increasing
+  `adapt_delta` or `max_treedepth`.

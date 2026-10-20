@@ -39,9 +39,9 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/Model_notation.html">Model and notation</a></li>
-    <li><a class="dropdown-item" href="../articles/Multirates_inference.html">Multirates inference</a></li>
+    <li><a class="dropdown-item" href="../articles/Data_generation.html">Data generation</a></li>
+    <li><a class="dropdown-item" href="../articles/Multirates_inference.html">Inference</a></li>
     <li><a class="dropdown-item" href="../articles/Convergence_diagnostics.html">Convergence diagnostics</a></li>
-    <li><a class="dropdown-item" href="../articles/Variational_vs_MCMC.html">Variational vs MCMC inference</a></li>
   </ul>
 </li>
       </ul>
@@ -76,62 +76,67 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/cmdstanr/" class="external-link">cmdstanr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; This is cmdstanr version 0.8.0</span></span>
 <span><span class="co">#&gt; - CmdStanR documentation and vignettes: mc-stan.org/cmdstanr</span></span>
-<span><span class="co">#&gt; - CmdStan path: /home/runner/.cmdstan/cmdstan-2.39.0</span></span>
-<span><span class="co">#&gt; - CmdStan version: 2.39.0</span></span>
+<span><span class="co">#&gt; - CmdStan path: /home/runner/.cmdstan/cmdstan-2.35.0</span></span>
+<span><span class="co">#&gt; - CmdStan version: 2.35.0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; A newer version of CmdStan is available. See ?install_cmdstan() to install it.</span></span>
+<span><span class="co">#&gt; To disable this check set option or environment variable cmdstanr_no_ver_check=TRUE.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/bayesplot/" class="external-link">bayesplot</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; This is bayesplot version 1.15.0</span></span>
+<span><span class="co">#&gt; This is bayesplot version 1.16.0</span></span>
 <span><span class="co">#&gt; - Online documentation and vignettes at mc-stan.org/bayesplot</span></span>
 <span><span class="co">#&gt; - bayesplot theme set to bayesplot::theme_default()</span></span>
 <span><span class="co">#&gt;    * Does _not_ affect other ggplot2 plots</span></span>
-<span><span class="co">#&gt;    * See ?bayesplot_theme_set for details on theme setting</span></span></code></pre></div>
-<p><code><a href="../reference/fit_multirates.html">fit_multirates()</a></code> defaults to
-<code>method = "variational"</code> (ADVI), a fast approximation with no
-notion of chains, R-hat, divergences or treedepth. Whenever you need to
-trust a result - not just eyeball it - fit with
-<code>method = "sample"</code> (full Hamiltonian Monte Carlo / NUTS)
-instead, and use the diagnostics below to check the chains actually
-converged. These are thin wrappers around <a href="https://mc-stan.org/bayesplot/" class="external-link">bayesplot</a>, which already knows
+<span><span class="co">#&gt;    * See ?bayesplot_theme_set for details on theme setting</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
+<p><code><a href="../reference/fit_multirates.html">fit_multirates()</a></code> samples the posterior with Hamiltonian
+Monte Carlo (NUTS). Before trusting a result, check that the chains
+actually converged. The diagnostics below are thin wrappers around <a href="https://mc-stan.org/bayesplot/" class="external-link">bayesplot</a>, which already knows
 how to read a <code>cmdstanr</code> fit directly, so there is no
 PEPI-specific plotting logic to learn.</p>
 <div class="section level2">
-<h2 id="simulate-data-and-fit-with-mcmc">Simulate data and fit with MCMC<a class="anchor" aria-label="anchor" href="#simulate-data-and-fit-with-mcmc"></a>
+<h2 id="the-fit">The fit<a class="anchor" aria-label="anchor" href="#the-fit"></a>
 </h2>
-<p>Stan’s own sampler console output is suppressed below for readability
-- it normally includes informational messages about rejected initial
-values during warmup, which are expected and not a sign of a problem
-here.</p>
+<p>We use the fit of <code>vignette("Multirates_inference")</code>: the
+same data, priors and sampler settings (4 chains, 1000 warmup and 5000
+sampling iterations, <code>adapt_delta = 0.99</code>,
+<code>max_treedepth = 15</code>). The code is hidden here; see that
+article for the details.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim</span> <span class="op">=</span> <span class="fu"><a href="../reference/simulate_multirates_tree.html">simulate_multirates_tree</a></span><span class="op">(</span></span>
-<span>  sampling_times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">6</span>, <span class="fl">9</span><span class="op">)</span>,</span>
-<span>  tmrca <span class="op">=</span> <span class="fl">1</span>, t_min <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  lambda_n <span class="op">=</span> <span class="fl">1</span>, s_epi <span class="op">=</span> <span class="fl">0.15</span>,</span>
-<span>  omega_n_wt <span class="op">=</span> <span class="fl">5e-3</span>, omega_p_wt <span class="op">=</span> <span class="fl">2e-3</span>,</span>
-<span>  drivers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"KRAS"</span>, t_driver <span class="op">=</span> <span class="fl">2</span>, s_driver <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>        omega_n_driver <span class="op">=</span> <span class="fl">5e-3</span>, omega_p_driver <span class="op">=</span> <span class="fl">2e-3</span>,</span>
-<span>        ms_driver <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>, sigma_driver <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>        alpha_n_driver <span class="op">=</span> <span class="fl">1</span>, beta_n_driver <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>        alpha_p_driver <span class="op">=</span> <span class="fl">1</span>, beta_p_driver <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  clades_wt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"c1"</span>, t_clade_wt <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  mu <span class="op">=</span> <span class="fl">1e-7</span>, l <span class="op">=</span> <span class="fl">2.7e9</span>, kappa <span class="op">=</span> <span class="fl">20</span>, sigma_count <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">42</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="../reference/init_multirates.html">init_multirates</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">tables</span>, m_trunk <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">$</span><span class="va">m_trunk</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="../reference/fit_multirates.html">fit_multirates</a></span><span class="op">(</span><span class="va">x</span>, cmdstan_path <span class="op">=</span> <span class="fu">cmdstanr</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/cmdstanr/reference/set_cmdstan_path.html" class="external-link">cmdstan_path</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>                   method <span class="op">=</span> <span class="st">"sample"</span>, chains <span class="op">=</span> <span class="fl">2</span>, ndraws <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">45</span>,</span>
-<span>                   mu <span class="op">=</span> <span class="fl">1e-7</span>, l <span class="op">=</span> <span class="fl">2.7e9</span>, t_min <span class="op">=</span> <span class="fl">0</span>, ms_epi <span class="op">=</span> <span class="fl">0</span>, sigma_epi <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>                   alpha_lambda <span class="op">=</span> <span class="fl">1</span>, beta_lambda <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                   alpha_n_wt <span class="op">=</span> <span class="fl">1</span>, beta_n_wt <span class="op">=</span> <span class="fl">10</span>, alpha_p_wt <span class="op">=</span> <span class="fl">1</span>, beta_p_wt <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                   min_kappa <span class="op">=</span> <span class="fl">5</span>, max_kappa <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>                   min_sigma_count <span class="op">=</span> <span class="fl">0.01</span>, max_sigma_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="../reference/fit_multirates.html">fit_multirates</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">31</span>,</span>
+<span>  chains <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  parallel_chains <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  ndraws <span class="op">=</span> <span class="fl">5000</span>,</span>
+<span>  adapt_delta <span class="op">=</span> <span class="fl">0.99</span>,</span>
+<span>  max_treedepth <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  init <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>omega_p_wt <span class="op">=</span> <span class="fl">3e-3</span>, omega_p_driver <span class="op">=</span> <span class="fl">3e-3</span><span class="op">)</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  mu <span class="op">=</span> <span class="va">mu</span><span class="op">$</span><span class="va">mean</span>,</span>
+<span>  l <span class="op">=</span> <span class="fl">51e06</span>,</span>
+<span>  t_min <span class="op">=</span> <span class="op">-</span><span class="fl">20</span>,</span>
+<span>  ms_epi <span class="op">=</span> <span class="op">-</span><span class="fl">0.8</span>,</span>
+<span>  sigma_epi <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>  alpha_lambda <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  beta_lambda <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  alpha_n_wt <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beta_n_wt <span class="op">=</span> <span class="fl">1e4</span>,</span>
+<span>  alpha_p_wt <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  beta_p_wt <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  min_kappa <span class="op">=</span> <span class="fl">3000</span>,</span>
+<span>  max_kappa <span class="op">=</span> <span class="fl">5000</span>,</span>
+<span>  min_sigma_count <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  max_sigma_count <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>  include_poisson <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  include_trunk <span class="op">=</span> <span class="fl">0</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="one-call-dashboard">One-call dashboard<a class="anchor" aria-label="anchor" href="#one-call-dashboard"></a>
@@ -141,13 +146,9 @@ look at first - R-hat, effective sample size, divergences and the HMC
 energy diagnostic - into a single figure.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_diagnostics.html">plot_diagnostics</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Groups with fewer than two datapoints have been dropped.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Set `drop = FALSE` to consider such groups for position adjustment purposes.</span></span>
-<span><span class="co">#&gt; Groups with fewer than two datapoints have been dropped.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Set `drop = FALSE` to consider such groups for position adjustment purposes.</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span></code></pre></div>
-<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="960"></p>
+<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="960"></p>
 <ul>
 <li>
 <strong>R-hat</strong> (top left): the potential scale reduction
@@ -183,27 +184,28 @@ a systematic mismatch signals inefficient exploration.</li>
 indexed parameters like <code>s_driver</code> are expanded to all of
 their elements automatically) to zoom in on a specific subset.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span>, <span class="st">"s_driver"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="864"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trace.html">plot_trace</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span>, <span class="st">"s_driver"</span>, <span class="st">"t_driver"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; No divergences to plot.</span></span></code></pre></div>
+<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="864"></p>
 <p>Trace plots overlay each chain’s path through the parameter space
 over iterations; well-mixed chains look like “fuzzy caterpillars” with
 no trend and substantial overlap between chains.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_acf.html">plot_acf</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span>, <span class="st">"s_driver"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="864"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_acf.html">plot_acf</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span>, <span class="st">"s_driver"</span>, <span class="st">"t_driver"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="864"></p>
 <p>Autocorrelation should decay quickly with lag; slow decay is the same
 problem the effective-sample-size panel flags, just visualised
 directly.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pairs.html">plot_pairs</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="672"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pairs.html">plot_pairs</a></span><span class="op">(</span><span class="va">x</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambda_n"</span>, <span class="st">"s_epi"</span>, <span class="st">"s_driver"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="672"></p>
 <p>Pairs plots are the standard way to spot the funnel-shaped geometries
 that cause divergences (marked in red, if any) - a divergence cluster
 concentrated in a narrow region of this plot points at exactly which
 parameters are hard to sample jointly.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_treedepth.html">plot_treedepth</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="672"><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-7-2.png" class="r-plt" alt="" width="672"></p>
+<p><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="672"><img src="Convergence_diagnostics_files/figure-html/unnamed-chunk-9-2.png" class="r-plt" alt="" width="672"></p>
 <p>Chains that repeatedly hit the maximum treedepth are being cut off
 before making a U-turn; this hurts sampling efficiency (though, unlike
 divergences, it does not necessarily bias the posterior).</p>
@@ -224,10 +226,10 @@ the sampler explore an implausible, poorly-conditioned region
 gamma priors on the switch rates <code>omega_*</code> closer to the
 scale you actually expect).</li>
 <li>
-<strong>Both persist</strong>: fall back to
-<code>method = "variational"</code> for fast iteration while adjusting
-the model/data, and only switch to <code>method = "sample"</code> once
-instructed as a final check.</li>
+<strong>Both persist</strong>: check that the priors are consistent
+with the data (see the prior vs posterior plots of
+<code>vignette("Multirates_inference")</code>), and consider increasing
+<code>adapt_delta</code> or <code>max_treedepth</code>.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

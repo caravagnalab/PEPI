@@ -59,74 +59,48 @@ Stan data list.
 
 ## Fitting
 
-Functions to fit the unified multirates model.
+Fit the unified multirates model with Hamiltonian Monte Carlo.
 
 - [`fit_multirates()`](https://caravagnalab.github.io/PEPI/reference/fit_multirates.md)
   : Fit the unified multirates model.
 
-## Synthetic data
-
-Functions to simulate synthetic driver/clade CCF trajectories for
-testing and demonstration.
-
-- [`simulate_multirates_tree()`](https://caravagnalab.github.io/PEPI/reference/simulate_multirates_tree.md)
-  : Simulate synthetic input tables for \`init_multirates()\`.
-
 ## Getters
 
-Functions to extract posterior draws and predicted quantities from a
-fit.
+Functions to extract posterior draws and posterior predictive
+trajectories from a fit.
 
 - [`get_posterior_multirates()`](https://caravagnalab.github.io/PEPI/reference/get_posterior_multirates.md)
   : Extract and tidy the full posterior (and built-in prior draws) from
   a multirates fit.
-- [`get_predicted_counts()`](https://caravagnalab.github.io/PEPI/reference/get_predicted_counts.md)
-  : Get posterior-predictive counts (z\_\*\_pred) with observed counts
-  joined in.
-- [`get_predicted_fractions()`](https://caravagnalab.github.io/PEPI/reference/get_predicted_fractions.md)
-  : Get posterior-predictive fractions (frac\_\*\_pred) with observed
-  fractions joined in.
-- [`get_predicted_ccf()`](https://caravagnalab.github.io/PEPI/reference/get_predicted_ccf.md)
-  : Get posterior-predictive CCF (ccf\_\*\_pred) with observed CCF
-  joined in.
-- [`get_predicted_mutations()`](https://caravagnalab.github.io/PEPI/reference/get_predicted_mutations.md)
-  : Get posterior-predictive mutation counts (m\_\*\_pred) with observed
-  counts joined in.
-- [`get_viber_clusters()`](https://caravagnalab.github.io/PEPI/reference/get_viber_clusters.md)
-  : Clusters mutation with VIBER, a package that implements a
-  variational non parametric Bayesian model to fit multi-variate
-  Binomial mixtures
+- [`get_predicted_trajectories()`](https://caravagnalab.github.io/PEPI/reference/get_predicted_trajectories.md)
+  : Get posterior predictive trajectories of the sorted populations.
 - [`get_init_values()`](https://caravagnalab.github.io/PEPI/reference/get_init_values.md)
   : Provide a initialization parameters for a PEPI VAF fit
 
-## Plotting functions
+## Inference plots
 
-Functions to plot data, predictions and posterior/prior distributions.
+Prior vs posterior distributions and posterior predictive checks.
 
-- [`plot_counts_multirates()`](https://caravagnalab.github.io/PEPI/reference/plot_counts_multirates.md)
-  : Plot predicted vs observed counts for the unified multirates model.
+- [`plot_prior_posterior()`](https://caravagnalab.github.io/PEPI/reference/plot_prior_posterior.md)
+  : plotting functions Plot prior and posterior distributions of the
+  model parameters.
+- [`plot_posterior_predictive()`](https://caravagnalab.github.io/PEPI/reference/plot_posterior_predictive.md)
+  : Plot all posterior predictive checks.
 - [`plot_fractions()`](https://caravagnalab.github.io/PEPI/reference/plot_fractions.md)
-  : Plot predicted vs observed fractions for the unified multirates
-  model.
+  : Plot the posterior predictive fraction of "+" cells in the whole
+  population.
+- [`plot_counts()`](https://caravagnalab.github.io/PEPI/reference/plot_counts.md)
+  : Plot the posterior predictive total population size.
+- [`plot_split()`](https://caravagnalab.github.io/PEPI/reference/plot_split.md)
+  : Plot the posterior predictive "+"/"-" split of each population.
 - [`plot_ccf()`](https://caravagnalab.github.io/PEPI/reference/plot_ccf.md)
-  : Plot predicted vs observed CCF for the unified multirates model.
-- [`plot_mutations()`](https://caravagnalab.github.io/PEPI/reference/plot_mutations.md)
-  : Plot predicted vs observed mutation counts for the unified
-  multirates model.
-- [`plot_inference()`](https://caravagnalab.github.io/PEPI/reference/plot_inference.md)
-  : Plot posterior and prior distributions of the unified multirates
-  model's parameters.
-- [`plot_multivariate()`](https://caravagnalab.github.io/PEPI/reference/plot_multivariate.md)
-  : plotting functions Plot multivariate VAF distributions with cluster
-  associated to tree nodes.
-- [`plot_marginal()`](https://caravagnalab.github.io/PEPI/reference/plot_marginal.md)
-  : Plot marginal VAF distributions with cluster associated to tree
-  nodes.
+  : Plot the posterior predictive CCF of each population in the sorted
+  samples.
 
 ## Convergence diagnostics
 
-Thin bayesplot wrappers for fits obtained with
-`fit_multirates(..., method = "sample")`.
+Thin bayesplot wrappers for the MCMC fit returned by
+[`fit_multirates()`](https://caravagnalab.github.io/PEPI/reference/fit_multirates.md).
 
 - [`plot_diagnostics()`](https://caravagnalab.github.io/PEPI/reference/plot_diagnostics.md)
   : One-call convergence dashboard.
@@ -153,9 +127,8 @@ Thin bayesplot wrappers for fits obtained with
 
 - [Model and
   notation](https://caravagnalab.github.io/PEPI/articles/Model_notation.md):
-- [Multirates
-  inference](https://caravagnalab.github.io/PEPI/articles/Multirates_inference.md):
+- [Data
+  generation](https://caravagnalab.github.io/PEPI/articles/Data_generation.md):
+- [Inference](https://caravagnalab.github.io/PEPI/articles/Multirates_inference.md):
 - [Convergence
   diagnostics](https://caravagnalab.github.io/PEPI/articles/Convergence_diagnostics.md):
-- [Variational vs MCMC
-  inference](https://caravagnalab.github.io/PEPI/articles/Variational_vs_MCMC.md):
