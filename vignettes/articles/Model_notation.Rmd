@@ -1,6 +1,6 @@
 ---
-
-## title: "Model and notation"
+title: "Model and notation"
+---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
