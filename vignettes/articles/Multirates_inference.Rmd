@@ -135,13 +135,19 @@ plot_fractions(x, pred)
 plot_counts(x, pred)
 ```
 
-Fraction of "+" cells within each population:
+Two different fractions describe each population $k$ (wild type, driver).
+The first is the fraction of its cells in the "+" state,
+$Z^+_k / (Z^-_k + Z^+_k)$: how the population itself is split between the
+two epistates.
 
 ```{r, fig.width=8, fig.height=3.5}
 plot_split(x, pred)
 ```
 
-CCF of each population in the "-" and "+" samples:
+The second is the fraction of each sorted sample made of the population,
+i.e. its CCF in that sample: $Z^-_k / \sum_j Z^-_j$ in the "-" sample and
+$Z^+_k / \sum_j Z^+_j$ in the "+" sample. In each sample these fractions sum
+to 1 over the populations.
 
 ```{r, fig.width=8, fig.height=3.5}
 plot_ccf(x, epistate = "-", pred = pred)

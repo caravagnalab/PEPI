@@ -166,7 +166,7 @@ plot_fractions = function(x, pred = NULL){
 
   .ribbon_plot(pred %>% dplyr::filter(pop == "total"),
                .observed_trajectories(x) %>% dplyr::filter(pop == "total"),
-               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Fraction Z+")
+               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Fraction Z+ in the whole population")
 
 }
 
@@ -227,7 +227,7 @@ plot_split = function(x, pred = NULL, pops = NULL){
 
   .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
                .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
-               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Fraction Z+ in population",
+               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Z+ / (Z- + Z+) in population",
                facet = TRUE)
 
 }
@@ -267,7 +267,7 @@ plot_ccf = function(x, epistate = c("-", "+"), pred = NULL, pops = NULL){
   .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
                .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
                var = var, probs = c(0.02, 0.98),
-               ylab = paste0("CCF Z", ifelse(epistate == "-", "\u2212", "+")),
+               ylab = paste0("Population fraction in Z", ifelse(epistate == "-", "\u2212", "+"), " sample"),
                facet = TRUE)
 
 }
