@@ -15,8 +15,6 @@ knitr::read_chunk("example_fit.R")
 ```{r setup}
 library(PEPI)
 library(dplyr)
-library(ggplot2)
-library(ggpubr)
 ```
 
 We fit PEPI on the polyclonal dataset generated in
@@ -54,47 +52,7 @@ branch and the truncal node highlighted (right). Below, the pairwise and
 marginal VAF spectra of the four sorted samples, with the same labels.
 
 ```{r, fig.width=12, fig.height=6.5}
-set.seed(31)
-
-ids_1 = (forest %>% filter(!is.na(sample), sample == "Sampling_1") %>%
-  pull(cell_id))[sample(x = 1:3000, size = 50, replace = FALSE)]
-ids_2 = (forest %>% filter(!is.na(sample), sample == "Sampling_2") %>%
-  pull(cell_id))[sample(x = 1:3000, size = 50, replace = FALSE)]
-
-all_ids = c(0)
-for (id in c(ids_1, ids_2)){
-  all_ids = unique(c(all_ids, get_branch(forest = forest, cell_id = id, stop_id = 0)))
-}
-
-forest_plot = forest %>% mutate(sample = gsub(x = sample, pattern = "Sampling_", replacement = "T"))
-
-driver_id = forest %>% filter(mutant == "B") %>% pull(cell_id) %>% min()
-branch_driver = get_branch(forest = forest, cell_id = driver_id, stop_id = 0)
-
-muts_plot = muts %>%
-  mutate(label = ifelse(first_cell_id %in% branch_driver, "driver",
-                        ifelse(first_cell_id == 0, "truncal", "subclonal")))
-
-cls = c("subclonal" = "gainsboro", "driver" = "forestgreen", "truncal" = "darkgoldenrod3")
-
-p_forest = plot_forest(forest_plot, all_ids)
-
-p_sticks = plot_sticks(
-  forest = forest_plot %>% filter(cell_id %in% all_ids),
-  labels = muts_plot %>% filter(first_cell_id %in% all_ids) %>%
-    dplyr::select(cell_id = first_cell_id, label) %>% unique(),
-  cls = cls
-)
-
-p_vaf = plot_vaf(muts_plot, vaf_cut = 0.03, colors = cls, size = 0.1, assemble = FALSE)
-
-ggarrange(
-  p_forest,
-  p_sticks,
-  ggarrange(plotlist = p_vaf$pairs, ncol = 3, nrow = 2, legend = "none"),
-  ggarrange(plotlist = p_vaf$marginals, ncol = 2, nrow = 2, legend = "none"),
-  nrow = 2, ncol = 2
-)
+PEPI:::plot_data(forest, muts, seed = 31)
 ```
 
 ## From the data to the model input
@@ -169,8 +127,12 @@ pred = get_predicted_trajectories(x)
 
 Fraction of "+" cells in the whole population and total population size:
 
-```{r, fig.width=10, fig.height=3.5}
-ggarrange(plot_fractions(x, pred), plot_counts(x, pred), ncol = 2)
+```{r, fig.width=8, fig.height=3.5}
+plot_fractions(x, pred)
+```
+
+```{r, fig.width=8, fig.height=3.5}
+plot_counts(x, pred)
 ```
 
 Fraction of "+" cells within each population:

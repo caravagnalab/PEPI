@@ -2,8 +2,6 @@
 title: "Multirates inference"
 ---
 
-## title: "Variational vs MCMC inference"
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -31,7 +29,7 @@ multi-sample VAF-derived CCF data collected at several sampling times:
 - **wt-background clades** (`clades_wt`), sub-lineages of the wt population
   tracked for their own epistate composition.
 
-## Load data and fit both ways
+## Load data and build the input
 
 Stan's own sampler console output is suppressed below for readability - it
 normally includes informational messages about rejected initial values
@@ -203,38 +201,32 @@ x$posterior$multirates
 
 ```
 
-## Predicted vs observed
-
-```{r, fig.width=8, fig.height=6}
-plot_counts_multirates(x)
-```
-
-```{r, fig.width=8, fig.height=6}
-plot_fractions(x)
-```
-
-```{r, fig.width=8, fig.height=6}
-plot_ccf(x)
-```
-
-```{r, fig.width=8, fig.height=5}
-plot_mutations(x)
-```
-
 ## Posterior vs prior, and ground-truth recovery
 
-```{r, fig.width=8, fig.height=5}
+Prior (transparent) and posterior (solid) distributions; dashed lines mark
+the values used to simulate the data.
 
-plot_inference(x, params = c("lambda_n","s_epi","s_driver","omega_p_wt","omega_n_driver","omega_p_driver")) +
-  geom_vline(
-    data = data.frame(
-      facet = c("lambda_n","s_epi","s_driver","omega_p_wt","omega_n_driver","omega_p_driver"),
-      truth = c(1.0, 0.5, 0.3, 8e-03, 0.3, 4e-02)
-    ),
-    aes(xintercept = truth), linetype = "dashed", color = "red"
-  )
+```{r, fig.width=8, fig.height=6}
+truth = c(
+  "lambda_n" = 1,
+  "s_epi" = 0.5,
+  "s_driver[1]" = 0.35,
+  "omega_p_wt" = 8e-3,
+  "tmrca" = 0,
+  "t_driver[1]" = 4,
+  "omega_p_driver[1]" = 4e-2,
+  "omega_n_driver[1]" = 0.3
+)
 
+plot_prior_posterior(x, params = names(truth), truth = truth)
 ```
 
-The dashed red lines mark the ground-truth values used to simulate the data;
-posterior histograms should bracket them.
+## Posterior predictive checks
+
+Fraction of "+" cells and total population size, "+"/"-" split within each
+population, and CCF of each population in the "-" and "+" samples (see
+`vignette("Multirates_inference")` for how the trajectories are generated).
+
+```{r, fig.width=10, fig.height=14}
+plot_posterior_predictive(x)
+```

@@ -19,23 +19,9 @@
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' x = get_posterior_multirates(x)
-#' plot_prior_posterior(x, truth = c(lambda_n = 1, s_epi = 0.15, "s_driver[1]" = 0.3))
+#' plot_prior_posterior(x, truth = c(lambda_n = 1, s_epi = 0.5, "s_driver[1]" = 0.35))
 #' }
 #' @export
 
@@ -169,21 +155,7 @@ plot_prior_posterior = function(x, params = NULL, truth = NULL, ncol = 3, nrow =
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_fractions(x)
 #' }
 #' @export
@@ -203,28 +175,14 @@ plot_fractions = function(x, pred = NULL){
 #'
 #' Median (dashed line) and 5%-95% interval (band) of the total number of
 #' cells over time (log scale), from \code{get_predicted_trajectories()},
-#' against the observed sizes at the sampling times (points).
+#' against the observed sizes at the sampling and intermediate times (points).
 #'
 #' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_counts(x)
 #' }
 #' @export
@@ -233,8 +191,8 @@ plot_counts = function(x, pred = NULL){
 
   if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  pred = pred %>% dplyr::filter(pop == "total") %>% dplyr::mutate(z_tot = z_neg + z_pos)
-  obs = .observed_trajectories(x) %>% dplyr::filter(pop == "total") %>% dplyr::mutate(z_tot = z_neg + z_pos)
+  pred = pred %>% dplyr::filter(pop == "total")
+  obs = .observed_trajectories(x) %>% dplyr::filter(pop == "total")
 
   .ribbon_plot(pred, obs, var = "z_tot", probs = c(0.05, 0.95), ylab = "Ztot") +
     ggplot2::scale_y_log10()
@@ -251,25 +209,12 @@ plot_counts = function(x, pred = NULL){
 #'
 #' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
-#' @param pops Populations to show; default all with cells in both epistates.
+#' @param pops Populations to show; default all that are sorted in "-" and
+#'   "+" (wt, drivers, dc, wt clades, dc clades).
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_split(x)
 #' }
 #' @export
@@ -278,7 +223,7 @@ plot_split = function(x, pred = NULL, pops = NULL){
 
   if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  if(is.null(pops)) pops = c("wt", "driver", "dc")
+  if(is.null(pops)) pops = c("wt", "driver", "dc", "clade_wt", "dc_clade")
 
   .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
                .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
@@ -302,21 +247,7 @@ plot_split = function(x, pred = NULL, pops = NULL){
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_ccf(x, epistate = "-")
 #' }
 #' @export
@@ -330,7 +261,7 @@ plot_ccf = function(x, epistate = c("-", "+"), pred = NULL, pops = NULL){
 
   # driver-only clades live in one sample only
   if(is.null(pops)){
-    pops = c("wt", "driver", "dc", ifelse(epistate == "-", "driver_n", "driver_p"))
+    pops = c("wt", "driver", "dc", "clade_wt", "dc_clade", ifelse(epistate == "-", "driver_n", "driver_p"))
   }
 
   .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
@@ -353,21 +284,7 @@ plot_ccf = function(x, epistate = c("-", "+"), pred = NULL, pops = NULL){
 #' @return A ggplot object.
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_posterior_predictive(x)
 #' }
 #' @export

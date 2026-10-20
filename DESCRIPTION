@@ -40,7 +40,6 @@ Imports:
     dplyr,
     magrittr,
     tidyr,
-    expm,
     posterior,
     bayesplot,
     tibble,

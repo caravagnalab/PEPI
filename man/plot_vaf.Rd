@@ -31,5 +31,6 @@ by ProCESS' \code{simulate_seq()} with an epistate labelling
 }
 \examples{
 data("muts")
-plot_vaf(muts, vaf_cut = 0.03, size = 0.1)
+PEPI:::plot_vaf(muts, vaf_cut = 0.03, size = 0.1)
 }
+\keyword{internal}

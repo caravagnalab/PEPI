@@ -25,9 +25,10 @@ all other nodes are labelled "subclonal".
 data("forest")
 set.seed(31)
 cells = sample(forest$cell_id[!is.na(forest$sample)], 20)
-ids = unique(c(0, unlist(lapply(cells, function(id) get_branch(forest, id, 0)))))
+ids = unique(c(0, unlist(lapply(cells, function(id) PEPI:::get_branch(forest, id, 0)))))
 driver_id = min(forest$cell_id[forest$mutant == "B"])
-labels = data.frame(cell_id = get_branch(forest, driver_id, 0), label = "driver")
-plot_sticks(forest[forest$cell_id \%in\% ids, ], labels,
+labels = data.frame(cell_id = PEPI:::get_branch(forest, driver_id, 0), label = "driver")
+PEPI:::plot_sticks(forest[forest$cell_id \%in\% ids, ], labels,
   cls = c(subclonal = "gainsboro", driver = "forestgreen"))
 }
+\keyword{internal}

@@ -24,5 +24,6 @@ before `stop_id`.
 \examples{
 data("forest")
 driver_id = min(forest$cell_id[forest$mutant == "B"])
-get_branch(forest, cell_id = driver_id, stop_id = 0)
+PEPI:::get_branch(forest, cell_id = driver_id, stop_id = 0)
 }
+\keyword{internal}

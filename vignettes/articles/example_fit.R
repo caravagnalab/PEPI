@@ -41,7 +41,7 @@ zplus = c(z1, z2) * (ccf %>% filter(epistate == "+") %>% pull(n))
 # The driver is the first cell of mutant "B": its branch carries the
 # mutations accumulated from the root to the driver acquisition.
 driver_id = forest %>% filter(mutant == "B") %>% pull(cell_id) %>% min()
-driver_branch = get_branch(forest, cell_id = driver_id, stop_id = 0)
+driver_branch = PEPI:::get_branch(forest, cell_id = driver_id, stop_id = 0)
 
 m_driver = muts %>% filter(first_cell_id %in% driver_branch) %>% nrow()
 m_driver = rnbinom(n = 1, mu = m_driver, size = 100)
@@ -79,7 +79,7 @@ rho = (zminus[2] * ccf_dr[3]) / (zplus[2] * ccf_dr[4])
 omega_max = rho * lambda_min * s_max
 omega_min = rho * lambda_max * s_min
 
-omega_gamma = fit_gamma_quantiles(omega_min, omega_max, p1 = 0.05, p2 = 0.95)
+omega_gamma = PEPI:::fit_gamma_quantiles(omega_min, omega_max, p1 = 0.05, p2 = 0.95)
 
 ## ---- tables ----
 

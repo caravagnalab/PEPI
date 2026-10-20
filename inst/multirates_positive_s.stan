@@ -605,6 +605,10 @@ for (k in 1:n_intermediate_times) {
     total_neg += exp(log_Z_driver_n_lat[i,intermediate_index[k]]);
   }
 
+  for (i in 1:N_driver_p) {
+    total_pos += exp(log_Z_driver_p_lat[i,intermediate_index[k]]);
+  }
+
   for (i in 1:N_dc) {
     total_neg += Z_driver_dc_lat[i,intermediate_index[k]][1];
     total_pos += Z_driver_dc_lat[i,intermediate_index[k]][2];

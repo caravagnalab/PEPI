@@ -42,9 +42,7 @@ $$
 Z(t_2) = \exp\!\big(A\,(t_2-t_1)\big)\,Z(t_1)
 $$
 
-This is exactly `simulate_Z()`'s R implementation (via `expm::expm()`) and
-the Stan model's own `Z()` Stan function - the same equation, evaluated
-twice.
+This is the Stan model's own `Z()` function.
 
 ## The groups: wt, drivers, driver-only clades, driver+clade combos
 

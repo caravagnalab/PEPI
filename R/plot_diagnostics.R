@@ -50,23 +50,7 @@
 #' @return A ggplot object (see \code{bayesplot::mcmc_trace()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_trace(x, params = c("lambda_n","s_epi"))
 #' }
 #' @export
@@ -96,23 +80,7 @@ plot_trace = function(x, params = NULL, divergences = TRUE){
 #' @return A ggplot object (see \code{bayesplot::mcmc_rhat()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_rhat(x)
 #' }
 #' @export
@@ -140,23 +108,7 @@ plot_rhat = function(x, params = NULL){
 #' @return A ggplot object (see \code{bayesplot::mcmc_neff()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_ess(x)
 #' }
 #' @export
@@ -181,23 +133,7 @@ plot_ess = function(x, params = NULL){
 #' @return A ggplot object (see \code{bayesplot::mcmc_acf()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_acf(x)
 #' }
 #' @export
@@ -222,23 +158,7 @@ plot_acf = function(x, params = NULL, lags = 20){
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_divergence()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_divergences(x)
 #' }
 #' @export
@@ -260,23 +180,7 @@ plot_divergences = function(x){
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_energy()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_energy(x)
 #' }
 #' @export
@@ -299,23 +203,7 @@ plot_energy = function(x){
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_treedepth()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_treedepth(x)
 #' }
 #' @export
@@ -340,23 +228,7 @@ plot_treedepth = function(x){
 #' @return A ggplot/grid object (see \code{bayesplot::mcmc_pairs()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_pairs(x, params = c("lambda_n","s_epi"))
 #' }
 #' @export
@@ -384,23 +256,7 @@ plot_pairs = function(x, params = NULL){
 #' @return A combined plot (see \code{ggpubr::ggarrange()}).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' plot_diagnostics(x)
 #' }
 #' @export

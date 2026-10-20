@@ -21,6 +21,7 @@ a plausible range of a rate (e.g. a switch rate) into Gamma prior
 hyperparameters.
 }
 \examples{
-g = fit_gamma_quantiles(0.01, 0.5)
+g = PEPI:::fit_gamma_quantiles(0.01, 0.5)
 stats::qgamma(c(0.05, 0.95), shape = g$shape, rate = g$rate)
 }
+\keyword{internal}

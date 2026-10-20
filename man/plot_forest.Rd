@@ -31,6 +31,7 @@ and shaped by sample.
 data("forest")
 set.seed(31)
 cells = sample(forest$cell_id[!is.na(forest$sample)], 20)
-ids = unique(c(0, unlist(lapply(cells, function(id) get_branch(forest, id, 0)))))
-plot_forest(forest, ids)
+ids = unique(c(0, unlist(lapply(cells, function(id) PEPI:::get_branch(forest, id, 0)))))
+PEPI:::plot_forest(forest, ids)
 }
+\keyword{internal}

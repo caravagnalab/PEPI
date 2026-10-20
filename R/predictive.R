@@ -40,6 +40,31 @@
 
 }
 
+#' R version of the Stan approx_Z_clade(), vectorised over posterior draws.
+#'
+#' Clades start from a single "+" cell (boundary condition), so there is no
+#' chi term.
+#'
+#' @return A list with the "-" (`neg`) and "+" (`pos`) clade sizes.
+#' @keywords internal
+
+.approx_Z_clade = function(lambda_n, lambda_p, omega_n, omega_p, t_1, t_2, W1){
+
+  dt = t_2 - t_1
+
+  eps = 1e-10
+
+  delta = sqrt((lambda_p - lambda_n)^2 + eps)
+
+  x1 = 0.5 * (lambda_p + lambda_n) + sqrt(0.25 * (lambda_p - lambda_n)^2 + omega_p * omega_n)
+
+  exp_p = exp(x1 * dt)
+
+  list(neg = (omega_n / delta) * W1 * exp_p,
+       pos = W1 * exp_p)
+
+}
+
 #' @keywords internal
 .draw_col = function(draws, name){
 
@@ -56,11 +81,17 @@
 #' For every posterior draw and every time of a grid, the latent "-" and "+"
 #' sizes of the wild type and of every driver (and dc/driver-only) clade are
 #' computed with the model's growth/switch approximation. Observations are
-#' then generated as in the likelihood: for each population, its total count
-#' is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its split in "+"
-#' cells from `beta_proportion(Z+ / (Z- + Z+), kappa)` (driver-only clades
-#' live in one compartment and only get the lognormal count). CCFs are
-#' finally evaluated on the sampled counts, within the "-" and "+" samples.
+#' then generated as in the likelihood of the Stan model: for each population,
+#' its total count is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its
+#' split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
+#' private populations driver_n and driver_p live in one compartment and only
+#' get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
+#' CCFs are evaluated on the sampled counts, within the "-" and "+" samples;
+#' wt clades and dc clades are subpopulations of wt and dc and do not enter
+#' the sample sizes. The total population size (`z_tot` of `pop = "total"`)
+#' follows the likelihood of the intermediate total counts,
+#' `lognormal(log(ztot_lat), sigma_count)`, with `ztot_lat` the latent size
+#' of all populations except the clades.
 #'
 #' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param times Time grid. If NULL, `n_grid` equally spaced times from
@@ -71,25 +102,11 @@
 #'   the latent trajectories.
 #' @return A tibble with one row per draw (`samp`), `time` and population
 #'   (`pop`, `id`; `pop = "total"` is the whole population) and columns
-#'   `z_neg`, `z_pos` (counts), `frac_pos` (fraction of "+" cells within the
+#'   `z_neg`, `z_pos` (counts), `z_tot` (total size, only for `"total"`), `frac_pos` (fraction of "+" cells within the
 #'   population), `ccf_neg`, `ccf_pos` (CCF in the "-" and "+" samples).
 #' @examples
 #' \donttest{
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-#'       ms_driver = -0.5, sigma_driver = 0.5,
-#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "fit_example.R", package = "PEPI"))
 #' get_predicted_trajectories(x)
 #' }
 #' @export
@@ -123,10 +140,12 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     if(length(v) == n) v else as.character(seq_len(n))
   }
 
-  # clades as list(pop, id, compartment, size(t) -> list(neg, pos))
+  # populations as list(pop, id, compartment(t), top, size(t) -> list(neg, pos)):
+  # `top` = FALSE for the clades, subpopulations that do not enter the totals
+  both = function(t) "both"
   clades = list()
 
-  clades[[1]] = list(pop = "wt", id = "wt", compartment = "both", size = function(t){
+  clades[[1]] = list(pop = "wt", id = "wt", compartment = both, top = TRUE, size = function(t){
     .approx_Z(lambda_n, lambda_n * (1 + s_epi), p("omega_n_wt"), p("omega_p_wt"),
               p("tmrca"), t, p("bc_wt"), p("chi_wt"))
   })
@@ -136,7 +155,7 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
       j = j
       s = p(paste0("s_driver[", j, "]"))
       clades[[length(clades) + 1]] <<- list(pop = "driver", id = ids("driver", data$N_driver)[j],
-                                            compartment = "both", size = function(t){
+                                            compartment = both, top = TRUE, size = function(t){
         .approx_Z(lambda_n * (1 + s), lambda_n * (1 + s_epi) * (1 + s),
                   p(paste0("omega_n_driver[", j, "]")), p(paste0("omega_p_driver[", j, "]")),
                   p(paste0("t_driver[", j, "]")), t,
@@ -150,7 +169,7 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
       j = j
       s = p(paste0("s_dc[", j, "]"))
       clades[[length(clades) + 1]] <<- list(pop = "dc", id = ids("dc", data$N_dc)[j],
-                                            compartment = "both", size = function(t){
+                                            compartment = both, top = TRUE, size = function(t){
         .approx_Z(lambda_n * (1 + s), lambda_n * (1 + s_epi) * (1 + s),
                   p(paste0("omega_n_dc[", j, "]")), p(paste0("omega_p_dc[", j, "]")),
                   p(paste0("t_dc[", j, ",1]")), t,
@@ -163,7 +182,8 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     local({
       j = j
       clades[[length(clades) + 1]] <<- list(pop = "driver_n", id = ids("driver_n", data$N_driver_n)[j],
-                                            compartment = "neg", size = function(t){
+                                            compartment = function(t) "neg", top = TRUE,
+                                            size = function(t){
         list(neg = exp(lambda_n * (1 + p(paste0("s_driver_n[", j, "]"))) * (t - p(paste0("t_driver_n[", j, "]"))) +
                          log(p(paste0("bc_driver_n[", j, "]")))),
              pos = rep(0, ndraws))
@@ -175,10 +195,50 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     local({
       j = j
       clades[[length(clades) + 1]] <<- list(pop = "driver_p", id = ids("driver_p", data$N_driver_p)[j],
-                                            compartment = "pos", size = function(t){
+                                            compartment = function(t) "pos", top = TRUE,
+                                            size = function(t){
         list(neg = rep(0, ndraws),
              pos = exp(lambda_n * (1 + p(paste0("s_driver_p[", j, "]"))) * (1 + s_epi) *
                          (t - p(paste0("t_driver_p[", j, "]"))) + log(p(paste0("bc_driver_p[", j, "]")))))
+      })
+    })
+  }
+
+  # Clades: as in the likelihood, only the "+" count is observed when the
+  # observed "-" count is 0. At the sampling times the observed count at that
+  # time is used; at other times, whether it is ever positive.
+  sampling_times = data$times[data$sampling_index]
+
+  clade_compartment = function(neg_counts){
+    function(t){
+      k = which(abs(sampling_times - t) < 1e-10)
+      positive = if(length(k) > 0) neg_counts[k[1]] > 0 else any(neg_counts > 0)
+      if(positive) "both" else "pos"
+    }
+  }
+
+  for(j in seq_len(data$N_clades_wt)){
+    local({
+      j = j
+      clades[[length(clades) + 1]] <<- list(pop = "clade_wt", id = ids("clade_wt", data$N_clades_wt)[j],
+                                            compartment = clade_compartment(data$ccf_clade_wt[j, , 1] * data$zminus),
+                                            top = FALSE, size = function(t){
+        .approx_Z_clade(lambda_n, lambda_n * (1 + s_epi), p("omega_n_wt"), p("omega_p_wt"),
+                        p(paste0("t_clade_wt[", j, "]")), t, p(paste0("bc_clade_wt[", j, "]")))
+      })
+    })
+  }
+
+  for(j in seq_len(data$N_dc)){
+    local({
+      j = j
+      s = p(paste0("s_dc[", j, "]"))
+      clades[[length(clades) + 1]] <<- list(pop = "dc_clade", id = ids("dc", data$N_dc)[j],
+                                            compartment = clade_compartment(data$ccf_dc_clade[j, , 1] * data$zminus),
+                                            top = FALSE, size = function(t){
+        .approx_Z_clade(lambda_n * (1 + s), lambda_n * (1 + s_epi) * (1 + s),
+                        p(paste0("omega_n_dc[", j, "]")), p(paste0("omega_p_dc[", j, "]")),
+                        p(paste0("t_dc[", j, ",2]")), t, p(paste0("bc_clade_dc[", j, "]")))
       })
     })
   }
@@ -207,15 +267,22 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
 
   out = lapply(times, function(t){
 
-    z = lapply(clades, function(cl) observe(cl$size(t), cl$compartment))
+    Z = lapply(clades, function(cl) cl$size(t))
+    z = lapply(seq_along(clades), function(k) observe(Z[[k]], clades[[k]]$compartment(t)))
+
+    top = vapply(clades, function(cl) cl$top, logical(1))
 
     # sizes of the "-" and "+" samples (named so that they are not masked
     # by the z_neg/z_pos columns inside tibble())
-    tot_neg = Reduce(`+`, lapply(z, function(v) v$neg))
-    tot_pos = Reduce(`+`, lapply(z, function(v) v$pos))
+    tot_neg = Reduce(`+`, lapply(z[top], function(v) v$neg))
+    tot_pos = Reduce(`+`, lapply(z[top], function(v) v$pos))
+
+    # total population size, as the intermediate counts of the likelihood
+    ztot_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg + v$pos))
+    z_tot = if(noise) exp(stats::rnorm(ndraws, log(ztot_lat), sigma_count)) else ztot_lat
 
     res = list(tibble::tibble(samp = seq_len(ndraws), time = t, pop = "total", id = NA_character_,
-                              z_neg = tot_neg, z_pos = tot_pos,
+                              z_neg = tot_neg, z_pos = tot_pos, z_tot = z_tot,
                               frac_pos = tot_pos / (tot_neg + tot_pos),
                               ccf_neg = 1, ccf_pos = 1))
 
@@ -239,10 +306,11 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
 #' Observed data in the format of \code{get_predicted_trajectories()}.
 #'
 #' Counts of each population in the "-"/"+" samples are its CCF times the
-#' size of the sample, as in the Stan model's transformed data.
+#' size of the sample, as in the Stan model's transformed data; total
+#' counts at the intermediate times are added to `pop = "total"`.
 #'
 #' @return A tibble with columns `time`, `pop`, `id`, `z_neg`, `z_pos`,
-#'   `frac_pos`, `ccf_neg`, `ccf_pos`.
+#'   `z_tot`, `frac_pos`, `ccf_neg`, `ccf_pos`.
 #' @keywords internal
 
 .observed_trajectories = function(x){
@@ -253,13 +321,18 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     dplyr::select(time, zminus, zplus)
 
   total = pop %>% dplyr::transmute(time, pop = "total", id = NA_character_,
-                                   z_neg = zminus, z_pos = zplus,
+                                   z_neg = zminus, z_pos = zplus, z_tot = zminus + zplus,
                                    frac_pos = zplus/(zminus + zplus), ccf_neg = 1, ccf_pos = 1)
 
+  # total counts at the intermediate times
+  intermediate = tabs$population_sizes %>% dplyr::filter(type == "intermediate")
+  if(nrow(intermediate) > 0){
+    total = dplyr::bind_rows(total, intermediate %>% dplyr::transmute(time, pop = "total", id = NA_character_, z_tot = ztot))
+  }
+
   ccf = .multirates_observed_ccf(x) %>%
-    dplyr::filter(group %in% c("wt", "driver", "dc", "driver_n", "driver_p"),
-                  is.na(quantity) | quantity == "driver") %>%
-    dplyr::mutate(id = ifelse(group == "wt", "wt", id),
+    dplyr::mutate(group = dplyr::case_when(group == "dc" & quantity == "clade" ~ "dc_clade", TRUE ~ group),
+                  id = ifelse(group == "wt", "wt", id),
                   epistate = ifelse(epistate == "+", "ccf_pos", "ccf_neg")) %>%
     dplyr::select(time, pop = group, id, epistate, ccf) %>%
     tidyr::pivot_wider(names_from = epistate, values_from = ccf)

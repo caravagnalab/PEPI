@@ -11,8 +11,8 @@
 #' @examples
 #' data("forest")
 #' driver_id = min(forest$cell_id[forest$mutant == "B"])
-#' get_branch(forest, cell_id = driver_id, stop_id = 0)
-#' @export
+#' PEPI:::get_branch(forest, cell_id = driver_id, stop_id = 0)
+#' @keywords internal
 
 get_branch = function(forest, cell_id, stop_id){
 
@@ -45,9 +45,9 @@ get_branch = function(forest, cell_id, stop_id){
 #' data("forest")
 #' set.seed(31)
 #' cells = sample(forest$cell_id[!is.na(forest$sample)], 20)
-#' ids = unique(c(0, unlist(lapply(cells, function(id) get_branch(forest, id, 0)))))
-#' plot_forest(forest, ids)
-#' @export
+#' ids = unique(c(0, unlist(lapply(cells, function(id) PEPI:::get_branch(forest, id, 0)))))
+#' PEPI:::plot_forest(forest, ids)
+#' @keywords internal
 
 plot_forest = function(forest, ids = NULL,
                        colors = c("wt-" = "#82CCE0", "wt+" = "#CE6D6E",
@@ -146,12 +146,12 @@ plot_forest = function(forest, ids = NULL,
 #' data("forest")
 #' set.seed(31)
 #' cells = sample(forest$cell_id[!is.na(forest$sample)], 20)
-#' ids = unique(c(0, unlist(lapply(cells, function(id) get_branch(forest, id, 0)))))
+#' ids = unique(c(0, unlist(lapply(cells, function(id) PEPI:::get_branch(forest, id, 0)))))
 #' driver_id = min(forest$cell_id[forest$mutant == "B"])
-#' labels = data.frame(cell_id = get_branch(forest, driver_id, 0), label = "driver")
-#' plot_sticks(forest[forest$cell_id %in% ids, ], labels,
+#' labels = data.frame(cell_id = PEPI:::get_branch(forest, driver_id, 0), label = "driver")
+#' PEPI:::plot_sticks(forest[forest$cell_id %in% ids, ], labels,
 #'   cls = c(subclonal = "gainsboro", driver = "forestgreen"))
-#' @export
+#' @keywords internal
 
 plot_sticks = function(forest, labels, cls = NULL){
 
@@ -244,8 +244,8 @@ plot_sticks = function(forest, labels, cls = NULL){
 #' @return A ggplot object, or a list of ggplot objects.
 #' @examples
 #' data("muts")
-#' plot_vaf(muts, vaf_cut = 0.03, size = 0.1)
-#' @export
+#' PEPI:::plot_vaf(muts, vaf_cut = 0.03, size = 0.1)
+#' @keywords internal
 
 plot_vaf = function(muts, colors = NULL, vaf_cut = 0.02, size = 0.01, assemble = TRUE){
 
@@ -323,6 +323,80 @@ plot_vaf = function(muts, colors = NULL, vaf_cut = 0.02, size = 0.01, assemble =
     ggpubr::ggarrange(plotlist = marginals, ncol = nm, nrow = ceiling(length(marginals)/nm),
                       common.legend = TRUE, legend = "none"),
     ncol = 2, nrow = 1, widths = c(3, 2)
+  )
+
+}
+
+
+#' Plot the simulated data: phylogenetic forest and VAF spectra.
+#'
+#' Samples `n_cells` cells from each sample and restricts the forest to their
+#' branches. Top: the forest coloured by species (\code{plot_forest()}) and
+#' with the driver branch and the truncal node highlighted
+#' (\code{plot_sticks()}). Bottom: pairwise and marginal VAF spectra of the
+#' sorted samples (\code{plot_vaf()}), with mutations labelled as truncal,
+#' driver (acquired on the branch from the root to the first cell of
+#' `driver_mutant`) or subclonal.
+#'
+#' @param forest Table of forest nodes (see \code{plot_forest()}).
+#' @param muts Mutation table with VAF columns and `first_cell_id`.
+#' @param n_cells Number of cells drawn from each sample.
+#' @param seed Optional seed for the cell sampling.
+#' @param driver_mutant Name of the driver mutant.
+#' @param vaf_cut Minimum VAF shown in the marginal histograms.
+#' @param cls Named vector of colors for the labels `subclonal`, `driver`, `truncal`.
+#' @return A ggplot object.
+#' @examples
+#' data("forest")
+#' data("muts")
+#' PEPI:::plot_data(forest, muts, seed = 31)
+#' @keywords internal
+
+plot_data = function(forest, muts, n_cells = 50, seed = NULL, driver_mutant = "B", vaf_cut = 0.03,
+                     cls = c("subclonal" = "gainsboro", "driver" = "forestgreen", "truncal" = "darkgoldenrod3")){
+
+  if(!is.null(seed)) set.seed(seed)
+
+  samples = forest %>% dplyr::filter(!is.na(sample)) %>% dplyr::pull(sample) %>% unique() %>% sort()
+
+  ids = unlist(lapply(samples, function(s){
+    cells = forest %>% dplyr::filter(!is.na(sample), sample == s) %>% dplyr::pull(cell_id)
+    cells[sample(x = seq_along(cells), size = min(n_cells, length(cells)), replace = FALSE)]
+  }))
+
+  all_ids = c(0)
+  for(id in ids){
+    all_ids = unique(c(all_ids, get_branch(forest = forest, cell_id = id, stop_id = 0)))
+  }
+
+  forest = forest %>% dplyr::mutate(sample = gsub(x = sample, pattern = "Sampling_", replacement = "T"))
+
+  driver_id = forest %>% dplyr::filter(mutant == driver_mutant) %>% dplyr::pull(cell_id) %>% min()
+  branch_driver = get_branch(forest = forest, cell_id = driver_id, stop_id = 0)
+
+  muts = muts %>%
+    dplyr::mutate(label = ifelse(first_cell_id %in% branch_driver, "driver",
+                                 ifelse(first_cell_id == 0, "truncal", "subclonal")))
+
+  p_forest = plot_forest(forest, all_ids)
+
+  p_sticks = plot_sticks(
+    forest = forest %>% dplyr::filter(cell_id %in% all_ids),
+    labels = muts %>% dplyr::filter(first_cell_id %in% all_ids) %>%
+      dplyr::select(cell_id = first_cell_id, label) %>% unique(),
+    cls = cls
+  )
+
+  p_vaf = plot_vaf(muts, vaf_cut = vaf_cut, colors = cls, size = 0.1, assemble = FALSE)
+
+  nm = ceiling(sqrt(length(p_vaf$marginals)))
+
+  ggpubr::ggarrange(
+    p_forest,
+    p_sticks,
+    ggpubr::ggarrange(plotlist = p_vaf$pairs, ncol = 3, nrow = ceiling(length(p_vaf$pairs)/3), legend = "none"),
+    ggpubr::ggarrange(plotlist = p_vaf$marginals, ncol = nm, nrow = ceiling(length(p_vaf$marginals)/nm), legend = "none"),
+    nrow = 2, ncol = 2
   )
 
 }

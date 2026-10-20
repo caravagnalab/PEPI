@@ -86,17 +86,12 @@ pivot_ccf = function(long_df, id_col, id_levels, time_levels, epistate = TRUE){
 #' @param include_poisson,include_trunk Stan model switches (0/1).
 #' @return A list with elements `data` (the Stan data list) and `index_maps`.
 #' @examples
-#' sim = simulate_multirates_tree(
-#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
-#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-#' )
-#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' build_stan_data_multirates(x, mu = 1e-7, l = 2.7e9, t_min = 0,
-#'   ms_epi = 0, sigma_epi = 0.5, alpha_lambda = 1, beta_lambda = 1,
-#'   alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
-#'   min_kappa = 5, max_kappa = 200, min_sigma_count = 0.01, max_sigma_count = 1)
+#' source(system.file("examples", "tables_example.R", package = "PEPI"))
+#' build_stan_data_multirates(x, mu = mu$mean, l = 51e06, t_min = -20,
+#'   ms_epi = -0.8, sigma_epi = 0.9, alpha_lambda = 10, beta_lambda = 10,
+#'   alpha_n_wt = 1, beta_n_wt = 1e4, alpha_p_wt = 0.2, beta_p_wt = 10,
+#'   min_kappa = 3000, max_kappa = 5000, min_sigma_count = 0.05, max_sigma_count = 0.15,
+#'   include_poisson = 1, include_trunk = 0)
 #' @export
 
 build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,

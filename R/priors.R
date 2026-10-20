@@ -9,9 +9,9 @@
 #' @param p1,p2 Probabilities of the two quantiles.
 #' @return A list with elements `shape` and `rate`.
 #' @examples
-#' g = fit_gamma_quantiles(0.01, 0.5)
+#' g = PEPI:::fit_gamma_quantiles(0.01, 0.5)
 #' stats::qgamma(c(0.05, 0.95), shape = g$shape, rate = g$rate)
-#' @export
+#' @keywords internal
 
 fit_gamma_quantiles = function(q1, q2, p1 = 0.05, p2 = 0.95){
 

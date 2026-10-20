@@ -28,36 +28,28 @@ the latent trajectories.}
 \value{
 A tibble with one row per draw (`samp`), `time` and population
   (`pop`, `id`; `pop = "total"` is the whole population) and columns
-  `z_neg`, `z_pos` (counts), `frac_pos` (fraction of "+" cells within the
+  `z_neg`, `z_pos` (counts), `z_tot` (total size, only for `"total"`), `frac_pos` (fraction of "+" cells within the
   population), `ccf_neg`, `ccf_pos` (CCF in the "-" and "+" samples).
 }
 \description{
 For every posterior draw and every time of a grid, the latent "-" and "+"
 sizes of the wild type and of every driver (and dc/driver-only) clade are
 computed with the model's growth/switch approximation. Observations are
-then generated as in the likelihood: for each population, its total count
-is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its split in "+"
-cells from `beta_proportion(Z+ / (Z- + Z+), kappa)` (driver-only clades
-live in one compartment and only get the lognormal count). CCFs are
-finally evaluated on the sampled counts, within the "-" and "+" samples.
+then generated as in the likelihood of the Stan model: for each population,
+its total count is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its
+split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
+private populations driver_n and driver_p live in one compartment and only
+get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
+CCFs are evaluated on the sampled counts, within the "-" and "+" samples;
+wt clades and dc clades are subpopulations of wt and dc and do not enter
+the sample sizes. The total population size (`z_tot` of `pop = "total"`)
+follows the likelihood of the intermediate total counts,
+`lognormal(log(ztot_lat), sigma_count)`, with `ztot_lat` the latent size
+of all populations except the clades.
 }
 \examples{
 \donttest{
-sim = simulate_multirates_tree(
-  sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
-  lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
-  drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
-      omega_n_driver = 5e-3, omega_p_driver = 2e-3,
-      ms_driver = -0.5, sigma_driver = 0.5,
-      alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-  mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
-)
-x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
-  mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
-  alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
-  alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
-  min_sigma_count = 0.01, max_sigma_count = 1)
+source(system.file("examples", "fit_example.R", package = "PEPI"))
 get_predicted_trajectories(x)
 }
 }
