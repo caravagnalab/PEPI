@@ -104,7 +104,13 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
             min_sigma_count = min_sigma_count, max_sigma_count = max_sigma_count,
             include_poisson = include_poisson, include_trunk = include_trunk)
 
-  mod = cmdstanr::cmdstan_model(system.file("multirates_positive_s.stan", package = "PEPI"))
+  # compile into a user cache directory, never next to the .stan file: an
+  # executable shipped in the package (or built for another platform) would
+  # otherwise be considered up to date and used as is
+  exe_dir = tools::R_user_dir("PEPI", which = "cache")
+  dir.create(exe_dir, recursive = TRUE, showWarnings = FALSE)
+
+  mod = cmdstanr::cmdstan_model(system.file("multirates_positive_s.stan", package = "PEPI"), dir = exe_dir)
 
   if(is.null(init)) init = rep(.multirates_default_init(built$data), chains)
 

@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 README.html
+
+# compiled Stan executables
+inst/multirates_positive_s

@@ -1,6 +1,7 @@
 # Input tables of the polyclonal example shipped with PEPI (simulated with
 # ProCESS, see the "Data generation" article), as in the "Inference" article.
 
+library(PEPI)
 library(dplyr)
 
 data("counts", package = "PEPI")
