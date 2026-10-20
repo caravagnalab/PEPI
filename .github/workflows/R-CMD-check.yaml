@@ -47,7 +47,7 @@ jobs:
       - name: Build Cmdstan
         run: |
           cmdstanr::check_cmdstan_toolchain(fix = TRUE)
-          cmdstanr::install_cmdstan(cores = parallel::detectCores())
+          cmdstanr::install_cmdstan(version = "2.35.0", cores = parallel::detectCores())
         shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
