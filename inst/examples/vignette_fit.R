@@ -1,4 +1,4 @@
-# Shared by Multirates_inference.Rmd and Convergence_diagnostics.Rmd
+# Shared by the Inference and Convergence diagnostics articles
 # (read with knitr::read_chunk), so that both articles use the same fit.
 
 ## ---- prepare-data ----

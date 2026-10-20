@@ -16,8 +16,8 @@ library(bayesplot)
 library(dplyr)
 ```
 
-```{r, include = FALSE}
-knitr::read_chunk("example_fit.R")
+```{r, include = FALSE, purl = FALSE}
+knitr::read_chunk(system.file("examples", "vignette_fit.R", package = "PEPI"))
 ```
 
 `fit_multirates()` samples the posterior with Hamiltonian Monte Carlo

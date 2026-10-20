@@ -9,7 +9,10 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
-knitr::read_chunk("example_fit.R")
+```
+
+```{r, include = FALSE, purl = FALSE}
+knitr::read_chunk(system.file("examples", "vignette_fit.R", package = "PEPI"))
 ```
 
 ```{r setup}

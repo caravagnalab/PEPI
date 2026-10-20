@@ -47,19 +47,6 @@ jobs:
           cmdstanr::install_cmdstan(version = "2.35.0", cores = parallel::detectCores())
         shell: Rscript {0}
 
-      - name: Debug fit
-        run: |
-          print(cmdstanr::cmdstan_version())
-          library(PEPI)
-          library(dplyr)
-          setwd("vignettes/articles")
-          source("example_fit.R", echo = FALSE)
-          print(x$inference$multirates$output_files())
-          print(x$inference$multirates$return_codes())
-          print(plot_diagnostics(x))
-          rmarkdown::render("Convergence_diagnostics.Rmd", output_dir = tempdir())
-        shell: Rscript {0}
-
       - name: Deploy package
         run: |
           git config --local user.name "$GITHUB_ACTOR"
