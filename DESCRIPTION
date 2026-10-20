@@ -46,15 +46,23 @@ Imports:
     tibble,
     ggplot2,
     ggpubr,
-    ggsci
+    ggsci,
+    ggraph,
+    tidygraph,
+    stats
 RoxygenNote: 7.3.3
 Suggests: knitr,
     rmarkdown,
+    reshape2,
+    ProCESS,
+    mobster,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Remotes:
     caravagn/easypar,
-    caravagn/VIBER
+    caravagn/VIBER,
+    caravagnalab/ProCESS,
+    caravagnalab/mobster@mobsterh
 VignetteBuilder: knitr
 Additional_repositories: https://mc-stan.org/r-packages/
 URL: https://caravagnalab.github.io/PEPI/,

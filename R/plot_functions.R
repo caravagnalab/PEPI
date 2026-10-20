@@ -1,89 +1,22 @@
 #' plotting functions
 
-#' Plot multivariate VAF distributions with cluster associated to tree nodes.
+#' Plot prior and posterior distributions of the model parameters.
 #'
-#' A multivariate plot is generated from a labelled dataset
-#'
-#' @param spectrum VAF spectrum with cluster labels
-#' @return A multivariate plot
-#' @examples
-#' library(dplyr)
-#' library(ggplot2)
-#' set.seed(1)
-#' spectrum = data.frame(
-#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
-#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50),
-#'   node = sample(c("-","+"), 50, replace = TRUE)
-#' )
-#' plot_multivariate(spectrum)
-#' @export
-
-plot_multivariate = function(spectrum){
-
-
-if(!"node" %in% colnames(spectrum)){
-
-  stop("no cluster labels")
-
-}
-
-max_level = spectrum %>% pull(node) %>% nchar() %>% max() - 1
-cls = get_colors(max_level)
-
-ggplot(spectrum %>% mutate(vaf_x = Nx/DPx, vaf_y = Ny/DPy)) + geom_point(aes(x = vaf_x, y = vaf_y,color = node)) +
-  get_pepi_theme() + scale_colour_manual(values = cls) +
-  labs(title = "Multivariate Spectrum", x = "VAF -", y = "VAF +")
-
-}
-
-#' Plot marginal VAF distributions with cluster associated to tree nodes.
-#'
-#' Two marginal histograms are generated from a labelled dataset.
-#'
-#' @param spectrum VAF spectrum with cluster labels
-#' @return Two marginal histograms.
-#' @examples
-#' library(dplyr)
-#' library(ggplot2)
-#' library(ggpubr)
-#' set.seed(1)
-#' spectrum = data.frame(
-#'   Nx = rbinom(50, 100, 0.3), DPx = rep(100, 50),
-#'   Ny = rbinom(50, 100, 0.1), DPy = rep(100, 50),
-#'   node = sample(c("-","+"), 50, replace = TRUE)
-#' )
-#' plot_marginal(spectrum)
-#' @export
-
-plot_marginal = function(spectrum){
-
-  if(!"node" %in% colnames(spectrum)){
-
-    stop("no cluster labels")
-
-  }
-
-  max_level = spectrum %>% pull(node) %>% nchar() %>% max() - 1
-  cls = get_colors(max_level)
-
-px =   ggplot(spectrum %>% mutate(vaf_x = Nx/DPx) %>% filter(vaf_x > 0)) +
-  geom_histogram(aes(x = vaf_x, fill = node), bins = 50) +
-    get_pepi_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal -", x = "VAF")
-
-py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
-  geom_histogram(aes(x = vaf_y, fill= node), bins = 50) +
-  get_pepi_theme() + scale_fill_manual(values = cls) + labs(title = "Marginal +", x = "VAF")
-
- ggarrange(plotlist = list(px,py),ncol = 2, nrow = 1)
-
- }
-
-#' Plot predicted vs observed counts for the unified multirates model.
-#'
-#' Faceted by group/id and epistate, using \code{get_predicted_counts()}.
+#' One histogram per parameter, prior (transparent) and posterior (solid).
+#' Growth parameters (`lambda_n`, `s_*`) are shown below 2, times (`tmrca`,
+#' `t_*`) between -60 and the largest sampled `tmrca`, and switch rates
+#' (`omega_*`) on a log10 scale. Prior draws of growth parameters beyond the
+#' 99% posterior quantile + 1.5 are dropped.
 #'
 #' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
-#' @return Plot of predicted vs observed counts.
+#' @param params Vector of Stan parameter names, with indices for vector
+#'   parameters (e.g. `"s_driver[1]"`). If NULL, `lambda_n`, `s_epi`,
+#'   `omega_p_wt`, `tmrca` and every `s_driver`, `t_driver`, `omega_p_driver`,
+#'   `omega_n_driver` element.
+#' @param truth Optional named vector of ground-truth values, named as `params`;
+#'   shown as dashed vertical lines.
+#' @param ncol,nrow Layout of the panels.
+#' @return A ggplot object.
 #' @examples
 #' \donttest{
 #' sim = simulate_multirates_tree(
@@ -93,43 +26,147 @@ py =   ggplot(spectrum %>% mutate(vaf_y = Ny/DPy) %>% filter(vaf_y > 0)) +
 #'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
 #'       ms_driver = -0.5, sigma_driver = 0.5,
 #'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
 #'   min_sigma_count = 0.01, max_sigma_count = 1)
 #' x = get_posterior_multirates(x)
-#' library(ggplot2)
-#' plot_counts_multirates(x)
+#' plot_prior_posterior(x, truth = c(lambda_n = 1, s_epi = 0.15, "s_driver[1]" = 0.3))
 #' }
 #' @export
 
-plot_counts_multirates = function(x){
+plot_prior_posterior = function(x, params = NULL, truth = NULL, ncol = 3, nrow = 3){
 
-  d = get_predicted_counts(x)
+  if(is.null(x$posterior$multirates)){
+    stop("run get_posterior_multirates() first")
+  }
 
-  d$facet = ifelse(is.na(d$id), d$group, paste0(d$group, ": ", d$id))
+  draws = x$posterior$multirates %>%
+    dplyr::filter(family == "param") %>%
+    dplyr::mutate(variable = sub("_prior", "", variable))
 
-  ggplot(d) +
-    geom_point(aes(x = sampling_time, y = z_observed), color = "black") +
-    geom_pointrange(aes(x = sampling_time, y = mean, ymin = lower, ymax = upper), color = "dodgerblue") +
-    facet_grid(facet ~ epistate, scales = "free_y") +
-    get_pepi_theme() +
-    labs(x = "time", y = "count", title = "Predicted (blue) vs observed (black) counts")
+  if(is.null(params)){
+    all = unique(draws$variable)
+    params = c("lambda_n", "s_epi", grep("^s_driver\\[", all, value = TRUE),
+               "omega_p_wt", "tmrca", grep("^t_driver\\[", all, value = TRUE),
+               grep("^omega_p_driver\\[", all, value = TRUE),
+               grep("^omega_n_driver\\[", all, value = TRUE))
+  }
+
+  missing = setdiff(params, draws$variable)
+  if(length(missing) > 0){
+    stop("parameters not found: ", paste(missing, collapse = ", "))
+  }
+
+  draws = draws %>% dplyr::filter(variable %in% params)
+
+  # drop prior draws of growth parameters far beyond the posterior
+  draws = draws %>%
+    dplyr::group_by(variable) %>%
+    dplyr::mutate(lim_sup = stats::quantile(value[type == "posterior"], 0.99, na.rm = TRUE) + 1.5,
+                  is_growth = variable == "lambda_n" | grepl("^s", variable)) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(!is_growth | type == "posterior" | value <= lim_sup)
+
+  t_max = draws %>% dplyr::filter(variable == "tmrca") %>% dplyr::pull(value)
+  t_max = if(length(t_max) > 0) round(max(t_max), digits = 3) else Inf
+
+  base_plot = function(d, p){
+    ggplot2::ggplot(d) +
+      ggplot2::geom_histogram(ggplot2::aes(x = value, alpha = type), fill = "steelblue",
+                              position = "identity", bins = 100) +
+      ggplot2::scale_alpha_manual(values = c("posterior" = 1, "prior" = 0.5)) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(legend.position = "none", plot.title = ggplot2::element_text(size = 9)) +
+      ggplot2::labs(x = "", title = p)
+  }
+
+  growth = params[grepl("^s_|^lambda_", params)]
+  times = params[grepl("^t", params)]
+  omega = params[grepl("^omega_", params)]
+  other = setdiff(params, c(growth, times, omega))
+
+  plots = c(
+    lapply(growth, function(p){
+      base_plot(draws %>% dplyr::filter(variable == p, value < 2), p) +
+        ggplot2::scale_x_continuous(breaks = round(seq(-1, 1.5, 0.3), digits = 2))
+    }),
+    lapply(times, function(p){
+      base_plot(draws %>% dplyr::filter(variable == p, value < t_max, value > -60), p)
+    }),
+    lapply(omega, function(p){
+      base_plot(draws %>% dplyr::filter(variable == p, value > 1e-10), p) + ggplot2::scale_x_log10()
+    }),
+    lapply(other, function(p){
+      base_plot(draws %>% dplyr::filter(variable == p), p)
+    })
+  )
+  names(plots) = c(growth, times, omega, other)
+
+  if(!is.null(truth)){
+    for(p in intersect(names(truth), names(plots))){
+      plots[[p]] = plots[[p]] + ggplot2::geom_vline(xintercept = truth[[p]], linetype = "dashed")
+    }
+  }
+
+  ggpubr::ggarrange(plotlist = plots, nrow = nrow, ncol = ncol)
 
 }
 
-#' Plot predicted vs observed fractions for the unified multirates model.
+
+# ---- posterior predictive trajectories ---------------------------------------
+
+#' @keywords internal
+.ribbon_plot = function(pred, obs, var, probs, ylab, facet = FALSE){
+
+  group_vars = if(facet) c("facet", "time") else "time"
+
+  pred_summary = pred %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+    dplyr::summarise(
+      low  = stats::quantile(.data[[var]], probs[1], na.rm = TRUE),
+      mid  = stats::quantile(.data[[var]], 0.50, na.rm = TRUE),
+      high = stats::quantile(.data[[var]], probs[2], na.rm = TRUE),
+      .groups = "drop"
+    )
+
+  p = ggplot2::ggplot() +
+    ggplot2::geom_ribbon(data = pred_summary, ggplot2::aes(x = time, ymin = low, ymax = high),
+                         fill = "steelblue", alpha = 0.2) +
+    ggplot2::geom_line(data = pred_summary, ggplot2::aes(x = time, y = mid),
+                       color = "steelblue", linetype = "dashed", linewidth = 1) +
+    ggplot2::geom_point(data = obs, ggplot2::aes(x = time, y = .data[[var]]),
+                        color = "indianred", size = 1.1) +
+    ggplot2::labs(y = ylab, x = "Time") +
+    ggplot2::theme_minimal(base_size = 14)
+
+  if(facet) p = p + ggplot2::facet_wrap(~facet)
+
+  p
+
+}
+
+# one facet per population; ids are shown only when a type has several
+.pop_facet = function(d){
+  d %>% dplyr::group_by(pop) %>%
+    dplyr::mutate(facet = ifelse(dplyr::n_distinct(id) > 1, paste0(pop, ": ", id), pop)) %>%
+    dplyr::ungroup()
+}
+
+
+#' Plot the posterior predictive fraction of "+" cells in the whole population.
 #'
-#' Faceted by group/id and epistate, using \code{get_predicted_fractions()}.
+#' Median (dashed line) and 5%-95% interval (band) of the fraction of "+"
+#' cells over time, from \code{get_predicted_trajectories()}, against the
+#' observed fractions at the sampling times (points).
 #'
-#' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
-#' @return Plot of predicted vs observed fractions.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
+#' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
+#' @return A ggplot object.
 #' @examples
 #' \donttest{
 #' sim = simulate_multirates_tree(
@@ -139,43 +176,38 @@ plot_counts_multirates = function(x){
 #'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
 #'       ms_driver = -0.5, sigma_driver = 0.5,
 #'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
 #'   min_sigma_count = 0.01, max_sigma_count = 1)
-#' x = get_posterior_multirates(x)
-#' library(ggplot2)
 #' plot_fractions(x)
 #' }
 #' @export
 
-plot_fractions = function(x){
+plot_fractions = function(x, pred = NULL){
 
-  d = get_predicted_fractions(x)
+  if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  d$facet = ifelse(is.na(d$id), d$group, paste0(d$group, ": ", d$id))
-
-  ggplot(d) +
-    geom_point(aes(x = sampling_time, y = frac_observed), color = "black") +
-    geom_pointrange(aes(x = sampling_time, y = mean, ymin = lower, ymax = upper), color = "dodgerblue") +
-    facet_grid(facet ~ epistate, scales = "free_y") +
-    get_pepi_theme() +
-    labs(x = "time", y = "fraction", title = "Predicted (blue) vs observed (black) fractions")
+  .ribbon_plot(pred %>% dplyr::filter(pop == "total"),
+               .observed_trajectories(x) %>% dplyr::filter(pop == "total"),
+               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Fraction Z+")
 
 }
 
-#' Plot predicted vs observed CCF for the unified multirates model.
+
+#' Plot the posterior predictive total population size.
 #'
-#' Faceted by group/id and epistate, using \code{get_predicted_ccf()}.
+#' Median (dashed line) and 5%-95% interval (band) of the total number of
+#' cells over time (log scale), from \code{get_predicted_trajectories()},
+#' against the observed sizes at the sampling times (points).
 #'
-#' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
-#' @return Plot of predicted vs observed CCF.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
+#' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
+#' @return A ggplot object.
 #' @examples
 #' \donttest{
 #' sim = simulate_multirates_tree(
@@ -185,44 +217,42 @@ plot_fractions = function(x){
 #'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
 #'       ms_driver = -0.5, sigma_driver = 0.5,
 #'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
 #'   min_sigma_count = 0.01, max_sigma_count = 1)
-#' x = get_posterior_multirates(x)
-#' library(ggplot2)
-#' plot_ccf(x)
+#' plot_counts(x)
 #' }
 #' @export
 
-plot_ccf = function(x){
+plot_counts = function(x, pred = NULL){
 
-  d = get_predicted_ccf(x)
+  if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  d$facet = ifelse(is.na(d$id), d$group, paste0(d$group, ": ", d$id))
+  pred = pred %>% dplyr::filter(pop == "total") %>% dplyr::mutate(z_tot = z_neg + z_pos)
+  obs = .observed_trajectories(x) %>% dplyr::filter(pop == "total") %>% dplyr::mutate(z_tot = z_neg + z_pos)
 
-  ggplot(d) +
-    geom_point(aes(x = sampling_time, y = ccf_observed), color = "black") +
-    geom_pointrange(aes(x = sampling_time, y = mean, ymin = lower, ymax = upper), color = "dodgerblue") +
-    facet_grid(facet ~ epistate, scales = "free_y") +
-    get_pepi_theme() +
-    labs(x = "time", y = "CCF", title = "Predicted (blue) vs observed (black) CCF")
+  .ribbon_plot(pred, obs, var = "z_tot", probs = c(0.05, 0.95), ylab = "Ztot") +
+    ggplot2::scale_y_log10()
 
 }
 
-#' Plot predicted vs observed mutation counts for the unified multirates model.
+
+#' Plot the posterior predictive "+"/"-" split of each population.
 #'
-#' Posterior-predictive distributions (violin) vs observed counts (point),
-#' using \code{get_posterior_multirates()}'s "m" family.
+#' Median (dashed line) and 5%-95% interval (band) of the fraction of "+"
+#' cells within every population (wild type, drivers, ...) over time, from
+#' \code{get_predicted_trajectories()}, against the observed split at the
+#' sampling times (points).
 #'
-#' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
-#' @return Plot of predicted vs observed mutation counts.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
+#' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
+#' @param pops Populations to show; default all with cells in both epistates.
+#' @return A ggplot object.
 #' @examples
 #' \donttest{
 #' sim = simulate_multirates_tree(
@@ -232,54 +262,44 @@ plot_ccf = function(x){
 #'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
 #'       ms_driver = -0.5, sigma_driver = 0.5,
 #'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
 #'   min_sigma_count = 0.01, max_sigma_count = 1)
-#' x = get_posterior_multirates(x)
-#' library(ggplot2)
-#' plot_mutations(x)
+#' plot_split(x)
 #' }
 #' @export
 
-plot_mutations = function(x){
+plot_split = function(x, pred = NULL, pops = NULL){
 
-  if(is.null(x$posterior$multirates)){
-    stop("run get_posterior_multirates() first")
-  }
+  if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  draws = x$posterior$multirates %>% dplyr::filter(family == "m", type == "posterior")
+  if(is.null(pops)) pops = c("wt", "driver", "dc")
 
-  draws = dplyr::left_join(draws, .multirates_observed_mutations(x), by = c("group","id","event"))
-
-  draws$label = ifelse(is.na(draws$id), draws$group,
-                       ifelse(is.na(draws$event), paste0(draws$group, ": ", draws$id),
-                              paste0(draws$group, ": ", draws$id, " (", draws$event, ")")))
-
-  ggplot(draws) +
-    geom_violin(aes(x = label, y = value), fill = "steelblue", alpha = 0.5) +
-    geom_point(aes(x = label, y = m_observed), color = "black", size = 2) +
-    coord_flip() +
-    get_pepi_theme() +
-    labs(x = NULL, y = "mutation count", title = "Predicted (violin) vs observed (point) mutation counts")
+  .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
+               .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
+               var = "frac_pos", probs = c(0.05, 0.95), ylab = "Fraction Z+ in population",
+               facet = TRUE)
 
 }
 
-#' Plot posterior and prior distributions of the unified multirates model's parameters.
+
+#' Plot the posterior predictive CCF of each population in the sorted samples.
 #'
-#' Posterior and prior draws histograms are plotted for any required parameter,
-#' using the raw ("param" family) rows of \code{get_posterior_multirates()}'s output.
+#' Median (dashed line) and 2%-98% interval (band) of the CCF of every
+#' population (wild type, drivers, ...) in the "-" or "+" sample over time,
+#' from \code{get_predicted_trajectories()}, against the observed CCF at the
+#' sampling times (points).
 #'
-#' @param x PEPI_Multirates object, after \code{get_posterior_multirates()}.
-#' @param params A vector of canonical parameter names (e.g. "lambda_n", "s_driver").
-#' @param groups A vector of groups to include (wt/driver/driver_n/driver_p/dc/clade_wt/global).
-#' @return A plot with posterior and prior distributions.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
+#' @param epistate "-" or "+".
+#' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
+#' @param pops Populations to show; default all except `"total"`.
+#' @return A ggplot object.
 #' @examples
 #' \donttest{
 #' sim = simulate_multirates_tree(
@@ -289,52 +309,79 @@ plot_mutations = function(x){
 #'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
 #'       ms_driver = -0.5, sigma_driver = 0.5,
 #'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-#'   clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
 #'   min_sigma_count = 0.01, max_sigma_count = 1)
-#' x = get_posterior_multirates(x)
-#' library(ggplot2)
-#' plot_inference(x,params = c("lambda_n","s_epi"))
+#' plot_ccf(x, epistate = "-")
 #' }
 #' @export
 
-plot_inference = function(x, params = NULL, groups = NULL){
+plot_ccf = function(x, epistate = c("-", "+"), pred = NULL, pops = NULL){
 
-  if(is.null(x$posterior$multirates)){
-    stop("run get_posterior_multirates() first")
+  epistate = match.arg(epistate)
+  var = ifelse(epistate == "-", "ccf_neg", "ccf_pos")
+
+  if(is.null(pred)) pred = get_predicted_trajectories(x)
+
+  # driver-only clades live in one sample only
+  if(is.null(pops)){
+    pops = c("wt", "driver", "dc", ifelse(epistate == "-", "driver_n", "driver_p"))
   }
 
-  d = x$posterior$multirates %>% dplyr::filter(family == "param")
+  .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
+               .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
+               var = var, probs = c(0.02, 0.98),
+               ylab = paste0("CCF Z", ifelse(epistate == "-", "\u2212", "+")),
+               facet = TRUE)
 
-  d$canonical = sub("_prior$", "", d$base)
+}
 
-  if(!is.null(params)){
-    d = d %>% dplyr::filter(canonical %in% params)
-  }
-  if(!is.null(groups)){
-    d = d %>% dplyr::filter(group %in% groups)
-  }
 
-  if(nrow(d) == 0){
-    stop("required parameters are not present")
-  }
+#' Plot all posterior predictive checks.
+#'
+#' Arranges \code{plot_fractions()}, \code{plot_counts()},
+#' \code{plot_split()} and \code{plot_ccf()} for both samples, all computed
+#' from the same posterior predictive trajectories.
+#'
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
+#' @param pred Output of \code{get_predicted_trajectories()}; computed if NULL.
+#' @return A ggplot object.
+#' @examples
+#' \donttest{
+#' sim = simulate_multirates_tree(
+#'   sampling_times = c(3, 6, 9), tmrca = 1, t_min = 0,
+#'   lambda_n = 1, s_epi = 0.15, omega_n_wt = 5e-3, omega_p_wt = 2e-3,
+#'   drivers = list(list(id = "KRAS", t_driver = 2, s_driver = 0.3,
+#'       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
+#'       ms_driver = -0.5, sigma_driver = 0.5,
+#'       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
+#'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
+#' )
+#' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
+#'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
+#'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
+#'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
+#'   min_sigma_count = 0.01, max_sigma_count = 1)
+#' plot_posterior_predictive(x)
+#' }
+#' @export
 
-  d$facet = ifelse(is.na(d$id), d$canonical, paste0(d$canonical, "[", d$id, "]"))
+plot_posterior_predictive = function(x, pred = NULL){
 
-  nr = round(length(unique(d$facet))/4 + 1)
-  nc = min(length(unique(d$facet)) + 1, 4)
+  if(is.null(pred)) pred = get_predicted_trajectories(x)
 
-  ggplot(d) +
-    geom_histogram(aes(x = value, alpha = type, fill = group), bins = 40) +
-    facet_wrap(~facet, scales = "free", nrow = nr, ncol = nc) +
-    scale_alpha_manual(values = c("prior" = 0.4, "posterior" = 1)) +
-    get_pepi_theme() + theme(legend.position = "bottom")
+  ggpubr::ggarrange(
+    ggpubr::ggarrange(plot_fractions(x, pred), plot_counts(x, pred), ncol = 2),
+    plot_split(x, pred),
+    plot_ccf(x, "-", pred),
+    plot_ccf(x, "+", pred),
+    nrow = 4, ncol = 1
+  )
 
 }

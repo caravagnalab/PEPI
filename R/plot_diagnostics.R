@@ -4,9 +4,7 @@
 # CmdStanMCMC fit objects (bayesplot::rhat(), neff_ratio(), nuts_params(),
 # log_posterior() all have CmdStanMCMC methods) - the diagnostics below just
 # extract the right pieces and hand them to the corresponding mcmc_*() plot.
-# These are only meaningful for a fit obtained with
-# fit_multirates(..., method = "sample"); the default method = "variational"
-# runs ADVI, which has no chains, Rhat, divergences, or treedepth to speak of.
+# They apply to the HMC (NUTS) fit returned by fit_multirates().
 
 .multirates_default_diag_params = c("lambda_n","s_epi","omega_n_wt","omega_p_wt","tmrca","kappa","sigma_count")
 
@@ -28,8 +26,7 @@
   }
 
   if(!inherits(fit, "CmdStanMCMC")){
-    stop("convergence diagnostics require a fit obtained with fit_multirates(..., method = 'sample'); ",
-         "the default method = 'variational' (ADVI) has no chains, Rhat, divergences, or treedepth.")
+    stop("convergence diagnostics require an MCMC fit obtained with fit_multirates()")
   }
 
   fit
@@ -45,7 +42,7 @@
 
 #' Trace plots of the sampled chains.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names (no brackets - all
 #'   indexed elements of a vector/array parameter are included automatically).
 #'   Defaults to a handful of global scalar parameters.
@@ -65,7 +62,7 @@
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -92,7 +89,7 @@ plot_trace = function(x, params = NULL, divergences = TRUE){
 #' One point per parameter; values close to 1 indicate the chains have
 #' converged to a common distribution. Values above 1.05 are a red flag.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names to include. Defaults
 #'   to every sampled parameter (excludes internal latent-state arrays and
 #'   generated quantities).
@@ -111,7 +108,7 @@ plot_trace = function(x, params = NULL, divergences = TRUE){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -136,7 +133,7 @@ plot_rhat = function(x, params = NULL){
 #' One point per parameter; low ratios indicate highly autocorrelated
 #' chains that need more draws for the same effective precision.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names to include. Defaults
 #'   to every sampled parameter (excludes internal latent-state arrays and
 #'   generated quantities).
@@ -155,7 +152,7 @@ plot_rhat = function(x, params = NULL){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -177,7 +174,7 @@ plot_ess = function(x, params = NULL){
 
 #' Autocorrelation of the sampled chains.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names. Defaults to a
 #'   handful of global scalar parameters.
 #' @param lags Number of lags to show.
@@ -196,7 +193,7 @@ plot_ess = function(x, params = NULL){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -221,7 +218,7 @@ plot_acf = function(x, params = NULL, lags = 20){
 #' Divergences concentrating in a region of parameter space indicate the
 #' sampler struggled there and posterior estimates may be biased.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_divergence()}).
 #' @examples
 #' \donttest{
@@ -237,7 +234,7 @@ plot_acf = function(x, params = NULL, lags = 20){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -259,7 +256,7 @@ plot_divergences = function(x){
 #' Overlapping marginal and transition energy distributions indicate
 #' efficient exploration; a large mismatch signals poor mixing.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_energy()}).
 #' @examples
 #' \donttest{
@@ -275,7 +272,7 @@ plot_divergences = function(x){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -298,7 +295,7 @@ plot_energy = function(x){
 #' being cut off before making a U-turn, which hurts efficiency (though
 #' not necessarily validity).
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @return A ggplot object (see \code{bayesplot::mcmc_nuts_treedepth()}).
 #' @examples
 #' \donttest{
@@ -314,7 +311,7 @@ plot_energy = function(x){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -336,7 +333,7 @@ plot_treedepth = function(x){
 #' Useful to spot the funnel-shaped regions of parameter space that cause
 #' divergences.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names. Defaults to a
 #'   handful of global scalar parameters (pairs plots grow quadratically
 #'   with the number of parameters).
@@ -355,7 +352,7 @@ plot_treedepth = function(x){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -381,7 +378,7 @@ plot_pairs = function(x, params = NULL){
 #' diagnostic into a single 2x2 figure - a quick first look at whether an
 #' MCMC fit is trustworthy.
 #'
-#' @param x PEPI_Multirates object fit with \code{method = "sample"}.
+#' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param params Vector of Stan parameter base names for the Rhat/ESS
 #'   panels. Defaults to every sampled parameter.
 #' @return A combined plot (see \code{ggpubr::ggarrange()}).
@@ -399,7 +396,7 @@ plot_pairs = function(x, params = NULL){
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 #' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "sample", chains = 2, ndraws = 200, seed = 45,
+#'   chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,

@@ -121,24 +121,12 @@ build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
   n_intermediate_times = nrow(intermediate_rows)
   n_times = n_sampling_times + n_intermediate_times
 
-  times = numeric(n_times)
-  times[1] = sampling_rows$time[n_sampling_times]
-  if(n_sampling_times > 1){
-    times[2:n_sampling_times] = sampling_rows$time[1:(n_sampling_times - 1)]
-  }
+  # all times in ascending chronological order: the Stan model uses
+  # tmax = times[1] as upper bound for tmrca and the driver times
+  times = sort(c(sampling_rows$time, intermediate_rows$time))
 
-  sampling_index = integer(n_sampling_times)
-  sampling_index[n_sampling_times] = 1L
-  if(n_sampling_times > 1){
-    sampling_index[1:(n_sampling_times - 1)] = 2:n_sampling_times
-  }
-
-  if(n_intermediate_times > 0){
-    times[(n_sampling_times + 1):n_times] = intermediate_rows$time
-    intermediate_index = as.integer((n_sampling_times + 1):n_times)
-  }else{
-    intermediate_index = integer(0)
-  }
+  sampling_index = as.integer(which(times %in% sampling_rows$time))
+  intermediate_index = as.integer(which(!(times %in% sampling_rows$time)))
 
   sampling_times = sampling_rows$time
 

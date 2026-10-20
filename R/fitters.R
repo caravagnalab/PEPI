@@ -45,10 +45,12 @@
 #'
 #' @param x PEPI_Multirates object.
 #' @param cmdstan_path String specifying the path to the cmdstan installation.
-#' @param method "variational" (default, fast approximate posterior) or "sample" (full MCMC).
-#' @param ndraws Number of posterior draws (variational: output_samples; sample: iter_sampling).
-#' @param chains Number of MCMC chains (only used when method = "sample").
 #' @param seed Seed of the computation.
+#' @param ndraws Number of posterior draws.
+#' @param chains Number of MCMC chains.
+#' @param parallel_chains Number of parallel MCMC chains.
+#' @param adapt_delta Target average acceptance probability.
+#' @param max_treedepth Maximum number of trajectory steps the NUTS sampler can take per iteration.
 #' @param init List of initialization values, or NULL to use a built-in
 #'   default (see \code{.multirates_default_init()}).
 #' @param mu Mutation rate per division per bp per allele.
@@ -76,8 +78,7 @@
 #'   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 #' )
 #' x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-#' x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-#'   method = "variational", ndraws = 500, seed = 45,
+#' x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
 #'   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
 #'   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
 #'   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
@@ -86,8 +87,9 @@
 #' @export
 
 fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
-                          method = c("variational","sample"),
-                          ndraws = 1000, chains = 4, seed = 45, init = NULL,
+                          seed = 45, ndraws = 1000, chains = 4, parallel_chains = 4,  
+                          adapt_delta = 0.99,max_treedepth = 15,
+                          init = NULL,
                           mu = 1e-7, l = 2.7e9, t_min = 0,
                           ms_epi = 0, sigma_epi = 0.5,
                           alpha_lambda = 1, beta_lambda = 1,
@@ -95,8 +97,6 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
                           min_kappa = 10, max_kappa = 1000,
                           min_sigma_count = 0.01, max_sigma_count = 1,
                           include_poisson = 1L, include_trunk = 1L){
-
-  method = match.arg(method)
 
   cmdstanr::set_cmdstan_path(cmdstan_path)
 
@@ -115,21 +115,13 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
 
   mod = cmdstanr::cmdstan_model(system.file("multirates_positive_s.stan", package = "PEPI"))
 
-  fit = if(method == "variational"){
+  if(is.null(init)) init = rep(.multirates_default_init(built$data), chains)
 
-    if(is.null(init)) init = .multirates_default_init(built$data)
+  fit = mod$sample(data = built$data, seed = seed, init = init,
+              chains = chains,  parallel_chains = parallel_chains, 
+              iter_sampling = ndraws,
+              adapt_delta = adapt_delta, max_treedepth = max_treedepth)
 
-    mod$variational(data = built$data, seed = seed, init = init,
-                    output_samples = ndraws, algorithm = "fullrank")
-
-  }else{
-
-    if(is.null(init)) init = rep(.multirates_default_init(built$data), chains)
-
-    mod$sample(data = built$data, seed = seed, init = init,
-              chains = chains, iter_sampling = ndraws)
-
-  }
 
   x$inference$multirates = fit
   x$stan_data$multirates = built$data

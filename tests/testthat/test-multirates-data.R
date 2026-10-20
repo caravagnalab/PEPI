@@ -52,8 +52,8 @@ test_that("build_stan_data_multirates builds the correct time grid", {
   data = built$data
 
   expect_equal(data$n_sampling_times, 3L)
-  expect_equal(data$times[1], max(c(2,5,9)))
-  expect_equal(data$sampling_index[data$n_sampling_times], 1L)
+  expect_equal(data$times, c(2,5,9))
+  expect_equal(data$sampling_index, 1:3)
   expect_equal(data$zminus, c(100,150,300))
   expect_equal(data$zplus, c(50,120,250))
 

@@ -2,18 +2,27 @@
 % Please edit documentation in R/plot_functions.R
 \name{plot_ccf}
 \alias{plot_ccf}
-\title{Plot predicted vs observed CCF for the unified multirates model.}
+\title{Plot the posterior predictive CCF of each population in the sorted samples.}
 \usage{
-plot_ccf(x)
+plot_ccf(x, epistate = c("-", "+"), pred = NULL, pops = NULL)
 }
 \arguments{
-\item{x}{PEPI_Multirates object, after \code{get_posterior_multirates()}.}
+\item{x}{PEPI_Multirates object fit with \code{fit_multirates()}.}
+
+\item{epistate}{"-" or "+".}
+
+\item{pred}{Output of \code{get_predicted_trajectories()}; computed if NULL.}
+
+\item{pops}{Populations to show; default all except `"total"`.}
 }
 \value{
-Plot of predicted vs observed CCF.
+A ggplot object.
 }
 \description{
-Faceted by group/id and epistate, using \code{get_predicted_ccf()}.
+Median (dashed line) and 2%-98% interval (band) of the CCF of every
+population (wild type, drivers, ...) in the "-" or "+" sample over time,
+from \code{get_predicted_trajectories()}, against the observed CCF at the
+sampling times (points).
 }
 \examples{
 \donttest{
@@ -24,18 +33,14 @@ sim = simulate_multirates_tree(
       omega_n_driver = 5e-3, omega_p_driver = 2e-3,
       ms_driver = -0.5, sigma_driver = 0.5,
       alpha_n_driver = 1, beta_n_driver = 10, alpha_p_driver = 1, beta_p_driver = 10)),
-  clades_wt = list(list(id = "c1", t_clade_wt = 1.5)),
   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 )
 x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-  method = "variational", ndraws = 500, seed = 45,
+x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
   min_sigma_count = 0.01, max_sigma_count = 1)
-x = get_posterior_multirates(x)
-library(ggplot2)
-plot_ccf(x)
+plot_ccf(x, epistate = "-")
 }
 }

@@ -1,6 +1,6 @@
 ---
-title: "Model and notation"
----
+
+## title: "Model and notation"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -25,14 +25,14 @@ its own rate parameters:
 
 $$
 \frac{dZ}{dt} = A\,Z, \qquad
-A = \begin{pmatrix} \lambda_- & \omega_{+\to-} \\ \omega_{-\to+} & \lambda_+ \end{pmatrix}
+A = \begin{pmatrix} \lambda_- & \omega_- \\ \omega_+ & \lambda_+ \end{pmatrix}
 $$
 
-- $\lambda_-$ is the division rate of `-` cells.
-- $\lambda_+ = \lambda_-(1+s)$ is the division rate of `+` cells, written
-  relative to $\lambda_-$ via a fitness coefficient $s$ (so $s>0$ means
+* $\lambda_-$ is the division rate of `-` cells.
+* $\lambda_+ = \lambda_-(1+s_+)$ is the division rate of `+` cells, written
+  relative to $\lambda_-$ via a fitness coefficient $s_+$ (so $s_+>0$ means
   `+` cells divide faster).
-- $\omega_{-\to+}$ and $\omega_{+\to-}$ are the rates at which cells
+* $\omega_-$ and $\omega_+$ are the rates at which cells
   switch epigenetic state.
 
 Because $A$ does not depend on $t$, the population at any later time is
@@ -52,18 +52,19 @@ The population is not a single lineage: it is the wild-type background
 plus any number of sub-lineages, each founded at its own time from a
 single cell and governed by the ODE above with its own rate parameters.
 
-| Group | Founded at | Growth `s` | Switch rates | Confined to one state? |
-|---|---|---|---|---|
-| **wt** (background) | $t_{min}$ | $s_{epi}$ | $\omega_{n,wt}, \omega_{p,wt}$ | no |
-| **clade_wt** (wt sub-lineage) | $t_{clade}\geq tmrca$ | $s_{epi}$ (shared with wt) | $\omega_{n,wt}, \omega_{p,wt}$ (shared with wt) | no |
-| **driver** | $t_{driver}\geq tmrca$ | $s_{driver}$ (own) | $\omega_{n,driver}, \omega_{p,driver}$ (own) | no |
-| **driver_n** | $t_{driver_n}\geq tmrca$ | $s_{driver_n}$ (own) | none (no switching) | yes, `-` only |
-| **driver_p** | $t_{driver_p}\geq tmrca$ | $s_{driver_p}$ (own) | none (no switching) | yes, `+` only |
-| **dc** driver leg | $t_{dc,1} = tmrca+\delta_{t,1}$ | $s_{dc}$ (own) | $\omega_{n,dc}, \omega_{p,dc}$ (own) | no |
-| **dc** clade leg | $t_{dc,2} = t_{dc,1}+\delta_{t,2}$ | $s_{dc}$ (shared with its driver leg) | $\omega_{n,dc}, \omega_{p,dc}$ (shared) | no |
+| Genotype                         | Founded at                         | `s_g`                            | Switch rates                                     | Confined to one state? |
+| ------------------------------- | ---------------------------------- | -------------------------------- | ------------------------------------------------ | ---------------------- |
+| **wt** (background)              | $t_{mrca}$                         | —                                | $\omega_-, \omega_+$                             | no                     |
+| **clade_wt** (wt sub-lineage)    | $t_{clade}\geq t_{mrca}$           | —                                | $\omega_-, \omega_+$ (shared with wt)            | no                     |
+| **driver**                       | $t_{driver}\geq t_{mrca}$          | $s_{driver_i}$ (own)              | $\omega_-^{driver_i}, \omega_+^{driver_i}$ (own) | no                     |
+| **driver_n**                     | $t_{driver^{-}}\geq t_{mrca}$      | $s_{driver^{-}_i}$ (own)          | none (no switching)                              | yes, `-` only          |
+| **driver_p**                     | $t_{driver^{+}}\geq t_{mrca}$      | $s_{driver^{+}_i}$ (own)          | none (no switching)                              | yes, `+` only          |
+| **dc** driver leg                | $t_{dc,1} = t_{mrca}+\delta_{t,1}$ | $s_{dc_i}$ (own)                  | $\omega_-^{dc_i}, \omega_+^{dc_i}$ (own)         | no                     |
+| **dc** clade leg                 | $t_{dc,2} = t_{dc,1}+\delta_{t,2}$ | $s_{dc_i}$ (shared with its driver leg) | $\omega_-^{dc_i}, \omega_+^{dc_i}$ (shared with its driver leg) | no |
 
-`driver_n`/`driver_p` are the simplest case: with no switching, the ODE
-collapses to plain exponential growth, $Z(t) = \exp\big(\lambda_-(1+s)\,(t-t_{driver})\big)$.
+whereas `s_g` is genotype specific fitness advantage with respect to the wild type.
+`driver_n`,`driver_p` are the simplest cases: with no switching, the ODE
+collapses to plain exponential growth, $Z(t) = \exp\big(\lambda_-(1+s_{driver^{\pm}})(t-t_{driver^{\pm}})\big)$.
 A `dc` (driver+clade) entity is a *nested* pair: its driver leg is founded
 first with a single cell, and its clade leg is a further sub-lineage
 founded later *within* the driver leg, sharing the same growth/switch
@@ -71,12 +72,12 @@ rates - modelling a clade defined by a further epimutation switch event
 that occurred after the driver mutation.
 
 At each sampling time, the total population in each state is the sum of
-the wt background and every additive group (`driver`, `driver_n`,
-`driver_p`, and the `dc` driver leg - `clade_wt` and the `dc` clade leg
+the wt background and every additive group (`driver`, `driver_n`, `driver_p`,
+and the `dc` driver leg - `clade_wt` and the `dc` clade leg
 are *nested inside* their parent lineage's mass, not counted again):
 
 $$
-Z^{tot}_-(t) = Z_{wt,-}(t) + \sum_i Z_{driver_i,-}(t) + \sum_i Z_{driver\_n_i}(t) + \sum_i Z_{dc_i,-}(t)
+Z^{tot}_-(t) = Z_{wt,-}(t)+\sum_i Z_{driver_i,-}(t)+\sum_i Z_{driver^{-}_i}(t)+\sum_i Z_{dc_i,-}(t)
 $$
 
 and analogously for $Z^{tot}_+(t)$.
@@ -85,14 +86,23 @@ and analogously for $Z^{tot}_+(t)$.
 
 ### Cancer cell fractions (CCF) and mutation-arm fractions
 
-A group's CCF at a sampling time and epistate is simply its share of the
-total population in that epistate, $CCF_g(t) = Z_g(t)/Z^{tot}(t)$. This
-is observed (as data) or predicted (as a posterior draw) with Beta noise
-of concentration $\kappa$:
+For genotypes that occupy both epigenetic states, the CCF of the `-`
+phenotype at a sampling time is the fraction of that genotype's cells
+that are in the `-` state:
 
 $$
-CCF_g^{obs} \sim \text{Beta}\big(CCF_g \cdot \kappa,\ (1-CCF_g)\cdot\kappa\big)
+CCF_{g,-}(t)=\frac{Z_{g,-}(t)}{Z_{g,-}(t)+Z_{g,+}(t)}
 $$
+
+This is observed (as data) or predicted (as a posterior draw) with Beta
+noise of concentration $\kappa$:
+
+$$
+CCF_{g,-}^{obs} \sim \text{Beta}\big(CCF_{g,-}(t)\cdot\kappa,\ (1-CCF_{g,-}(t))\cdot\kappa\big)
+$$
+
+This CCF is defined only for genotypes `g` with both `-` and `+` compartments such as `wt` and `driver`;
+genotypes confined to a single epigenetic state, such as `driver_n`, `driver_p` do not have a phenotypic CCF split.
 
 `kappa` is the same idea as `bayesplot`'s `neff_ratio` - it controls how
 tightly the observed fraction is expected to hug its predicted mean;
@@ -102,12 +112,12 @@ Stan's sampler harder to initialize).
 
 ### Population sizes
 
-Total population sizes in each state at sampling times (`zminus`,
+Total population sizes for each genotype at sampling times (`zminus`,
 `zplus`) and at any additional intermediate times (`ztot`) are observed
 with lognormal noise of scale $\sigma_{count}$:
 
 $$
-z^{obs}(t) \sim \text{LogNormal}\big(\log z(t),\ \sigma_{count}\big)
+z_g^{obs}(t) \sim \text{LogNormal}\big(\log z_g(t),\ \sigma_{count}\big)
 $$
 
 ### Mutation counts
@@ -122,23 +132,23 @@ m \sim \text{Poisson}\big(4\,\mu\,\ell\,\lambda\,\Delta t\big)
 $$
 
 where $\mu$ (`mu`) is the per-division, per-bp mutation rate and $\ell$
-(`l`) is the genome length. The trunk uses $\Delta t = tmrca - t_{min}$;
-a driver or `driver_n` acquisition uses $\Delta t = t_{driver}-tmrca$; a
+(`l`) is the genome length. The trunk uses $\Delta t = t_{mrca} - t_{min}$;
+a driver or `driver_n` acquisition uses $\Delta t = t_{driver}-t_{mrca}$; a
 `dc` combo's clade leg uses the *post-driver* rate
 $\lambda_-(1+s_{dc})$ over $\Delta t = t_{dc,2}-t_{dc,1}$.
 
 ## Priors
 
-| Parameter | Prior | Set via |
-|---|---|---|
-| $\lambda_-$ (`lambda_n`) | $\text{Gamma}(\alpha_\lambda,\beta_\lambda)$ | `alpha_lambda`, `beta_lambda` |
-| $s_{epi}$ (`s_epi`) | $\text{LogNormal}(ms_{epi},\sigma_{epi})$ | `ms_epi`, `sigma_epi` |
-| $\omega_{n,wt},\omega_{p,wt}$ | $\text{Gamma}(\alpha,\beta)$ | `alpha_n_wt`/`beta_n_wt`, `alpha_p_wt`/`beta_p_wt` |
-| $tmrca$ | $\text{Uniform}(t_{min}, t_{max})$ | `t_min` (`t_max` is the latest sampling time) |
-| $s_{driver_i}, s_{driver\_n_i}, s_{driver\_p_i}, s_{dc_i}$ | $\text{LogNormal}(ms,\sigma)$, one prior per entity | `ms_driver`/`sigma_driver` columns (etc.) in the entity's `_muts` table |
-| $\omega_{n,driver_i},\omega_{p,driver_i}$ (and `_dc`) | $\text{Gamma}(\alpha,\beta)$, one prior per entity | `alpha_n_driver`/`beta_n_driver` columns (etc.) |
-| $\kappa$ | $\text{Uniform}(min_\kappa, max_\kappa)$ | `min_kappa`, `max_kappa` |
-| $\sigma_{count}$ | $\text{Uniform}(min_{\sigma},max_{\sigma})$ | `min_sigma_count`, `max_sigma_count` |
+| Parameter                                                    | Prior                                               | Set via                                                                 |
+| ------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| $\lambda_-$ (`lambda_n`)                                     | $\text{Gamma}(\alpha_\lambda,\beta_\lambda)$        | `alpha_lambda`, `beta_lambda`                                           |
+| $s_+$ (`s_epi`)                                              | $\text{LogNormal}(ms_{epi},\sigma_{epi})$           | `ms_epi`, `sigma_epi`                                                   |
+| $\omega_-,\omega_+$                                          | $\text{Gamma}(\alpha,\beta)$                        | `alpha_n_wt`/`beta_n_wt`, `alpha_p_wt`/`beta_p_wt`                      |
+| $t_{mrca}$                                                      | $\text{Uniform}(t_{min}, t_{max})$                  | `t_min` (`t_max` is the latest sampling time)                           |
+| $s_{driver_i}, s_{driver^{-}_i}, s_{driver^{+}_i}, s_{dc_i}$ | $\text{LogNormal}(ms,\sigma)$, one prior per entity | `ms_driver`/`sigma_driver` columns (etc.) in the entity's `_muts` table |
+| $\omega_-^{driver_i},\omega_+^{driver_i}$ (and `_dc`)        | $\text{Gamma}(\alpha,\beta)$, one prior per entity  | `alpha_n_driver`/`beta_n_driver` columns (etc.)                         |
+| $\kappa$                                                     | $\text{Uniform}(min_\kappa, max_\kappa)$            | `min_kappa`, `max_kappa`                                                |
+| $\sigma_{count}$                                             | $\text{Uniform}(min_{\sigma},max_{\sigma})$         | `min_sigma_count`, `max_sigma_count`                                    |
 
 Global priors are arguments to `fit_multirates()`. Per-entity priors
 (driver/driver_n/driver_p/dc fitness and switch-rate hyperparameters) are
@@ -156,14 +166,14 @@ supplies it.
 ```{r, echo = FALSE}
 notation = data.frame(
   Symbol = c(
-    "$\\lambda_-$", "$s_{epi}$ ($\\lambda_+=\\lambda_-(1+s_{epi})$)",
-    "$\\omega_{-\\to+}$", "$\\omega_{+\\to-}$", "$tmrca$", "$t_{min}$",
-    "$s_{driver_i}$", "$\\omega_{-\\to+,driver_i}$, $\\omega_{+\\to-,driver_i}$",
+    "$\\lambda_-$", "$s_{+}$ ($\\lambda_+=\\lambda_-(1+s_{+})$)",
+    "$\\omega_{+}$", "$\\omega_{-}$", "$t_{mrca}$", "$t_{min}$",
+    "$s_{driver_i}$", "$\\omega_{+}^{driver_i}$, $\\omega_{-}^{driver_i}$",
     "$t_{driver_i}$", "$m_{driver_i}$ (observed)",
-    "$s_{driver\\_n_i}$ / $s_{driver\\_p_i}$", "$t_{driver\\_n_i}$ / $t_{driver\\_p_i}$",
+    "$s_{driver^{-}_i}$ / $s_{driver^{+}_i}$", "$t_{driver^{-}_i}$ / $t_{driver^{+}_i}$",
     "$s_{dc_i}$", "$t_{dc_i,1}, t_{dc_i,2}$",
     "$t_{clade_i}$ (wt sub-lineage)",
-    "$CCF_g(t)$ (observed)", "$\\kappa$",
+    "$CCF_{g,-}(t)$ (observed)", "$\\kappa$",
     "$z_-(t), z_+(t)$ (observed)", "$\\sigma_{count}$",
     "$\\mu$ (mutation rate)", "$\\ell$ (genome length)"
   ),

@@ -7,7 +7,7 @@
 plot_trace(x, params = NULL, divergences = TRUE)
 }
 \arguments{
-\item{x}{PEPI_Multirates object fit with \code{method = "sample"}.}
+\item{x}{PEPI_Multirates object fit with \code{fit_multirates()}.}
 
 \item{params}{Vector of Stan parameter base names (no brackets - all
 indexed elements of a vector/array parameter are included automatically).
@@ -35,7 +35,7 @@ sim = simulate_multirates_tree(
 )
 x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
 x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-  method = "sample", chains = 2, ndraws = 200, seed = 45,
+  chains = 2, ndraws = 200, seed = 45,
   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,

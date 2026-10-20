@@ -507,40 +507,40 @@ for (j in 1:N_dc){
       for (i in 1:N_dc) {
         
         
-        // Z_clade_dc_lat[i,t] =  approx_Z_clade(lambda_n*(1 + s_dc[i]), 
-        //           lambda_n*(1 + s_dc[i])*(1 + s_epi),
-        //           omega_n_dc[i], omega_p_dc[i], t_dc[i][2], 
-        //           times[t], bc_clade_dc[i]);
+        Z_clade_dc_lat[i,t] =  approx_Z_clade(lambda_n*(1 + s_dc[i]), 
+                  lambda_n*(1 + s_dc[i])*(1 + s_epi),
+                  omega_n_dc[i], omega_p_dc[i], t_dc[i][2], 
+                  times[t], bc_clade_dc[i]);
         
-      if (t == 1) {
-
-        Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]),s_epi,
-                                omega_n_dc[i], omega_p_dc[i],
-                                t_dc[i][2], times[sampling_index[t]], [0,bc_clade_dc[i]]');
-      } else {
-
-        Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]), s_epi, omega_n_dc[i], omega_p_dc[i],
-        times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_dc_lat[i,t-1]);
-
-      }
+      // if (t == 1) {
+      //   
+      //   Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]),s_epi, 
+      //                           omega_n_dc[i], omega_p_dc[i],
+      //                           t_dc[i][2], times[sampling_index[t]], [0,bc_clade_dc[i]]');
+      // } else {
+      // 
+      //   Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]), s_epi, omega_n_dc[i], omega_p_dc[i],
+      //   times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_dc_lat[i,t-1]);
+      //   
+      // }
   }
     
        // CLADES WT
     for (i in 1:N_clades_wt) {
       
-      // Z_clade_wt_lat[i,t] =  approx_Z_clade(lambda_n, lambda_n*(1 + s_epi),
-      //                        omega_n_wt, omega_p_wt, t_clade_wt[i], 
-      //                        times[t], bc_clade_wt[i]);
+      Z_clade_wt_lat[i,t] =  approx_Z_clade(lambda_n, lambda_n*(1 + s_epi),
+                             omega_n_wt, omega_p_wt, t_clade_wt[i], 
+                             times[t], bc_clade_wt[i]);
                             
-       if (t == 1) {
-         Z_clade_wt_lat[i,t] =  Z(lambda_n, s_epi, omega_n_wt, omega_p_wt,
-                                 t_clade_wt[i], times[sampling_index[t]], [0,bc_clade_wt[i]]');
-
-
-      } else {
-        Z_clade_wt_lat[i,t] = Z(lambda_n, s_epi, omega_n_wt, omega_p_wt,
-        times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_wt_lat[i,t-1]);
-      }
+      //  if (t == 1) {
+      //    Z_clade_wt_lat[i,t] =  Z(lambda_n, s_epi, omega_n_wt, omega_p_wt, 
+      //                            t_clade_wt[i], times[sampling_index[t]], [0,bc_clade_wt[i]]');
+      //                            
+      //                            
+      // } else {
+      //   Z_clade_wt_lat[i,t] = Z(lambda_n, s_epi, omega_n_wt, omega_p_wt,
+      //   times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_wt_lat[i,t-1]);
+      // }
     }
       
  }
@@ -979,8 +979,8 @@ generated quantities {
 
 for (k in 1:n_sampling_times){
 
-    z_wt_pred[k,1] = exp(normal_rng(log(Z_wt_lat[sampling_index[k],1]), sigma_count));
-    z_wt_pred[k,2] = exp(normal_rng(log(Z_wt_lat[sampling_index[k],2]),sigma_count));
+    // z_wt_pred, z_driver_pred and z_dc_driver_pred are sampled below,
+    // from the total count and the "+"/"-" split of each population
 
 for (i in 1:N_driver_n) {
   
@@ -998,12 +998,6 @@ for (i in 1:N_driver_p) {
 
     for (i in 1:N_dc) {
 
-      z_dc_driver_pred[i,k,1] =
-      exp(normal_rng(log(Z_driver_dc_lat[i,sampling_index[k]][1]),sigma_count));
-
-      z_dc_driver_pred[i,k,2] =
-      exp(normal_rng(log(Z_driver_dc_lat[i,sampling_index[k]][2]),sigma_count));
-
       z_dc_clade_pred[i,k,1] =
       exp(normal_rng(log(Z_clade_dc_lat[i,k][1]),sigma_count));
 
@@ -1020,15 +1014,6 @@ for (i in 1:N_driver_p) {
       exp(normal_rng(log(Z_clade_wt_lat[i,k][2]),sigma_count));
     }
     
-     for (i in 1:N_driver){
-
-      z_driver_pred[i,k,1] =
-       exp(normal_rng(log(Z_driver_lat[i,sampling_index[k]][1]),sigma_count));
-      
-        z_driver_pred[i,k,2] =
-       exp(normal_rng(log(Z_driver_lat[i,sampling_index[k]][2]),sigma_count));
-       
-    }
   
 }    
     // ==============================
@@ -1184,9 +1169,7 @@ for (i in 1:N_driver_p) {
      
      real dt = times[sampling_index[n_sampling_times]] - t_driver_p[i];
      
-     real target_ccf = 0.01;
-     
-     real Z1_target = target_ccf * zminus[n_sampling_times];
+     real Z1_target = 0.01 * zminus[n_sampling_times];
 
      omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt);
         
@@ -1195,8 +1178,11 @@ for (i in 1:N_driver_p) {
       
       
 // ==============================
-// POSTERIOR PREDICTIVE CCF (solo driver)
+// POSTERIOR PREDICTIVE COUNTS AND CCF
 // ==============================
+// As in the likelihood, each population gets a lognormal total count and a
+// beta "+"/"-" split (frac_*_pred above); CCFs are then evaluated on the
+// sampled counts, within the "-" and "+" samples.
 
 array[N_driver, n_sampling_times, 2] real ccf_driver_pred;
 array[N_driver_n, n_sampling_times] real ccf_driver_n_pred;   
@@ -1205,73 +1191,60 @@ array[N_dc, n_sampling_times, 2] real ccf_driver_dc_pred;
 array[n_sampling_times] real frac_pos_pred;
 array[n_sampling_times] real frac_neg_pred;
 
-
 for (t in 1:n_sampling_times){
 
-  real total_neg = Z_wt_lat[sampling_index[t]][1];
-  real total_pos = Z_wt_lat[sampling_index[t]][2];
+  real n_tot = exp(normal_rng(log(sum(Z_wt_lat[sampling_index[t]])), sigma_count));
+  z_wt_pred[t,1] = n_tot * frac_wt_pred[t][1];
+  z_wt_pred[t,2] = n_tot * frac_wt_pred[t][2];
+
+  real total_neg = z_wt_pred[t,1];
+  real total_pos = z_wt_pred[t,2];
 
   for (i in 1:N_driver){
-    total_neg += Z_driver_lat[i,sampling_index[t]][1];
-    total_pos += Z_driver_lat[i,sampling_index[t]][2];
-  }
-
-  for (i in 1:N_driver_n){
-    total_neg += exp(log_Z_driver_n_lat[i,sampling_index[t]]);
-  }
-
-for (i in 1:N_driver_p){
-    total_pos += exp(log_Z_driver_p_lat[i,sampling_index[t]]);
-  }
-  
-  for (i in 1:N_dc){
-    total_neg += Z_driver_dc_lat[i,sampling_index[t]][1];
-    total_pos += Z_driver_dc_lat[i,sampling_index[t]][2];
-  }
-
-  for (i in 1:N_driver){
-
-    real p_neg = Z_driver_lat[i,sampling_index[t]][1] / total_neg;
-    real p_pos = Z_driver_lat[i,sampling_index[t]][2] / total_pos;
-
-    ccf_driver_pred[i,t][1] =
-      beta_proportion_rng(p_neg, kappa);
-
-    ccf_driver_pred[i,t][2] =
-      beta_proportion_rng(p_pos, kappa);
-  }
-
-  for (i in 1:N_driver_n){
-
-    real p = exp(log_Z_driver_n_lat[i,sampling_index[t]]) / total_neg;
-
-    ccf_driver_n_pred[i,t] =
-      beta_proportion_rng(p, kappa);
-  }
-  
-    for (i in 1:N_driver_p){
-
-    real p = exp(log_Z_driver_p_lat[i,sampling_index[t]]) / total_pos;
-
-    ccf_driver_p_pred[i,t] =
-      beta_proportion_rng(p, kappa);
+    n_tot = exp(normal_rng(log(sum(Z_driver_lat[i,sampling_index[t]])), sigma_count));
+    z_driver_pred[i,t,1] = n_tot * frac_driver_pred[i,t][1];
+    z_driver_pred[i,t,2] = n_tot * frac_driver_pred[i,t][2];
+    total_neg += z_driver_pred[i,t,1];
+    total_pos += z_driver_pred[i,t,2];
   }
 
   for (i in 1:N_dc){
-
-    real p_neg = Z_driver_dc_lat[i,sampling_index[t]][1] / total_neg;
-    real p_pos = Z_driver_dc_lat[i,sampling_index[t]][2] / total_pos;
-
-    ccf_driver_dc_pred[i,t][1] =
-      beta_proportion_rng(p_neg, kappa);
-
-    ccf_driver_dc_pred[i,t][2] =
-      beta_proportion_rng(p_pos, kappa);
+    n_tot = exp(normal_rng(log(sum(Z_driver_dc_lat[i,sampling_index[t]])), sigma_count));
+    z_dc_driver_pred[i,t,1] = n_tot * frac_dc_driver_pred[i,t][1];
+    z_dc_driver_pred[i,t,2] = n_tot * frac_dc_driver_pred[i,t][2];
+    total_neg += z_dc_driver_pred[i,t,1];
+    total_pos += z_dc_driver_pred[i,t,2];
   }
-  
-frac_pos_pred[t] = beta_proportion_rng(total_pos / (total_neg + total_pos), kappa);
-frac_neg_pred[t] = beta_proportion_rng(total_neg / (total_neg + total_pos), kappa);  
-  
+
+  for (i in 1:N_driver_n){
+    total_neg += z_driver_n_pred[i,t];
+  }
+
+  for (i in 1:N_driver_p){
+    total_pos += z_driver_p_pred[i,t];
+  }
+
+  for (i in 1:N_driver){
+    ccf_driver_pred[i,t][1] = z_driver_pred[i,t,1] / total_neg;
+    ccf_driver_pred[i,t][2] = z_driver_pred[i,t,2] / total_pos;
+  }
+
+  for (i in 1:N_driver_n){
+    ccf_driver_n_pred[i,t] = z_driver_n_pred[i,t] / total_neg;
+  }
+
+  for (i in 1:N_driver_p){
+    ccf_driver_p_pred[i,t] = z_driver_p_pred[i,t] / total_pos;
+  }
+
+  for (i in 1:N_dc){
+    ccf_driver_dc_pred[i,t][1] = z_dc_driver_pred[i,t,1] / total_neg;
+    ccf_driver_dc_pred[i,t][2] = z_dc_driver_pred[i,t,2] / total_pos;
+  }
+
+  frac_pos_pred[t] = total_pos / (total_neg + total_pos);
+  frac_neg_pred[t] = total_neg / (total_neg + total_pos);
+
 }
 
 array[n_intermediate_times] real ztot_pred;

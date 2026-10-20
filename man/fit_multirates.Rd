@@ -7,10 +7,12 @@
 fit_multirates(
   x,
   cmdstan_path = cmdstanr::cmdstan_path(),
-  method = c("variational", "sample"),
+  seed = 45,
   ndraws = 1000,
   chains = 4,
-  seed = 45,
+  parallel_chains = 4,
+  adapt_delta = 0.99,
+  max_treedepth = 15,
   init = NULL,
   mu = 1e-07,
   l = 2.7e+09,
@@ -36,13 +38,17 @@ fit_multirates(
 
 \item{cmdstan_path}{String specifying the path to the cmdstan installation.}
 
-\item{method}{"variational" (default, fast approximate posterior) or "sample" (full MCMC).}
-
-\item{ndraws}{Number of posterior draws (variational: output_samples; sample: iter_sampling).}
-
-\item{chains}{Number of MCMC chains (only used when method = "sample").}
-
 \item{seed}{Seed of the computation.}
+
+\item{ndraws}{Number of posterior draws.}
+
+\item{chains}{Number of MCMC chains.}
+
+\item{parallel_chains}{Number of parallel MCMC chains.}
+
+\item{adapt_delta}{Target average acceptance probability.}
+
+\item{max_treedepth}{Maximum number of trajectory steps the NUTS sampler can take per iteration.}
 
 \item{init}{List of initialization values, or NULL to use a built-in
 default (see \code{.multirates_default_init()}).}
@@ -87,8 +93,7 @@ sim = simulate_multirates_tree(
   mu = 1e-7, l = 2.7e9, kappa = 20, sigma_count = 0.1, seed = 42
 )
 x = init_multirates(sim$tables, m_trunk = sim$truth$m_trunk)
-x = fit_multirates(x, cmdstan_path = cmdstanr::cmdstan_path(),
-  method = "variational", ndraws = 500, seed = 45,
+x = fit_multirates(x, chains = 2, ndraws = 200, seed = 45,
   mu = 1e-7, l = 2.7e9, t_min = 0, ms_epi = 0, sigma_epi = 0.5,
   alpha_lambda = 1, beta_lambda = 1, alpha_n_wt = 1, beta_n_wt = 10,
   alpha_p_wt = 1, beta_p_wt = 10, min_kappa = 5, max_kappa = 200,
