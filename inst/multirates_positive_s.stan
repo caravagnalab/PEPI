@@ -163,6 +163,7 @@ data{
   array[N_driver_n] real ms_driver_n;
   array[N_driver_n] real <lower=0> sigma_driver_n;
   
+  array[N_driver_p] int <lower=0> m_driver_p;
   array[N_driver_p,n_sampling_times] real <lower=0> ccf_driver_p;
   array[N_driver_p] real ms_driver_p;
   array[N_driver_p] real <lower=0> sigma_driver_p;
@@ -724,6 +725,7 @@ if (N_driver > 0) {
     omega_p_driver[i] ~ gamma(alpha_p_driver[i], beta_p_driver[i]);
     
     t_driver[i] ~ uniform(tmrca, tmax);
+    
     if(include_poisson == 1){
       
       m_driver[i] ~ poisson(4 * mu * l * lambda_n * (t_driver[i] - tmrca));
@@ -758,6 +760,11 @@ if (N_driver_p > 0) {
     t_driver_p[i] ~ uniform(tmrca, tmax);
     
     bc_driver_p[i] ~ exponential(1);
+    
+     if(include_poisson == 1){
+
+       target += poisson_lcdf(m_driver_p | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
+   }
     
     for (t in 1:n_sampling_times) {
       
@@ -1086,6 +1093,7 @@ for (i in 1:N_driver_p) {
     
     array[N_driver] int m_driver_pred;
     array[N_driver_n] int m_driver_n_pred;
+    array[N_driver_p] int m_driver_p_pred;
     array[N_dc,2] int m_dc_pred;
     array[N_clades_wt] int m_clade_wt_pred;
     int m_trunk_pred;
@@ -1106,6 +1114,14 @@ for (i in 1:N_driver_p) {
           m_driver_n_pred[i] =
           poisson_rng(
             4 * mu * l * lambda_n * (t_driver_n[i] - tmrca)
+            );
+        }
+        
+        for (i in 1:N_driver_p) {
+          
+          m_driver_p_pred[i] =
+          poisson_rng(
+            4 * mu * l * lambda_n * (t_driver_p[i] - tmrca)
             );
         }
         
@@ -1175,7 +1191,10 @@ for (i in 1:N_driver_p) {
      
      real Z1_target = 0.01 * zminus[n_sampling_times];
 
-     omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt);
+     // omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt);
+
+     // Z1 = (omega_n / delta) * W * exp(lambda_p * dt), with W = bc_driver_p[i]
+     omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt) / bc_driver_p[i];
         
   }
       
