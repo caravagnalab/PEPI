@@ -71,6 +71,10 @@ lets getters translate Stan array indices back into ids/times.</p>
 <span>  <span class="va">min_sigma_count</span>,</span>
 <span>  <span class="va">max_sigma_count</span>,</span>
 <span>  include_poisson <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  include_poisson_driver <span class="op">=</span> <span class="va">include_poisson</span>,</span>
+<span>  include_poisson_driver_n <span class="op">=</span> <span class="va">include_poisson</span>,</span>
+<span>  include_poisson_driver_p <span class="op">=</span> <span class="va">include_poisson</span>,</span>
+<span>  include_poisson_dc <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  include_trunk <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -116,8 +120,23 @@ for the wt switch rates omega_n_wt/omega_p_wt.</p></dd>
 <dd><p>Uniform prior bounds for sigma_count.</p></dd>
 
 
-<dt id="arg-include-poisson-include-trunk">include_poisson, include_trunk<a class="anchor" aria-label="anchor" href="#arg-include-poisson-include-trunk"></a></dt>
-<dd><p>Stan model switches (0/1).</p></dd>
+<dt id="arg-include-poisson">include_poisson<a class="anchor" aria-label="anchor" href="#arg-include-poisson"></a></dt>
+<dd><p>Default (0/1) of the Poisson terms on the driver
+mutations, used by the per-type switches below when they are not given.</p></dd>
+
+
+<dt id="arg-include-poisson-driver-include-poisson-driver-n-include-poisson-driver-p">include_poisson_driver, include_poisson_driver_n, include_poisson_driver_p<a class="anchor" aria-label="anchor" href="#arg-include-poisson-driver-include-poisson-driver-n-include-poisson-driver-p"></a></dt>
+<dd><p>Switches (0/1) of the Poisson term on the mutations of the driver,
+driver_n and driver_p populations (for driver_p, an upper bound).</p></dd>
+
+
+<dt id="arg-include-poisson-dc">include_poisson_dc<a class="anchor" aria-label="anchor" href="#arg-include-poisson-dc"></a></dt>
+<dd><p>Switch (0/1) of the Poisson term on the driver
+mutations of the dc populations; the clade terms are always included.</p></dd>
+
+
+<dt id="arg-include-trunk">include_trunk<a class="anchor" aria-label="anchor" href="#arg-include-trunk"></a></dt>
+<dd><p>Switch (0/1) of the trunk regularization of tmrca.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -177,7 +196,16 @@ for the wt switch rates omega_n_wt/omega_p_wt.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$N_driver_p</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $data$include_poisson</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data$include_poisson_driver</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data$include_poisson_driver_n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data$include_poisson_driver_p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data$include_poisson_dc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$m_trunk</span>
@@ -218,6 +246,9 @@ for the wt switch rates omega_n_wt/omega_p_wt.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$sigma_driver_n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> numeric(0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $data$m_driver_p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> integer(0)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$ccf_driver_p</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      [,1] [,2]</span>

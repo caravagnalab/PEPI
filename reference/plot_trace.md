@@ -46,98 +46,98 @@ source(system.file("examples", "fit_example.R", package = "PEPI"))
 #> 
 #> Chain 1 Iteration:    1 / 1200 [  0%]  (Warmup) 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is 0, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 646, column 0 to column 42)
+#> Chain 1 Exception: gamma_lpdf: Random variable is 0, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 652, column 0 to column 42)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 1 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 1 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 1 
 #> Chain 2 Iteration:    1 / 1200 [  0%]  (Warmup) 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 641, column 0 to column 44)
+#> Chain 2 Exception: gamma_lpdf: Random variable is inf, but must be positive finite! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 647, column 0 to column 44)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
 #> Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
-#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpKs1G8e/model-1d8638cbc177.stan', line 669, column 2 to line 671, column 4)
+#> Chain 2 Exception: beta_proportion_lpdf: Location parameter is -nan, but must be positive! (in '/tmp/RtmpMXCNqR/model-1bf469d49d88.stan', line 675, column 2 to line 677, column 4)
 #> Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
 #> Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
 #> Chain 2 
@@ -163,16 +163,16 @@ source(system.file("examples", "fit_example.R", package = "PEPI"))
 #> Chain 1 Iteration: 1001 / 1200 [ 83%]  (Sampling) 
 #> Chain 2 Iteration: 1000 / 1200 [ 83%]  (Warmup) 
 #> Chain 2 Iteration: 1001 / 1200 [ 83%]  (Sampling) 
-#> Chain 2 Iteration: 1100 / 1200 [ 91%]  (Sampling) 
 #> Chain 1 Iteration: 1100 / 1200 [ 91%]  (Sampling) 
+#> Chain 2 Iteration: 1100 / 1200 [ 91%]  (Sampling) 
 #> Chain 2 Iteration: 1200 / 1200 [100%]  (Sampling) 
-#> Chain 2 finished in 18.6 seconds.
+#> Chain 2 finished in 10.9 seconds.
 #> Chain 1 Iteration: 1200 / 1200 [100%]  (Sampling) 
-#> Chain 1 finished in 19.5 seconds.
+#> Chain 1 finished in 11.4 seconds.
 #> 
 #> Both chains finished successfully.
-#> Mean chain execution time: 19.0 seconds.
-#> Total execution time: 19.6 seconds.
+#> Mean chain execution time: 11.2 seconds.
+#> Total execution time: 11.6 seconds.
 #> 
 plot_trace(x, params = c("lambda_n","s_epi"))
 #> No divergences to plot.

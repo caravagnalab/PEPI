@@ -27,6 +27,10 @@ build_stan_data_multirates(
   min_sigma_count,
   max_sigma_count,
   include_poisson = 1L,
+  include_poisson_driver = include_poisson,
+  include_poisson_driver_n = include_poisson,
+  include_poisson_driver_p = include_poisson,
+  include_poisson_dc = 1L,
   include_trunk = 1L
 )
 ```
@@ -70,9 +74,25 @@ build_stan_data_multirates(
 
   Uniform prior bounds for sigma_count.
 
-- include_poisson, include_trunk:
+- include_poisson:
 
-  Stan model switches (0/1).
+  Default (0/1) of the Poisson terms on the driver mutations, used by
+  the per-type switches below when they are not given.
+
+- include_poisson_driver, include_poisson_driver_n,
+  include_poisson_driver_p:
+
+  Switches (0/1) of the Poisson term on the mutations of the driver,
+  driver_n and driver_p populations (for driver_p, an upper bound).
+
+- include_poisson_dc:
+
+  Switch (0/1) of the Poisson term on the driver mutations of the dc
+  populations; the clade terms are always included.
+
+- include_trunk:
+
+  Switch (0/1) of the trunk regularization of tmrca.
 
 ## Value
 
@@ -131,7 +151,16 @@ build_stan_data_multirates(x, mu = mu$mean, l = 51e06, t_min = -20,
 #> $data$N_driver_p
 #> [1] 0
 #> 
-#> $data$include_poisson
+#> $data$include_poisson_driver
+#> [1] 1
+#> 
+#> $data$include_poisson_driver_n
+#> [1] 1
+#> 
+#> $data$include_poisson_driver_p
+#> [1] 1
+#> 
+#> $data$include_poisson_dc
 #> [1] 1
 #> 
 #> $data$m_trunk
@@ -172,6 +201,9 @@ build_stan_data_multirates(x, mu = mu$mean, l = 51e06, t_min = -20,
 #> 
 #> $data$sigma_driver_n
 #> numeric(0)
+#> 
+#> $data$m_driver_p
+#> integer(0)
 #> 
 #> $data$ccf_driver_p
 #>      [,1] [,2]
