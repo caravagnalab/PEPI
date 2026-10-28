@@ -83,7 +83,14 @@ pivot_ccf = function(long_df, id_col, id_levels, time_levels, epistate = TRUE){
 #'   for the wt switch rates omega_n_wt/omega_p_wt.
 #' @param min_kappa,max_kappa Uniform prior bounds for kappa.
 #' @param min_sigma_count,max_sigma_count Uniform prior bounds for sigma_count.
-#' @param include_poisson,include_trunk Stan model switches (0/1).
+#' @param include_poisson Default (0/1) of the Poisson terms on the driver
+#'   mutations, used by the per-type switches below when they are not given.
+#' @param include_poisson_driver,include_poisson_driver_n,include_poisson_driver_p
+#'   Switches (0/1) of the Poisson term on the mutations of the driver,
+#'   driver_n and driver_p populations (for driver_p, an upper bound).
+#' @param include_poisson_dc Switch (0/1) of the Poisson term on the driver
+#'   mutations of the dc populations; the clade terms are always included.
+#' @param include_trunk Switch (0/1) of the trunk regularization of tmrca.
 #' @return A list with elements `data` (the Stan data list) and `index_maps`.
 #' @examples
 #' source(system.file("examples", "tables_example.R", package = "PEPI"))
@@ -97,7 +104,10 @@ pivot_ccf = function(long_df, id_col, id_levels, time_levels, epistate = TRUE){
 build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
     alpha_lambda, beta_lambda, alpha_n_wt, beta_n_wt, alpha_p_wt, beta_p_wt,
     min_kappa, max_kappa, min_sigma_count, max_sigma_count,
-    include_poisson = 1L, include_trunk = 1L){
+    include_poisson = 1L,
+    include_poisson_driver = include_poisson, include_poisson_driver_n = include_poisson,
+    include_poisson_driver_p = include_poisson, include_poisson_dc = 1L,
+    include_trunk = 1L){
 
   tables = x$multirates
 
@@ -175,7 +185,7 @@ build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
 
   # ---- driver_p -------------------------------------------------------------
   # m_driver_p enters the optional Poisson regularization of t_driver_p
-  # (include_poisson), as an upper bound on the mutations accumulated at
+  # (include_poisson_driver_p), as an upper bound on the mutations accumulated at
   # rate lambda_n between tmrca and t_driver_p
 
   driver_p_muts = tables$driver_p_muts
@@ -245,7 +255,10 @@ build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
     N_dc = N_dc,
     N_driver_n = N_driver_n,
     N_driver_p = N_driver_p,
-    include_poisson = as.integer(include_poisson),
+    include_poisson_driver = as.integer(include_poisson_driver),
+    include_poisson_driver_n = as.integer(include_poisson_driver_n),
+    include_poisson_driver_p = as.integer(include_poisson_driver_p),
+    include_poisson_dc = as.integer(include_poisson_dc),
     m_trunk = as.integer(x$m_trunk),
     include_trunk = as.integer(include_trunk),
 

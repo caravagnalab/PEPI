@@ -149,7 +149,12 @@ data{
   int N_dc;
   int N_driver_n;
   int N_driver_p;
-  int<lower=0,upper = 1> include_poisson;
+  // int<lower=0,upper = 1> include_poisson;
+  // one switch per driver type for the Poisson term on its mutations
+  int<lower=0,upper = 1> include_poisson_driver;
+  int<lower=0,upper = 1> include_poisson_driver_n;
+  int<lower=0,upper = 1> include_poisson_driver_p;
+  int<lower=0,upper = 1> include_poisson_dc;
   int m_trunk;
   int<lower=0,upper = 1> include_trunk;
   
@@ -726,8 +731,9 @@ if (N_driver > 0) {
     
     t_driver[i] ~ uniform(tmrca, tmax);
     
-    if(include_poisson == 1){
-      
+    // if(include_poisson == 1){
+    if(include_poisson_driver == 1){
+
       m_driver[i] ~ poisson(4 * mu * l * lambda_n * (t_driver[i] - tmrca));
     }
     
@@ -761,7 +767,8 @@ if (N_driver_p > 0) {
     
     bc_driver_p[i] ~ exponential(1);
     
-     if(include_poisson == 1){
+     // if(include_poisson == 1){
+     if(include_poisson_driver_p == 1){
 
        // target += poisson_lcdf(m_driver_p | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
        target += poisson_lcdf(m_driver_p[i] | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
@@ -784,8 +791,9 @@ if (N_driver_n > 0) {
     
     t_driver_n[i] ~ uniform(tmrca, tmax);
     
-    if(include_poisson == 1){
-      
+    // if(include_poisson == 1){
+    if(include_poisson_driver_n == 1){
+
        m_driver_n[i] ~ poisson(4 * mu * l * lambda_n * (t_driver_n[i] - tmrca));
     
     }
@@ -818,7 +826,10 @@ if (N_dc > 0) {
                          1/(lambda_n*(1 + s_dc[i]))) T[0,tmax - t_dc[i][1]]; 
     
     
-    m_dc[i,1] ~ poisson(2*mu*l*lambda_n*2*(t_dc[i][1] - tmrca));
+    // m_dc[i,1] ~ poisson(2*mu*l*lambda_n*2*(t_dc[i][1] - tmrca));
+    if(include_poisson_dc == 1){
+      m_dc[i,1] ~ poisson(2*mu*l*lambda_n*2*(t_dc[i][1] - tmrca));
+    }
     m_dc[i,2] ~ poisson(2*mu*l*lambda_n*(1 + s_dc[i])*2*(t_dc[i][2] - t_dc[i][1]));
     
     bc_clade_dc[i] ~ exponential(1);

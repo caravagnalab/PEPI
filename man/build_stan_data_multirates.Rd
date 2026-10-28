@@ -22,6 +22,10 @@ build_stan_data_multirates(
   min_sigma_count,
   max_sigma_count,
   include_poisson = 1L,
+  include_poisson_driver = include_poisson,
+  include_poisson_driver_n = include_poisson,
+  include_poisson_driver_p = include_poisson,
+  include_poisson_dc = 1L,
   include_trunk = 1L
 )
 }
@@ -45,7 +49,16 @@ for the wt switch rates omega_n_wt/omega_p_wt.}
 
 \item{min_sigma_count, max_sigma_count}{Uniform prior bounds for sigma_count.}
 
-\item{include_poisson, include_trunk}{Stan model switches (0/1).}
+\item{include_poisson}{Default (0/1) of the Poisson terms on the driver
+mutations, used by the per-type switches below when they are not given.}
+
+\item{include_poisson_driver, include_poisson_driver_n, include_poisson_driver_p}{Switches (0/1) of the Poisson term on the mutations of the driver,
+driver_n and driver_p populations (for driver_p, an upper bound).}
+
+\item{include_poisson_dc}{Switch (0/1) of the Poisson term on the driver
+mutations of the dc populations; the clade terms are always included.}
+
+\item{include_trunk}{Switch (0/1) of the trunk regularization of tmrca.}
 }
 \value{
 A list with elements `data` (the Stan data list) and `index_maps`.

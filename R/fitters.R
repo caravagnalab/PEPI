@@ -62,7 +62,14 @@
 #'   for the wt switch rates omega_n_wt/omega_p_wt.
 #' @param min_kappa,max_kappa Uniform prior bounds for kappa.
 #' @param min_sigma_count,max_sigma_count Uniform prior bounds for sigma_count.
-#' @param include_poisson,include_trunk Stan model switches (0/1).
+#' @param include_poisson Default (0/1) of the Poisson terms on the driver
+#'   mutations, used by the per-type switches below when they are not given.
+#' @param include_poisson_driver,include_poisson_driver_n,include_poisson_driver_p
+#'   Switches (0/1) of the Poisson term on the mutations of the driver,
+#'   driver_n and driver_p populations (for driver_p, an upper bound).
+#' @param include_poisson_dc Switch (0/1) of the Poisson term on the driver
+#'   mutations of the dc populations; the clade terms are always included.
+#' @param include_trunk Switch (0/1) of the trunk regularization of tmrca.
 #' @return PEPI_Multirates object with `inference$multirates`, `stan_data$multirates`
 #'   and `index_maps` populated.
 #' @examples
@@ -87,7 +94,10 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
                           alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
                           min_kappa = 10, max_kappa = 1000,
                           min_sigma_count = 0.01, max_sigma_count = 1,
-                          include_poisson = 1L, include_trunk = 1L){
+                          include_poisson = 1L,
+    include_poisson_driver = include_poisson, include_poisson_driver_n = include_poisson,
+    include_poisson_driver_p = include_poisson, include_poisson_dc = 1L,
+    include_trunk = 1L){
 
   cmdstanr::set_cmdstan_path(cmdstan_path)
 
@@ -102,7 +112,12 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
             alpha_p_wt = alpha_p_wt, beta_p_wt = beta_p_wt,
             min_kappa = min_kappa, max_kappa = max_kappa,
             min_sigma_count = min_sigma_count, max_sigma_count = max_sigma_count,
-            include_poisson = include_poisson, include_trunk = include_trunk)
+            include_poisson = include_poisson,
+            include_poisson_driver = include_poisson_driver,
+            include_poisson_driver_n = include_poisson_driver_n,
+            include_poisson_driver_p = include_poisson_driver_p,
+            include_poisson_dc = include_poisson_dc,
+            include_trunk = include_trunk)
 
   # compile into a user cache directory, never next to the .stan file: an
   # executable shipped in the package (or built for another platform) would
