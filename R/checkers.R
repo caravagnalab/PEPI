@@ -135,7 +135,7 @@ check_input_multirates = function(tables){
                           extra_muts_cols = c("m_driver_n","ms_driver_n","sigma_driver_n"))
 
   check_id_time_epistate(tables$driver_p_muts, tables$driver_p_ccf, "driver_p_id", "driver_p", has_epistate = FALSE,
-                          extra_muts_cols = c("ms_driver_p","sigma_driver_p"))
+                          extra_muts_cols = c("m_driver_p","ms_driver_p","sigma_driver_p"))
 
   check_id_time_epistate(tables$clades_wt, tables$clades_wt_ccf, "clade_id", "clades_wt",
                           extra_muts_cols = c("m_clade_wt"))

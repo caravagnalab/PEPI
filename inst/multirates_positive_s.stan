@@ -763,7 +763,8 @@ if (N_driver_p > 0) {
     
      if(include_poisson == 1){
 
-       target += poisson_lcdf(m_driver_p | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
+       // target += poisson_lcdf(m_driver_p | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
+       target += poisson_lcdf(m_driver_p[i] | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
    }
     
     for (t in 1:n_sampling_times) {

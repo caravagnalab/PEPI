@@ -30,7 +30,7 @@
         "omega_p_driver_n_pred","m_driver_n_pred"), "id")
 
   reg(c("s_driver_p","t_driver_p","bc_driver_p","s_driver_p_prior","t_driver_p_prior",
-        "omega_n_driver_p_pred"), "id")
+        "omega_n_driver_p_pred","m_driver_p_pred"), "id")
 
   reg(c("s_dc","bc_driver_dc","bc_clade_dc","U_dc","W_dc","omega_p_dc","omega_n_dc",
         "s_dc_prior","omega_n_dc_prior","omega_p_dc_prior"), "id")

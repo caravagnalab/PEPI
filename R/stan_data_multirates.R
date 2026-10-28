@@ -174,17 +174,20 @@ build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
   }
 
   # ---- driver_p -------------------------------------------------------------
-  # note: the Stan data{} block has no m_driver_p array (asymmetric with driver_n by design)
+  # m_driver_p enters the optional Poisson regularization of t_driver_p
+  # (include_poisson), as an upper bound on the mutations accumulated at
+  # rate lambda_n between tmrca and t_driver_p
 
   driver_p_muts = tables$driver_p_muts
   N_driver_p = if(is.null(driver_p_muts)) 0L else nrow(driver_p_muts)
 
   if(N_driver_p > 0){
+    m_driver_p = as.integer(driver_p_muts$m_driver_p)
     ms_driver_p = as.numeric(driver_p_muts$ms_driver_p)
     sigma_driver_p = as.numeric(driver_p_muts$sigma_driver_p)
     ccf_driver_p = pivot_ccf(tables$driver_p_ccf, "driver_p_id", driver_p_muts$driver_p_id, sampling_times, epistate = FALSE)
   }else{
-    ms_driver_p = numeric(0); sigma_driver_p = numeric(0)
+    m_driver_p = integer(0); ms_driver_p = numeric(0); sigma_driver_p = numeric(0)
     ccf_driver_p = matrix(numeric(0), nrow = 0, ncol = n_sampling_times)
   }
 
@@ -256,6 +259,7 @@ build_stan_data_multirates = function(x, mu, l, t_min, ms_epi, sigma_epi,
     ms_driver_n = ms_driver_n,
     sigma_driver_n = sigma_driver_n,
 
+    m_driver_p = m_driver_p,
     ccf_driver_p = ccf_driver_p,
     ms_driver_p = ms_driver_p,
     sigma_driver_p = sigma_driver_p,
