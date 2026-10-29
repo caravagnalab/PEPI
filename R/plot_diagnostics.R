@@ -265,7 +265,10 @@ plot_diagnostics = function(x, params = NULL){
 
   p1 = plot_rhat(x, params = params) + ggplot2::labs(title = "Rhat")
   p2 = plot_ess(x, params = params) + ggplot2::labs(title = "Effective sample size ratio")
-  p3 = plot_divergences(x) + ggplot2::labs(title = "Divergences")
+  # p3 = plot_divergences(x) + ggplot2::labs(title = "Divergences")
+  # bayesplot returns a bayesplot_grid here: adding labs() to it fails with ggplot2 < 4
+  p3 = plot_divergences(x)
+  if(ggplot2::is.ggplot(p3)) p3 = p3 + ggplot2::labs(title = "Divergences")
   p4 = plot_energy(x) + ggplot2::labs(title = "Energy (E-BFMI)")
 
   ggpubr::ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
