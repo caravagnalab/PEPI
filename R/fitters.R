@@ -129,10 +129,17 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
 
   if(is.null(init)) init = rep(.multirates_default_init(built$data), chains)
 
+  # fit = mod$sample(data = built$data, seed = seed, init = init,
+  #             chains = chains,  parallel_chains = parallel_chains,
+  #             iter_sampling = ndraws,
+  #             adapt_delta = adapt_delta, max_treedepth = max_treedepth)
+  # cmdstanr >= 0.9 reads the fit metadata from the CmdStan config files,
+  # which are written only with save_cmdstan_config = TRUE
   fit = mod$sample(data = built$data, seed = seed, init = init,
-              chains = chains,  parallel_chains = parallel_chains, 
+              chains = chains,  parallel_chains = parallel_chains,
               iter_sampling = ndraws,
-              adapt_delta = adapt_delta, max_treedepth = max_treedepth)
+              adapt_delta = adapt_delta, max_treedepth = max_treedepth,
+              save_cmdstan_config = TRUE)
 
 
   x$inference$multirates = fit
