@@ -19,7 +19,7 @@ plot_ccf(x, epistate = c("-", "+"), pred = NULL, pops = NULL)
 A ggplot object.
 }
 \description{
-Median (dashed line) and 2%-98% interval (band) of the CCF of every
+Median (dashed line) and 5%-95% interval (band) of the CCF of every
 population (wild type, drivers, ...) in the "-" or "+" sample over time,
 from \code{get_predicted_trajectories()}, against the observed CCF at the
 sampling times (points).

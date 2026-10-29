@@ -235,7 +235,7 @@ plot_split = function(x, pred = NULL, pops = NULL){
 
 #' Plot the posterior predictive CCF of each population in the sorted samples.
 #'
-#' Median (dashed line) and 2%-98% interval (band) of the CCF of every
+#' Median (dashed line) and 5%-95% interval (band) of the CCF of every
 #' population (wild type, drivers, ...) in the "-" or "+" sample over time,
 #' from \code{get_predicted_trajectories()}, against the observed CCF at the
 #' sampling times (points).
@@ -266,7 +266,8 @@ plot_ccf = function(x, epistate = c("-", "+"), pred = NULL, pops = NULL){
 
   .ribbon_plot(pred %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
                .observed_trajectories(x) %>% dplyr::filter(pop %in% pops) %>% .pop_facet(),
-               var = var, probs = c(0.02, 0.98),
+               # var = var, probs = c(0.02, 0.98),
+               var = var, probs = c(0.05, 0.95),
                ylab = paste0("Population fraction in Z", ifelse(epistate == "-", "\u2212", "+"), " sample"),
                facet = TRUE)
 

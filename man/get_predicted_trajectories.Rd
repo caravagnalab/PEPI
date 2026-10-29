@@ -40,7 +40,9 @@ its total count is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its
 split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
 private populations driver_n and driver_p live in one compartment and only
 get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
-CCFs are evaluated on the sampled counts, within the "-" and "+" samples;
+CCFs, within the "-" and "+" samples, have no likelihood of their own and
+are evaluated on the latent sizes: the count noise is shared by all the
+populations of a sample and cancels in the CCF;
 wt clades and dc clades are subpopulations of wt and dc and do not enter
 the sample sizes. The total population size (`z_tot` of `pop = "total"`)
 follows the likelihood of the intermediate total counts,

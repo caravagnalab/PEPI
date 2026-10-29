@@ -86,7 +86,9 @@
 #' split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
 #' private populations driver_n and driver_p live in one compartment and only
 #' get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
-#' CCFs are evaluated on the sampled counts, within the "-" and "+" samples;
+#' CCFs, within the "-" and "+" samples, have no likelihood of their own and
+#' are evaluated on the latent sizes: the count noise is shared by all the
+#' populations of a sample and cancels in the CCF;
 #' wt clades and dc clades are subpopulations of wt and dc and do not enter
 #' the sample sizes. The total population size (`z_tot` of `pop = "total"`)
 #' follows the likelihood of the intermediate total counts,
@@ -277,6 +279,10 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     tot_neg = Reduce(`+`, lapply(z[top], function(v) v$neg))
     tot_pos = Reduce(`+`, lapply(z[top], function(v) v$pos))
 
+    # latent sizes of the "-" and "+" samples, for the CCFs
+    tot_neg_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg))
+    tot_pos_lat = Reduce(`+`, lapply(Z[top], function(v) v$pos))
+
     # total population size, as the intermediate counts of the likelihood
     ztot_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg + v$pos))
     z_tot = if(noise) exp(stats::rnorm(ndraws, log(ztot_lat), sigma_count)) else ztot_lat
@@ -290,8 +296,10 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
       res[[k + 1]] = tibble::tibble(samp = seq_len(ndraws), time = t, pop = clades[[k]]$pop, id = clades[[k]]$id,
                                     z_neg = z[[k]]$neg, z_pos = z[[k]]$pos,
                                     frac_pos = z[[k]]$pos / (z[[k]]$neg + z[[k]]$pos),
-                                    ccf_neg = z[[k]]$neg / tot_neg,
-                                    ccf_pos = z[[k]]$pos / tot_pos)
+                                    # ccf_neg = z[[k]]$neg / tot_neg,
+                                    # ccf_pos = z[[k]]$pos / tot_pos)
+                                    ccf_neg = Z[[k]]$neg / tot_neg_lat,
+                                    ccf_pos = Z[[k]]$pos / tot_pos_lat)
     }
 
     dplyr::bind_rows(res)
