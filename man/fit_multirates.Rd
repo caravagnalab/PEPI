@@ -113,8 +113,8 @@ x = fit_multirates(x, seed = 31, chains = 2, parallel_chains = 2, ndraws = 200,
   init = rep(list(list(omega_p_wt = 3e-3, omega_p_driver = 3e-3)), 2),
   mu = mu$mean, l = 51e06, t_min = -20, ms_epi = -0.8, sigma_epi = 0.9,
   alpha_lambda = 10, beta_lambda = 10, alpha_n_wt = 1, beta_n_wt = 1e4,
-  alpha_p_wt = 0.2, beta_p_wt = 10, min_kappa_facs = 1000, max_kappa_facs = 10000,
-  min_alpha_dir = 300, max_alpha_dir = 3000, min_kappa_clade = 300, max_kappa_clade = 3000,
+  alpha_p_wt = 0.2, beta_p_wt = 10, min_kappa_facs = 2000, max_kappa_facs = 4000,
+  min_alpha_dir = 300, max_alpha_dir = 2000, min_kappa_clade = 300, max_kappa_clade = 2000,
   min_sigma_count = 0.05, max_sigma_count = 0.15, include_poisson = 1, include_trunk = 0)
 }
 }
