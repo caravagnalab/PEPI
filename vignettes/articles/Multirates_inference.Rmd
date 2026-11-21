@@ -112,9 +112,11 @@ $\kappa \approx p(1-p)/sd^2$. Here:
   sd ~0.009: `kappa_facs` in [2000, 4000];
 - the driver CCF is twice the mean VAF of about 40 mutations at depth ~100
   (sd ~0.015 from the reads), measured on the ~1000-2000 cells of each
-  sorted sample (sd ~0.01), for a total sd ~0.02: a range of sd 0.012-0.03
-  with $p(1-p) \approx 0.2$ gives `alpha_dir` (and `kappa_clade`) in
-  [200, 1400].
+  sorted sample (sd ~0.01), for a total sd ~0.02. Averaging over the
+  mutations is a binomial over all their reads ($N \approx 4000$ trials),
+  which alone gives $\alpha \approx N(1-p)/(2-p) \approx 1000$ (CCF = 2 VAF);
+  the sampling of the cells lowers it further. `alpha_dir` (and
+  `kappa_clade`) are in [500, 1500], sd between ~0.012 and ~0.02.
 
 Concentrations above a few thousands make the measurement almost
 deterministic.
