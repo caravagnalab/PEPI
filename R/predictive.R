@@ -85,8 +85,10 @@
 #' count from `lognormal(log(Z_tot), sigma_count)`, its split in "-" and "+"
 #' cells from `beta_proportion(Z+ / Z_tot, kappa_facs)`, the CCFs of the top
 #' populations within the "-" and "+" samples from
-#' `Dirichlet(alpha_dir * latent CCFs)`, and the CCFs of the clades from
-#' `beta_proportion(latent CCF, kappa_clade)`. Population counts are the sample
+#' `Dirichlet(alpha_dir * latent CCFs)`, and the CCF of each clade as the CCF
+#' of its parent (wt, or the dc driver) times its share within the parent,
+#' `beta_proportion(latent share, kappa_clade)`, so that a clade never exceeds
+#' its parent. Population counts are the sample
 #' size times the CCF. The private populations driver_n and driver_p enter
 #' only the sample of their compartment, as do wt/dc clades whose observed "-"
 #' count is 0; wt clades and dc clades are subpopulations of wt and dc and do
@@ -314,8 +316,8 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
 
   # Measurement process, as in the likelihood: at each time a lognormal total
   # count, a beta FACS split in "-" and "+" cells, Dirichlet CCF vectors of the
-  # top populations in the "-" and "+" samples and beta CCFs of the clades.
-  # Population counts are sample size x CCF.
+  # top populations in the "-" and "+" samples and beta CCFs of the clades
+  # within their parent. Population counts are sample size x CCF.
 
   rdirichlet = function(shape){
     g = matrix(stats::rgamma(length(shape), shape = shape), nrow = nrow(shape))
@@ -368,19 +370,29 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
                               frac_pos = f_pos,
                               ccf_neg = 1, ccf_pos = 1))
 
+    ccf_k = vector("list", length(clades))
+
     for(k in seq_along(clades)){
 
       if(top[k]){
         cn = if(k %in% neg_k) ccf_neg[, match(k, neg_k)] else rep(0, ndraws)
         cp = if(k %in% pos_k) ccf_pos[, match(k, pos_k)] else rep(0, ndraws)
       } else {
-        # clades: beta CCF around their latent share of the sample
-        mean_neg = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$neg / tot_neg_lat))
-        mean_pos = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$pos / tot_pos_lat))
-        cn = if(!in_sample(clades[[k]], t, "neg")) rep(0, ndraws) else
-          if(noise) stats::rbeta(ndraws, mean_neg * kappa_clade, (1 - mean_neg) * kappa_clade) else Z[[k]]$neg / tot_neg_lat
-        cp = if(noise) stats::rbeta(ndraws, mean_pos * kappa_clade, (1 - mean_pos) * kappa_clade) else Z[[k]]$pos / tot_pos_lat
+        # clades: CCF of the parent x beta share within the parent (latent
+        # share Z_clade / Z_parent); the parent comes earlier in `clades`
+        pk = if(clades[[k]]$pop == "clade_wt") 1 else
+          which(vapply(clades, function(cl) cl$pop == "dc" && cl$id == clades[[k]]$id, logical(1)))
+        q_neg = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$neg / Z[[pk]]$neg))
+        q_pos = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$pos / Z[[pk]]$pos))
+        if(noise){
+          q_neg = stats::rbeta(ndraws, q_neg * kappa_clade, (1 - q_neg) * kappa_clade)
+          q_pos = stats::rbeta(ndraws, q_pos * kappa_clade, (1 - q_pos) * kappa_clade)
+        }
+        cn = if(!in_sample(clades[[k]], t, "neg")) rep(0, ndraws) else ccf_k[[pk]]$neg * q_neg
+        cp = ccf_k[[pk]]$pos * q_pos
       }
+
+      ccf_k[[k]] = list(neg = cn, pos = cp)
 
       zn = tot_neg * cn
       zp = tot_pos * cp

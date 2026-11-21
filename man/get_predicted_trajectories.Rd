@@ -39,8 +39,10 @@ then generated with the measurement process of the Stan model: the total
 count from `lognormal(log(Z_tot), sigma_count)`, its split in "-" and "+"
 cells from `beta_proportion(Z+ / Z_tot, kappa_facs)`, the CCFs of the top
 populations within the "-" and "+" samples from
-`Dirichlet(alpha_dir * latent CCFs)`, and the CCFs of the clades from
-`beta_proportion(latent CCF, kappa_clade)`. Population counts are the sample
+`Dirichlet(alpha_dir * latent CCFs)`, and the CCF of each clade as the CCF
+of its parent (wt, or the dc driver) times its share within the parent,
+`beta_proportion(latent share, kappa_clade)`, so that a clade never exceeds
+its parent. Population counts are the sample
 size times the CCF. The private populations driver_n and driver_p enter
 only the sample of their compartment, as do wt/dc clades whose observed "-"
 count is 0; wt clades and dc clades are subpopulations of wt and dc and do

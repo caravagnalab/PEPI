@@ -519,15 +519,20 @@ transformed data{
     if (n_pos[j] > 0) ccf_pos_obs[j][1:n_pos[j]] = ccf_pos_obs[j][1:n_pos[j]] / sum(ccf_pos_obs[j][1:n_pos[j]]);
   }
 
-  // observed clade CCFs, kept below one for the beta
-  array[N_clades_wt, n_sampling_times, 2] real ccf_clade_wt_obs;
-  array[N_dc, n_sampling_times, 2] real ccf_dc_clade_obs;
+  // observed clade CCFs within their parent (wt, or the dc driver) in the
+  // "-" and "+" samples, kept below one for the beta; 0 where not observed
+  array[N_clades_wt, n_sampling_times, 2] real q_clade_wt_obs;
+  array[N_dc, n_sampling_times, 2] real q_dc_clade_obs;
 
-  for (i in 1:N_clades_wt) for (j in 1:n_sampling_times) for (k in 1:2)
-    ccf_clade_wt_obs[i,j,k] = ccf_clade_wt[i,j,k] > 1.0 - 1e-6 ? 1.0 - 1e-6 : ccf_clade_wt[i,j,k];
+  for (i in 1:N_clades_wt) for (j in 1:n_sampling_times) for (k in 1:2) {
+    real q = ccf_clade_wt[i,j,k] > 0 ? ccf_clade_wt[i,j,k] / ccf_wt[j,k] : 0;
+    q_clade_wt_obs[i,j,k] = q > 1.0 - 1e-6 ? 1.0 - 1e-6 : q;
+  }
 
-  for (i in 1:N_dc) for (j in 1:n_sampling_times) for (k in 1:2)
-    ccf_dc_clade_obs[i,j,k] = ccf_dc_clade[i,j,k] > 1.0 - 1e-6 ? 1.0 - 1e-6 : ccf_dc_clade[i,j,k];
+  for (i in 1:N_dc) for (j in 1:n_sampling_times) for (k in 1:2) {
+    real q = ccf_dc_clade[i,j,k] > 0 ? ccf_dc_clade[i,j,k] / ccf_dc_driver[i,j,k] : 0;
+    q_dc_clade_obs[i,j,k] = q > 1.0 - 1e-6 ? 1.0 - 1e-6 : q;
+  }
 
 }
 
@@ -871,14 +876,15 @@ for (t in 1:n_sampling_times) {
 
 // LATENT CCFS AND FACS FRACTION
 // CCF of the top populations in the "-" and "+" samples (sum to one), "+"
-// fraction of the total, clade CCFs in the "-" and "+" samples. The beta means
-// are kept inside (0,1) by an affine map, as for the old fractions.
+// fraction of the total, clade CCFs within their parent (wt, or the dc driver)
+// in the "-" and "+" samples, below one by the bound on bc_clade. The beta
+// means are kept inside (0,1) by an affine map, as for the old fractions.
 
 array[n_sampling_times] vector[N_neg] ccf_neg_lat;
 array[n_sampling_times] vector[N_pos] ccf_pos_lat;
 array[n_sampling_times] real frac_pos_lat;
-array[N_clades_wt, n_sampling_times] vector[2] ccf_clade_wt_lat;
-array[N_dc, n_sampling_times] vector[2] ccf_clade_dc_lat;
+array[N_clades_wt, n_sampling_times] vector[2] q_clade_wt_lat;
+array[N_dc, n_sampling_times] vector[2] q_clade_dc_lat;
 
 for (t in 1:n_sampling_times) {
 
@@ -889,15 +895,13 @@ for (t in 1:n_sampling_times) {
   frac_pos_lat[t] = frac_pos_lat[t] * (1 - 2*1e-10) + 1e-10;
 
   for (i in 1:N_clades_wt) {
-    ccf_clade_wt_lat[i,t][1] = Z_clade_wt_lat[i,t][1] / Z_neg_lat[t];
-    ccf_clade_wt_lat[i,t][2] = Z_clade_wt_lat[i,t][2] / Z_pos_lat[t];
-    ccf_clade_wt_lat[i,t] = ccf_clade_wt_lat[i,t] * (1 - 2*1e-10) + 1e-10;
+    q_clade_wt_lat[i,t] = Z_clade_wt_lat[i,t] ./ Z_wt_lat[sampling_index[t]];
+    q_clade_wt_lat[i,t] = q_clade_wt_lat[i,t] * (1 - 2*1e-10) + 1e-10;
   }
 
   for (i in 1:N_dc) {
-    ccf_clade_dc_lat[i,t][1] = Z_clade_dc_lat[i,t][1] / Z_neg_lat[t];
-    ccf_clade_dc_lat[i,t][2] = Z_clade_dc_lat[i,t][2] / Z_pos_lat[t];
-    ccf_clade_dc_lat[i,t] = ccf_clade_dc_lat[i,t] * (1 - 2*1e-10) + 1e-10;
+    q_clade_dc_lat[i,t] = Z_clade_dc_lat[i,t] ./ Z_driver_dc_lat[i,sampling_index[t]];
+    q_clade_dc_lat[i,t] = q_clade_dc_lat[i,t] * (1 - 2*1e-10) + 1e-10;
   }
 }
 
@@ -1021,15 +1025,15 @@ if (N_clades_wt > 0) {
 //
 //     }
 
-    // clade CCF in the "+" sample, and in the "-" sample if observed there
+    // clade CCF within the wt, in the "+" sample and in the "-" sample if observed there
     for (t in 1:n_sampling_times) {
 
       if (ccf_clade_wt[i,t,2] > 0) {
-        ccf_clade_wt_obs[i,t,2] ~ beta_proportion(ccf_clade_wt_lat[i,t][2], kappa_clade);
+        q_clade_wt_obs[i,t,2] ~ beta_proportion(q_clade_wt_lat[i,t][2], kappa_clade);
       }
 
       if (ccf_clade_wt[i,t,1] > 0) {
-        ccf_clade_wt_obs[i,t,1] ~ beta_proportion(ccf_clade_wt_lat[i,t][1], kappa_clade);
+        q_clade_wt_obs[i,t,1] ~ beta_proportion(q_clade_wt_lat[i,t][1], kappa_clade);
       }
 
     }
@@ -1189,16 +1193,16 @@ if (N_dc > 0) {
 //
 //     }
 
-    // the dc driver enters the measurement process above; clade CCF in the
-    // "+" sample, and in the "-" sample if observed there
+    // the dc driver enters the measurement process above; clade CCF within the
+    // dc driver, in the "+" sample and in the "-" sample if observed there
     for (t in 1:n_sampling_times) {
 
       if (ccf_dc_clade[i,t,2] > 0) {
-        ccf_dc_clade_obs[i,t,2] ~ beta_proportion(ccf_clade_dc_lat[i,t][2], kappa_clade);
+        q_dc_clade_obs[i,t,2] ~ beta_proportion(q_clade_dc_lat[i,t][2], kappa_clade);
       }
 
       if (ccf_dc_clade[i,t,1] > 0) {
-        ccf_dc_clade_obs[i,t,1] ~ beta_proportion(ccf_clade_dc_lat[i,t][1], kappa_clade);
+        q_dc_clade_obs[i,t,1] ~ beta_proportion(q_clade_dc_lat[i,t][1], kappa_clade);
       }
 
     }
@@ -1627,8 +1631,8 @@ for (t in 1:n_sampling_times){
 */
 
 // As in the likelihood: lognormal total count, beta FACS split, Dirichlet CCF
-// vectors of the top populations in the "-" and "+" samples, beta clade CCFs.
-// Population counts are sample size x CCF.
+// vectors of the top populations in the "-" and "+" samples, beta clade CCFs
+// within their parent. Population counts are sample size x CCF.
 
 for (t in 1:n_sampling_times){
 
@@ -1672,13 +1676,14 @@ for (t in 1:n_sampling_times){
   }
 
   for (i in 1:N_clades_wt){
-    z_clade_wt_pred[i,t,1] = n_neg_s * beta_proportion_rng(ccf_clade_wt_lat[i,t][1], kappa_clade);
-    z_clade_wt_pred[i,t,2] = n_pos_s * beta_proportion_rng(ccf_clade_wt_lat[i,t][2], kappa_clade);
+    // clade = parent x its beta share within the parent: never above the parent
+    z_clade_wt_pred[i,t,1] = z_wt_pred[t,1] * beta_proportion_rng(q_clade_wt_lat[i,t][1], kappa_clade);
+    z_clade_wt_pred[i,t,2] = z_wt_pred[t,2] * beta_proportion_rng(q_clade_wt_lat[i,t][2], kappa_clade);
   }
 
   for (i in 1:N_dc){
-    z_dc_clade_pred[i,t,1] = n_neg_s * beta_proportion_rng(ccf_clade_dc_lat[i,t][1], kappa_clade);
-    z_dc_clade_pred[i,t,2] = n_pos_s * beta_proportion_rng(ccf_clade_dc_lat[i,t][2], kappa_clade);
+    z_dc_clade_pred[i,t,1] = z_dc_driver_pred[i,t,1] * beta_proportion_rng(q_clade_dc_lat[i,t][1], kappa_clade);
+    z_dc_clade_pred[i,t,2] = z_dc_driver_pred[i,t,2] * beta_proportion_rng(q_clade_dc_lat[i,t][2], kappa_clade);
   }
 
   // "+" fraction within each population, from the sampled counts
