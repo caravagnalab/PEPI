@@ -105,6 +105,90 @@ vector approx_Z_clade(
 
 
 
+// Upper bound of a clade amplitude. Parent (approx_Z, from t_parent) and clade
+// (approx_Z_clade, from t_clade) share the rates, hence x1 and delta:
+//   Z_clade,+ = W1_clade * exp(x1 (t - t_clade))  <=  Z_parent,+ = W2 * exp(x1 (t - t_parent))
+// for every t if W1_clade <= W2 * exp(x1 (t_clade - t_parent)). The "-" bound
+// follows, as Z_parent,- has the extra term W1 * exp(lambda_n (t - t_parent)) >= 0.
+// W2 and x1 as in approx_Z; chi as in transformed parameters.
+
+real clade_ub(
+    real lambda_n,
+    real lambda_p,
+    real omega_n,
+    real omega_p,
+    real W1,
+    real U,
+    real W,
+    real s_epi,
+    real dt_clade
+) {
+
+  real eps = 1e-10;
+
+  real alpha = 1/(1+s_epi + 1e-6);
+
+  real A = (sin((1.0 - alpha) * U) * pow(sin(alpha * U),
+            alpha / (1.0 - alpha))) / pow(sin(U), 1.0 / (1.0 - alpha));
+
+  real chi = pow(A / W, (1.0 - alpha) / alpha);
+
+  real zeta = lambda_n / lambda_p;
+
+  real sin_safe = sqrt(square(sin(pi() * zeta)) + eps);
+
+  real x1 =
+    0.5 * (lambda_p + lambda_n)
+    + sqrt(
+        0.25 * square(lambda_p - lambda_n)
+        + omega_p * omega_n
+    );
+
+  real log_W2 =
+    (
+      log(pi())
+      + log(omega_p + eps)
+      + log(W1 + eps)
+      - log(lambda_p + eps)
+      - log(sin_safe)
+    ) / zeta
+    + log(chi) ;
+
+  return exp(log_W2 + x1 * dt_clade);
+
+}
+
+// clade_ub for the wt clades (parent: wt, from tmrca)
+array[] real clade_ub_wt(real lambda_n, real s_epi, real omega_n, real omega_p,
+                         real W1, real U, real W, real tmrca, array[] real t_clade) {
+
+  array[size(t_clade)] real ub;
+
+  for (i in 1:size(t_clade)) {
+    ub[i] = clade_ub(lambda_n, lambda_n*(1 + s_epi), omega_n, omega_p,
+                     W1, U, W, s_epi, t_clade[i] - tmrca);
+  }
+
+  return ub;
+
+}
+
+// clade_ub for the dc clades (parent: dc driver, from t_dc[1]; clade from t_dc[2])
+array[] real clade_ub_dc(real lambda_n, real s_epi, array[] real s_dc,
+                         array[] real omega_n, array[] real omega_p, array[] real W1,
+                         array[] real U, array[] real W, array[,] real delta_t_dc) {
+
+  array[size(s_dc)] real ub;
+
+  for (i in 1:size(s_dc)) {
+    ub[i] = clade_ub(lambda_n*(1 + s_dc[i]), lambda_n*(1 + s_dc[i])*(1 + s_epi),
+                     omega_n[i], omega_p[i], W1[i], U[i], W[i], s_epi, delta_t_dc[i,2]);
+  }
+
+  return ub;
+
+}
+
   vector Z(real lambda_n,
            real s,
            real omega_n,
@@ -461,8 +545,10 @@ parameters{
   real <lower = t_min, upper=tmax> tmrca;
   array[N_clades_wt] real<lower=tmrca,upper=times[sampling_index[1]]> t_clade_wt;
   // array[N_clades_wt] real<lower=0> bc_clade_wt;
-  // amplitude as a fraction of its upper bound (clade <= wt in both samples)
-  array[N_clades_wt] real<lower=0, upper=1> u_clade_wt;
+  // clade <= wt in both samples (see clade_ub)
+  array[N_clades_wt] real<lower=0,
+    upper=clade_ub_wt(lambda_n, s_epi, omega_n_wt, omega_p_wt,
+                      bc_wt, U_wt, W_wt, tmrca, t_clade_wt)> bc_clade_wt;
   
   array[N_driver] real <lower = 0> s_driver;
   array[N_driver] real<lower=tmrca,upper = tmax> t_driver;
@@ -484,12 +570,14 @@ parameters{
   array[N_dc] real <lower = 0,upper=pi()> U_dc;
   array[N_dc] real <lower = 0> W_dc;
   // array[N_dc] real<lower=0> bc_clade_dc;
-  // amplitude as a fraction of its upper bound (clade <= dc driver in both samples)
-  array[N_dc] real<lower=0, upper=1> u_clade_dc;
 
 
   array[N_dc] real <lower = 0> omega_p_dc;
   array[N_dc] real <lower = 0> omega_n_dc;
+  // clade <= dc driver in both samples (see clade_ub); declared after omega_dc
+  array[N_dc] real<lower=0,
+    upper=clade_ub_dc(lambda_n, s_epi, s_dc, omega_n_dc, omega_p_dc,
+                      bc_driver_dc, U_dc, W_dc, delta_t_dc)> bc_clade_dc;
   array[N_driver] real <lower = 0> omega_p_driver;
   array[N_driver] real <lower = 0> omega_n_driver;
   
@@ -619,49 +707,6 @@ for (j in 1:N_dc){
  
   }
   
-  // CLADE AMPLITUDES
-  // The clade size is linear in its amplitude, Z_clade = bc_clade * g, while
-  // its parent (wt, or the dc driver) does not depend on it. Z_clade <= Z_parent
-  // in the "-" and "+" samples at every sampling time is then bc_clade <= ub,
-  // with ub the smallest Z_parent / g; the amplitude is bc_clade = u_clade * ub.
-  // The minimum is taken smoothly (no fmin, which breaks the gradient):
-  // log ub = -log_sum_exp(-c * log r) / c <= min(log r), so the constraint
-  // still holds, with ub at most a factor (2 * n_sampling_times)^(1/c) below
-  // the exact minimum.
-
-  real c_softmin = 20;
-
-  array[N_clades_wt] real ub_clade_wt;
-  array[N_clades_wt] real bc_clade_wt;
-  array[N_dc] real ub_clade_dc;
-  array[N_dc] real bc_clade_dc;
-
-  for (i in 1:N_clades_wt) {
-    vector[2 * n_sampling_times] log_r;
-    for (t in 1:n_sampling_times) {
-      vector[2] g = approx_Z_clade(lambda_n, lambda_n*(1 + s_epi),
-                    omega_n_wt, omega_p_wt, t_clade_wt[i],
-                    times[sampling_index[t]], 1.0);
-      log_r[2*t - 1] = log(Z_wt_lat[sampling_index[t]][1]) - log(g[1]);
-      log_r[2*t]     = log(Z_wt_lat[sampling_index[t]][2]) - log(g[2]);
-    }
-    ub_clade_wt[i] = exp(-log_sum_exp(-c_softmin * log_r) / c_softmin);
-    bc_clade_wt[i] = u_clade_wt[i] * ub_clade_wt[i];
-  }
-
-  for (i in 1:N_dc) {
-    vector[2 * n_sampling_times] log_r;
-    for (t in 1:n_sampling_times) {
-      vector[2] g = approx_Z_clade(lambda_n*(1 + s_dc[i]), lambda_n*(1 + s_dc[i])*(1 + s_epi),
-                    omega_n_dc[i], omega_p_dc[i], t_dc[i][2],
-                    times[sampling_index[t]], 1.0);
-      log_r[2*t - 1] = log(Z_driver_dc_lat[i,sampling_index[t]][1]) - log(g[1]);
-      log_r[2*t]     = log(Z_driver_dc_lat[i,sampling_index[t]][2]) - log(g[2]);
-    }
-    ub_clade_dc[i] = exp(-log_sum_exp(-c_softmin * log_r) / c_softmin);
-    bc_clade_dc[i] = u_clade_dc[i] * ub_clade_dc[i];
-  }
-
     for (t in 1:n_sampling_times) {
 
       for (i in 1:N_dc) {
@@ -952,8 +997,10 @@ if (N_clades_wt > 0) {
     m_clade_wt[i] ~ poisson(2*mu*l*lambda_n*2*(t_clade_wt[i] - tmrca));
     
     // bc_clade_wt[i] ~ exponential(1);
-    // exponential(1) truncated to [0, ub], plus the Jacobian of bc = u * ub
-    target += exponential_lpdf(bc_clade_wt[i] | 1) - log1m_exp(-ub_clade_wt[i]) + log(ub_clade_wt[i]);
+    // exponential(1) truncated above at the bound of the parameter (clade_ub)
+    bc_clade_wt[i] ~ exponential(1) T[, clade_ub(lambda_n, lambda_n*(1 + s_epi),
+                                       omega_n_wt, omega_p_wt, bc_wt, U_wt, W_wt,
+                                       s_epi, t_clade_wt[i] - tmrca)];
 
 // for (t in 1:n_sampling_times) {
 //
@@ -1106,8 +1153,10 @@ if (N_dc > 0) {
     m_dc[i,2] ~ poisson(2*mu*l*lambda_n*(1 + s_dc[i])*2*(t_dc[i][2] - t_dc[i][1]));
     
     // bc_clade_dc[i] ~ exponential(1);
-    // exponential(1) truncated to [0, ub], plus the Jacobian of bc = u * ub
-    target += exponential_lpdf(bc_clade_dc[i] | 1) - log1m_exp(-ub_clade_dc[i]) + log(ub_clade_dc[i]);
+    // exponential(1) truncated above at the bound of the parameter (clade_ub)
+    bc_clade_dc[i] ~ exponential(1) T[, clade_ub(lambda_n*(1 + s_dc[i]), lambda_n*(1 + s_dc[i])*(1 + s_epi),
+                                       omega_n_dc[i], omega_p_dc[i], bc_driver_dc[i], U_dc[i], W_dc[i],
+                                       s_epi, delta_t_dc[i,2])];
     bc_driver_dc[i] ~ exponential(1);
 
     U_dc[i] ~ uniform(0.0, pi());

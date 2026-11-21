@@ -23,8 +23,7 @@
         "lambda_n_prior","tmrca_prior","s_epi_prior","omega_n_wt_prior","omega_p_wt_prior","m_trunk_pred"),
       character(0))
 
-  # reg(c("t_clade_wt","bc_clade_wt","t_clade_wt_prior","m_clade_wt_pred"), "id")
-  reg(c("t_clade_wt","bc_clade_wt","u_clade_wt","ub_clade_wt","t_clade_wt_prior","m_clade_wt_pred"), "id")
+  reg(c("t_clade_wt","bc_clade_wt","t_clade_wt_prior","m_clade_wt_pred"), "id")
 
   reg(c("s_driver","t_driver","bc_driver","U_driver","W_driver","omega_p_driver","omega_n_driver",
         "s_driver_prior","omega_n_driver_prior","omega_p_driver_prior","t_driver_prior","m_driver_pred"), "id")
@@ -35,8 +34,7 @@
   reg(c("s_driver_p","t_driver_p","bc_driver_p","s_driver_p_prior","t_driver_p_prior",
         "omega_n_driver_p_pred","m_driver_p_pred"), "id")
 
-  # reg(c("s_dc","bc_driver_dc","bc_clade_dc","U_dc","W_dc","omega_p_dc","omega_n_dc",
-  reg(c("s_dc","bc_driver_dc","bc_clade_dc","u_clade_dc","ub_clade_dc","U_dc","W_dc","omega_p_dc","omega_n_dc",
+  reg(c("s_dc","bc_driver_dc","bc_clade_dc","U_dc","W_dc","omega_p_dc","omega_n_dc",
         "s_dc_prior","omega_n_dc_prior","omega_p_dc_prior"), "id")
 
   reg(c("delta_t_dc","t_dc_prior","m_dc_pred"), c("id","event"))
