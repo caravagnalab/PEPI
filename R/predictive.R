@@ -81,19 +81,17 @@
 #' For every posterior draw and every time of a grid, the latent "-" and "+"
 #' sizes of the wild type and of every driver (and dc/driver-only) clade are
 #' computed with the model's growth/switch approximation. Observations are
-#' then generated as in the likelihood of the Stan model: for each population,
-#' its total count is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its
-#' split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
-#' private populations driver_n and driver_p live in one compartment and only
-#' get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
-#' CCFs, within the "-" and "+" samples, have no likelihood of their own and
-#' are evaluated on the latent sizes: the count noise is shared by all the
-#' populations of a sample and cancels in the CCF;
-#' wt clades and dc clades are subpopulations of wt and dc and do not enter
-#' the sample sizes. The total population size (`z_tot` of `pop = "total"`)
-#' follows the likelihood of the intermediate total counts,
-#' `lognormal(log(ztot_lat), sigma_count)`, with `ztot_lat` the latent size
-#' of all populations except the clades.
+#' then generated with the measurement process of the Stan model: the total
+#' count from `lognormal(log(Z_tot), sigma_count)`, its split in "-" and "+"
+#' cells from `beta_proportion(Z+ / Z_tot, kappa_facs)`, the CCFs of the top
+#' populations within the "-" and "+" samples from
+#' `Dirichlet(alpha_dir * latent CCFs)`, and the CCFs of the clades from
+#' `beta_proportion(latent CCF, kappa_clade)`. Population counts are the sample
+#' size times the CCF. The private populations driver_n and driver_p enter
+#' only the sample of their compartment, as do wt/dc clades whose observed "-"
+#' count is 0; wt clades and dc clades are subpopulations of wt and dc and do
+#' not enter the sample sizes (`Z_tot` is the latent size of all populations
+#' except the clades).
 #'
 #' @param x PEPI_Multirates object fit with \code{fit_multirates()}.
 #' @param times Time grid. If NULL, `n_grid` equally spaced times from
@@ -134,7 +132,10 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
   ndraws = nrow(draws)
   lambda_n = p("lambda_n")
   s_epi = p("s_epi")
-  kappa = p("kappa")
+  # kappa = p("kappa")
+  kappa_facs = p("kappa_facs")
+  alpha_dir = p("alpha_dir")
+  kappa_clade = p("kappa_clade")
   sigma_count = p("sigma_count")
 
   ids = function(type, n){
@@ -245,61 +246,149 @@ get_predicted_trajectories = function(x, times = NULL, n_grid = 30, t_start = 0,
     })
   }
 
-  # observation model of one population: lognormal total count, beta split
-  observe = function(Z, compartment){
+  # OLD (independent lognormal count and beta split per population, latent CCFs)
+  # # observation model of one population: lognormal total count, beta split
+  # observe = function(Z, compartment){
+#
+  #   if(!noise){
+  #     return(Z)
+  #   }
+#
+  #   if(compartment == "neg"){
+  #     return(list(neg = exp(stats::rnorm(ndraws, log(Z$neg), sigma_count)), pos = rep(0, ndraws)))
+  #   }
+  #   if(compartment == "pos"){
+  #     return(list(neg = rep(0, ndraws), pos = exp(stats::rnorm(ndraws, log(Z$pos), sigma_count))))
+  #   }
+#
+  #   tot = exp(stats::rnorm(ndraws, log(Z$neg + Z$pos), sigma_count))
+  #   loc = pmin(1 - 1e-9, pmax(1e-9, Z$pos / (Z$neg + Z$pos)))
+  #   split = stats::rbeta(ndraws, loc * kappa, (1 - loc) * kappa)
+#
+  #   list(neg = tot * (1 - split), pos = tot * split)
+#
+  # }
+#
+  # out = lapply(times, function(t){
+#
+  #   Z = lapply(clades, function(cl) cl$size(t))
+  #   z = lapply(seq_along(clades), function(k) observe(Z[[k]], clades[[k]]$compartment(t)))
+#
+  #   top = vapply(clades, function(cl) cl$top, logical(1))
+#
+  #   # sizes of the "-" and "+" samples (named so that they are not masked
+  #   # by the z_neg/z_pos columns inside tibble())
+  #   tot_neg = Reduce(`+`, lapply(z[top], function(v) v$neg))
+  #   tot_pos = Reduce(`+`, lapply(z[top], function(v) v$pos))
+#
+  #   # latent sizes of the "-" and "+" samples, for the CCFs
+  #   tot_neg_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg))
+  #   tot_pos_lat = Reduce(`+`, lapply(Z[top], function(v) v$pos))
+#
+  #   # total population size, as the intermediate counts of the likelihood
+  #   ztot_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg + v$pos))
+  #   z_tot = if(noise) exp(stats::rnorm(ndraws, log(ztot_lat), sigma_count)) else ztot_lat
+#
+  #   res = list(tibble::tibble(samp = seq_len(ndraws), time = t, pop = "total", id = NA_character_,
+  #                             z_neg = tot_neg, z_pos = tot_pos, z_tot = z_tot,
+  #                             frac_pos = tot_pos / (tot_neg + tot_pos),
+  #                             ccf_neg = 1, ccf_pos = 1))
+#
+  #   for(k in seq_along(clades)){
+  #     res[[k + 1]] = tibble::tibble(samp = seq_len(ndraws), time = t, pop = clades[[k]]$pop, id = clades[[k]]$id,
+  #                                   z_neg = z[[k]]$neg, z_pos = z[[k]]$pos,
+  #                                   frac_pos = z[[k]]$pos / (z[[k]]$neg + z[[k]]$pos),
+  #                                   # ccf_neg = z[[k]]$neg / tot_neg,
+  #                                   # ccf_pos = z[[k]]$pos / tot_pos)
+  #                                   ccf_neg = Z[[k]]$neg / tot_neg_lat,
+  #                                   ccf_pos = Z[[k]]$pos / tot_pos_lat)
+  #   }
+#
+  #   dplyr::bind_rows(res)
+#
+  # }) %>% dplyr::bind_rows()
+#
+  # out
+#
+# }
 
-    if(!noise){
-      return(Z)
-    }
+  # Measurement process, as in the likelihood: at each time a lognormal total
+  # count, a beta FACS split in "-" and "+" cells, Dirichlet CCF vectors of the
+  # top populations in the "-" and "+" samples and beta CCFs of the clades.
+  # Population counts are sample size x CCF.
 
-    if(compartment == "neg"){
-      return(list(neg = exp(stats::rnorm(ndraws, log(Z$neg), sigma_count)), pos = rep(0, ndraws)))
-    }
-    if(compartment == "pos"){
-      return(list(neg = rep(0, ndraws), pos = exp(stats::rnorm(ndraws, log(Z$pos), sigma_count))))
-    }
+  rdirichlet = function(shape){
+    g = matrix(stats::rgamma(length(shape), shape = shape), nrow = nrow(shape))
+    g / rowSums(g)
+  }
 
-    tot = exp(stats::rnorm(ndraws, log(Z$neg + Z$pos), sigma_count))
-    loc = pmin(1 - 1e-9, pmax(1e-9, Z$pos / (Z$neg + Z$pos)))
-    split = stats::rbeta(ndraws, loc * kappa, (1 - loc) * kappa)
-
-    list(neg = tot * (1 - split), pos = tot * split)
-
+  in_sample = function(cl, t, side){
+    cmp = cl$compartment(t)
+    cmp == "both" || cmp == side
   }
 
   out = lapply(times, function(t){
 
     Z = lapply(clades, function(cl) cl$size(t))
-    z = lapply(seq_along(clades), function(k) observe(Z[[k]], clades[[k]]$compartment(t)))
-
     top = vapply(clades, function(cl) cl$top, logical(1))
 
-    # sizes of the "-" and "+" samples (named so that they are not masked
-    # by the z_neg/z_pos columns inside tibble())
-    tot_neg = Reduce(`+`, lapply(z[top], function(v) v$neg))
-    tot_pos = Reduce(`+`, lapply(z[top], function(v) v$pos))
+    neg_k = which(top & vapply(clades, in_sample, logical(1), t = t, side = "neg"))
+    pos_k = which(top & vapply(clades, in_sample, logical(1), t = t, side = "pos"))
 
-    # latent sizes of the "-" and "+" samples, for the CCFs
-    tot_neg_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg))
-    tot_pos_lat = Reduce(`+`, lapply(Z[top], function(v) v$pos))
+    # latent sizes of the "-" and "+" samples (named so that they are not
+    # masked by the z_neg/z_pos columns inside tibble())
+    tot_neg_lat = Reduce(`+`, lapply(Z[neg_k], function(v) v$neg))
+    tot_pos_lat = Reduce(`+`, lapply(Z[pos_k], function(v) v$pos))
+    ztot_lat = tot_neg_lat + tot_pos_lat
 
-    # total population size, as the intermediate counts of the likelihood
-    ztot_lat = Reduce(`+`, lapply(Z[top], function(v) v$neg + v$pos))
-    z_tot = if(noise) exp(stats::rnorm(ndraws, log(ztot_lat), sigma_count)) else ztot_lat
+    # latent CCFs of the top populations
+    ccf_neg_lat = sapply(Z[neg_k], function(v) v$neg / tot_neg_lat)
+    ccf_pos_lat = sapply(Z[pos_k], function(v) v$pos / tot_pos_lat)
+    if(!is.matrix(ccf_neg_lat)) ccf_neg_lat = matrix(ccf_neg_lat, nrow = ndraws)
+    if(!is.matrix(ccf_pos_lat)) ccf_pos_lat = matrix(ccf_pos_lat, nrow = ndraws)
+
+    if(noise){
+      z_tot = exp(stats::rnorm(ndraws, log(ztot_lat), sigma_count))
+      loc = pmin(1 - 1e-9, pmax(1e-9, tot_pos_lat / ztot_lat))
+      f_pos = stats::rbeta(ndraws, loc * kappa_facs, (1 - loc) * kappa_facs)
+      ccf_neg = if(length(neg_k) > 1) rdirichlet(alpha_dir * ccf_neg_lat + 1e-10) else ccf_neg_lat * 0 + 1
+      ccf_pos = if(length(pos_k) > 1) rdirichlet(alpha_dir * ccf_pos_lat + 1e-10) else ccf_pos_lat * 0 + 1
+    } else {
+      z_tot = ztot_lat
+      f_pos = tot_pos_lat / ztot_lat
+      ccf_neg = ccf_neg_lat
+      ccf_pos = ccf_pos_lat
+    }
+
+    tot_neg = z_tot * (1 - f_pos)
+    tot_pos = z_tot * f_pos
 
     res = list(tibble::tibble(samp = seq_len(ndraws), time = t, pop = "total", id = NA_character_,
                               z_neg = tot_neg, z_pos = tot_pos, z_tot = z_tot,
-                              frac_pos = tot_pos / (tot_neg + tot_pos),
+                              frac_pos = f_pos,
                               ccf_neg = 1, ccf_pos = 1))
 
     for(k in seq_along(clades)){
+
+      if(top[k]){
+        cn = if(k %in% neg_k) ccf_neg[, match(k, neg_k)] else rep(0, ndraws)
+        cp = if(k %in% pos_k) ccf_pos[, match(k, pos_k)] else rep(0, ndraws)
+      } else {
+        # clades: beta CCF around their latent share of the sample
+        mean_neg = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$neg / tot_neg_lat))
+        mean_pos = pmin(1 - 1e-9, pmax(1e-9, Z[[k]]$pos / tot_pos_lat))
+        cn = if(!in_sample(clades[[k]], t, "neg")) rep(0, ndraws) else
+          if(noise) stats::rbeta(ndraws, mean_neg * kappa_clade, (1 - mean_neg) * kappa_clade) else Z[[k]]$neg / tot_neg_lat
+        cp = if(noise) stats::rbeta(ndraws, mean_pos * kappa_clade, (1 - mean_pos) * kappa_clade) else Z[[k]]$pos / tot_pos_lat
+      }
+
+      zn = tot_neg * cn
+      zp = tot_pos * cp
+
       res[[k + 1]] = tibble::tibble(samp = seq_len(ndraws), time = t, pop = clades[[k]]$pop, id = clades[[k]]$id,
-                                    z_neg = z[[k]]$neg, z_pos = z[[k]]$pos,
-                                    frac_pos = z[[k]]$pos / (z[[k]]$neg + z[[k]]$pos),
-                                    # ccf_neg = z[[k]]$neg / tot_neg,
-                                    # ccf_pos = z[[k]]$pos / tot_pos)
-                                    ccf_neg = Z[[k]]$neg / tot_neg_lat,
-                                    ccf_pos = Z[[k]]$pos / tot_pos_lat)
+                                    z_neg = zn, z_pos = zp,
+                                    frac_pos = zp / (zn + zp),
+                                    ccf_neg = cn, ccf_pos = cp)
     }
 
     dplyr::bind_rows(res)

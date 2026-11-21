@@ -26,7 +26,13 @@ build_stan_data_multirates(
   include_poisson_driver_n = include_poisson,
   include_poisson_driver_p = include_poisson,
   include_poisson_dc = 1L,
-  include_trunk = 1L
+  include_trunk = 1L,
+  min_kappa_facs = min_kappa,
+  max_kappa_facs = max_kappa,
+  min_alpha_dir = min_kappa,
+  max_alpha_dir = max_kappa,
+  min_kappa_clade = min_kappa,
+  max_kappa_clade = max_kappa
 )
 }
 \arguments{
@@ -45,7 +51,8 @@ build_stan_data_multirates(
 \item{alpha_n_wt, beta_n_wt, alpha_p_wt, beta_p_wt}{Gamma prior hyperparameters
 for the wt switch rates omega_n_wt/omega_p_wt.}
 
-\item{min_kappa, max_kappa}{Uniform prior bounds for kappa.}
+\item{min_kappa, max_kappa}{Default uniform prior bounds of the three
+concentration parameters below, when they are not given.}
 
 \item{min_sigma_count, max_sigma_count}{Uniform prior bounds for sigma_count.}
 
@@ -59,6 +66,15 @@ driver_n and driver_p populations (for driver_p, an upper bound).}
 mutations of the dc populations; the clade terms are always included.}
 
 \item{include_trunk}{Switch (0/1) of the trunk regularization of tmrca.}
+
+\item{min_kappa_facs, max_kappa_facs}{Uniform prior bounds for kappa_facs, the
+concentration of the beta FACS split in "-" and "+" cells.}
+
+\item{min_alpha_dir, max_alpha_dir}{Uniform prior bounds for alpha_dir, the
+concentration of the Dirichlet CCF vectors of the "-" and "+" samples.}
+
+\item{min_kappa_clade, max_kappa_clade}{Uniform prior bounds for kappa_clade,
+the concentration of the beta clade CCFs.}
 }
 \value{
 A list with elements `data` (the Stan data list) and `index_maps`.

@@ -35,19 +35,17 @@ A tibble with one row per draw (`samp`), `time` and population
 For every posterior draw and every time of a grid, the latent "-" and "+"
 sizes of the wild type and of every driver (and dc/driver-only) clade are
 computed with the model's growth/switch approximation. Observations are
-then generated as in the likelihood of the Stan model: for each population,
-its total count is drawn from `lognormal(log(Z- + Z+), sigma_count)` and its
-split in "+" cells from `beta_proportion(Z+ / (Z- + Z+), kappa)`. The
-private populations driver_n and driver_p live in one compartment and only
-get the lognormal count, as do wt/dc clades whose observed "-" count is 0.
-CCFs, within the "-" and "+" samples, have no likelihood of their own and
-are evaluated on the latent sizes: the count noise is shared by all the
-populations of a sample and cancels in the CCF;
-wt clades and dc clades are subpopulations of wt and dc and do not enter
-the sample sizes. The total population size (`z_tot` of `pop = "total"`)
-follows the likelihood of the intermediate total counts,
-`lognormal(log(ztot_lat), sigma_count)`, with `ztot_lat` the latent size
-of all populations except the clades.
+then generated with the measurement process of the Stan model: the total
+count from `lognormal(log(Z_tot), sigma_count)`, its split in "-" and "+"
+cells from `beta_proportion(Z+ / Z_tot, kappa_facs)`, the CCFs of the top
+populations within the "-" and "+" samples from
+`Dirichlet(alpha_dir * latent CCFs)`, and the CCFs of the clades from
+`beta_proportion(latent CCF, kappa_clade)`. Population counts are the sample
+size times the CCF. The private populations driver_n and driver_p enter
+only the sample of their compartment, as do wt/dc clades whose observed "-"
+count is 0; wt clades and dc clades are subpopulations of wt and dc and do
+not enter the sample sizes (`Z_tot` is the latent size of all populations
+except the clades).
 }
 \examples{
 \donttest{

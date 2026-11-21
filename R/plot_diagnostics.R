@@ -6,7 +6,9 @@
 # extract the right pieces and hand them to the corresponding mcmc_*() plot.
 # They apply to the HMC (NUTS) fit returned by fit_multirates().
 
-.multirates_default_diag_params = c("lambda_n","s_epi","omega_n_wt","omega_p_wt","tmrca","kappa","sigma_count")
+# .multirates_default_diag_params = c("lambda_n","s_epi","omega_n_wt","omega_p_wt","tmrca","kappa","sigma_count")
+.multirates_default_diag_params = c("lambda_n","s_epi","omega_n_wt","omega_p_wt","tmrca",
+                                    "kappa_facs","alpha_dir","kappa_clade","sigma_count")
 
 #' @keywords internal
 .multirates_sampled_param_names = function(){

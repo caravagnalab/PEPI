@@ -60,8 +60,15 @@
 #' @param alpha_lambda,beta_lambda Gamma prior hyperparameters for lambda_n.
 #' @param alpha_n_wt,beta_n_wt,alpha_p_wt,beta_p_wt Gamma prior hyperparameters
 #'   for the wt switch rates omega_n_wt/omega_p_wt.
-#' @param min_kappa,max_kappa Uniform prior bounds for kappa.
+#' @param min_kappa,max_kappa Default uniform prior bounds of the three
+#'   concentration parameters below, when they are not given.
 #' @param min_sigma_count,max_sigma_count Uniform prior bounds for sigma_count.
+#' @param min_kappa_facs,max_kappa_facs Uniform prior bounds for kappa_facs, the
+#'   concentration of the beta FACS split in "-" and "+" cells.
+#' @param min_alpha_dir,max_alpha_dir Uniform prior bounds for alpha_dir, the
+#'   concentration of the Dirichlet CCF vectors of the "-" and "+" samples.
+#' @param min_kappa_clade,max_kappa_clade Uniform prior bounds for kappa_clade,
+#'   the concentration of the beta clade CCFs.
 #' @param include_poisson Default (0/1) of the Poisson terms on the driver
 #'   mutations, used by the per-type switches below when they are not given.
 #' @param include_poisson_driver,include_poisson_driver_n,include_poisson_driver_p
@@ -97,7 +104,10 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
                           include_poisson = 1L,
     include_poisson_driver = include_poisson, include_poisson_driver_n = include_poisson,
     include_poisson_driver_p = include_poisson, include_poisson_dc = 1L,
-    include_trunk = 1L){
+    include_trunk = 1L,
+    min_kappa_facs = min_kappa, max_kappa_facs = max_kappa,
+    min_alpha_dir = min_kappa, max_alpha_dir = max_kappa,
+    min_kappa_clade = min_kappa, max_kappa_clade = max_kappa){
 
   cmdstanr::set_cmdstan_path(cmdstan_path)
 
@@ -117,7 +127,10 @@ fit_multirates = function(x, cmdstan_path = cmdstanr::cmdstan_path(),
             include_poisson_driver_n = include_poisson_driver_n,
             include_poisson_driver_p = include_poisson_driver_p,
             include_poisson_dc = include_poisson_dc,
-            include_trunk = include_trunk)
+            include_trunk = include_trunk,
+            min_kappa_facs = min_kappa_facs, max_kappa_facs = max_kappa_facs,
+            min_alpha_dir = min_alpha_dir, max_alpha_dir = max_alpha_dir,
+            min_kappa_clade = min_kappa_clade, max_kappa_clade = max_kappa_clade)
 
   # compile into a user cache directory, never next to the .stan file: an
   # executable shipped in the package (or built for another platform) would
