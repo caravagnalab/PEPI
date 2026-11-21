@@ -12,7 +12,7 @@ library(cmdstanr)
 #> A newer version of CmdStan is available. See ?install_cmdstan() to install it.
 #> To disable this check set option or environment variable cmdstanr_no_ver_check=TRUE.
 library(bayesplot)
-#> This is bayesplot version 1.16.0
+#> This is bayesplot version 1.17.0
 #> - Online documentation and vignettes at mc-stan.org/bayesplot
 #> - bayesplot theme set to bayesplot::theme_default()
 #>    * Does _not_ affect other ggplot2 plots
@@ -65,10 +65,13 @@ x = fit_multirates(
   beta_n_wt = 1e4,
   alpha_p_wt = 0.2,
   beta_p_wt = 10,
-  min_kappa = 3000,
-  max_kappa = 5000,
-  min_sigma_count = 0.05,
-  max_sigma_count = 0.15,
+  # OLD: min_kappa = 3000, max_kappa = 5000, min_sigma_count = 0.05, max_sigma_count = 0.15
+  # beta split of ~3000 sorted cells (binomial sd ~0.009, kappa ~3000); the
+  # counts are simulated with lognormal noise of sd 0.2
+  min_kappa = 2000,
+  max_kappa = 4000,
+  min_sigma_count = 0.1,
+  max_sigma_count = 0.3,
   include_poisson = 1,
   include_trunk = 0
 )

@@ -260,10 +260,13 @@ x = fit_multirates(
   beta_n_wt = 1e4,
   alpha_p_wt = 0.2,
   beta_p_wt = 10,
-  min_kappa = 3000,
-  max_kappa = 5000,
-  min_sigma_count = 0.05,
-  max_sigma_count = 0.15,
+  # OLD: min_kappa = 3000, max_kappa = 5000, min_sigma_count = 0.05, max_sigma_count = 0.15
+  # beta split of ~3000 sorted cells (binomial sd ~0.009, kappa ~3000); the
+  # counts are simulated with lognormal noise of sd 0.2
+  min_kappa = 2000,
+  max_kappa = 4000,
+  min_sigma_count = 0.1,
+  max_sigma_count = 0.3,
   include_poisson = 1,
   include_trunk = 0
 )
@@ -279,14 +282,14 @@ x$inference$multirates$summary(variables = names(truth)) %>%
 #> # A tibble: 8 × 9
 #>   variable          truth    mean  median     sd       q5    q95  rhat ess_bulk
 #>   <chr>             <dbl>   <dbl>   <dbl>  <dbl>    <dbl>  <dbl> <dbl>    <dbl>
-#> 1 lambda_n          1      0.941   0.937  0.132   0.730   1.16    1.00    6947.
-#> 2 s_epi             0.5    0.458   0.447  0.109   0.300   0.652   1.00    7205.
-#> 3 s_driver[1]       0.35   0.406   0.398  0.151   0.172   0.666   1.00    9219.
-#> 4 omega_p_wt        0.008  0.0147  0.0122 0.0112  0.00161 0.0366  1.00    6572.
-#> 5 tmrca             0     -0.551  -0.334  1.93   -3.96    2.17    1.00    7290.
-#> 6 t_driver[1]       4      3.55    3.72   1.43    1.00    5.53    1.00    7487.
-#> 7 omega_p_driver[1] 0.04   0.0652  0.0498 0.0603  0.00839 0.174   1.00    9328.
-#> 8 omega_n_driver[1] 0.3    0.260   0.259  0.0650  0.154   0.368   1.00    9879.
+#> 1 lambda_n          1      0.941   0.935  0.176   0.661   1.24    1.00    7208.
+#> 2 s_epi             0.5    0.461   0.445  0.128   0.282   0.695   1.00    6546.
+#> 3 s_driver[1]       0.35   0.387   0.373  0.168   0.137   0.684   1.00   10974.
+#> 4 omega_p_wt        0.008  0.0152  0.0119 0.0126  0.00138 0.0400  1.00    6044.
+#> 5 tmrca             0     -0.790  -0.398  2.70   -5.76    2.83    1.00    7252.
+#> 6 t_driver[1]       4      3.38    3.65   1.95   -0.224   6.01    1.00    7400.
+#> 7 omega_p_driver[1] 0.04   0.0712  0.0520 0.0691  0.00722 0.199   1.00    9797.
+#> 8 omega_n_driver[1] 0.3    0.258   0.256  0.0721  0.142   0.378   1.00    9403.
 ```
 
 ## Prior vs posterior

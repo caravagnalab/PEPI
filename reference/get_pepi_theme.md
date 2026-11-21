@@ -16,7 +16,7 @@ a ggplot theme.
 
 ``` r
 PEPI:::get_pepi_theme()
-#> <theme> List of 144
+#> <theme>List of 144
 #>  $ line                            : <ggplot2::element_line>
 #>   ..@ colour       : chr "black"
 #>   ..@ linewidth    : num 0.455
@@ -45,7 +45,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 0.5
 #>   ..@ angle        : num 0
 #>   ..@ lineheight   : num 0.9
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 0 0 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 0points 0points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : logi FALSE
 #>   ..@ inherit.blank: logi TRUE
 #>  $ title                           : <ggplot2::element_text>
@@ -93,7 +94,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ fill       : NULL
 #>  $ spacing                         : 'simpleUnit' num 5points
 #>   ..- attr(*, "unit")= int 8
-#>  $ margins                         : <ggplot2::margin> num [1:4] 5 5 5 5
+#>  $ margins                         : <ggplot2::margin> 'simpleUnit' num [1:4] 5points 5points 5points 5points
+#>  .. - attr(*, "unit")= int 8
 #>  $ aspect.ratio                    : NULL
 #>  $ axis.title                      : NULL
 #>  $ axis.title.x                    : <ggplot2::element_text>
@@ -108,7 +110,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 1
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 2.5 0 0 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 2.5points 0points 0points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.title.x.top                : <ggplot2::element_text>
@@ -123,7 +126,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 0
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 0 2.5 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 0points 2.5points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.title.x.bottom             : NULL
@@ -139,7 +143,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 1
 #>   ..@ angle        : num 90
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 2.5 0 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 2.5points 0points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.title.y.left               : NULL
@@ -155,7 +160,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 1
 #>   ..@ angle        : num -90
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 0 0 2.5
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 0points 0points 2.5points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.text                       : <ggplot2::element_text>
@@ -185,7 +191,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 1
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 2 0 0 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 2points 0points 0points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.text.x.top                 : <ggplot2::element_text>
@@ -200,7 +207,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : num 0
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 0 2 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 0points 2points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.text.x.bottom              : NULL
@@ -216,7 +224,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : NULL
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 2 0 0
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 2points 0points 0points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.text.y.left                : NULL
@@ -232,7 +241,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : NULL
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 0 0 2
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 0points 0points 2points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.text.theta                 : NULL
@@ -248,7 +258,8 @@ PEPI:::get_pepi_theme()
 #>   ..@ vjust        : NULL
 #>   ..@ angle        : NULL
 #>   ..@ lineheight   : NULL
-#>   ..@ margin       : <ggplot2::margin> num [1:4] 0 2 0 2
+#>   ..@ margin       : <ggplot2::margin> 'simpleUnit' num [1:4] 0points 2points 0points 2points
+#>  .. .. - attr(*, "unit")= int 8
 #>   ..@ debug        : NULL
 #>   ..@ inherit.blank: logi TRUE
 #>  $ axis.ticks                      : <ggplot2::element_line>
@@ -368,6 +379,7 @@ PEPI:::get_pepi_theme()
 #>  $ legend.justification.right      : NULL
 #>  $ legend.justification.inside     : NULL
 #>   [list output truncated]
+#>  - attr(*, "class")= chr "gg"
 #>  @ complete: logi TRUE
 #>  @ validate: logi TRUE
 ```
