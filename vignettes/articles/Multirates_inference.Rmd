@@ -102,13 +102,22 @@ The likelihood follows the measurement process (see
 
 Their uniform priors are set on the scale of the noise in the data. A beta
 (or a Dirichlet component) with mean $p$ and concentration $\kappa$ has
-standard deviation $\sqrt{p(1-p)/(\kappa+1)}$. Here the counts carry
-lognormal noise; the FACS split is drawn from about 3000 sorted cells,
-binomial noise with $\kappa \approx 3000$; the driver CCF is twice the mean VAF of about 40 mutations at depth ~100, with
-standard deviation ~0.015, so `alpha_dir` is about
-$CCF(1-CCF)/sd^2 \approx 1000$. The priors are `kappa_facs` in
-[2000, 4000] and `alpha_dir`, `kappa_clade` in [300, 2000]. Concentrations
-much above a few thousands make the measurement almost deterministic.
+standard deviation $\sqrt{p(1-p)/(\kappa+1)}$, so a plausible range of
+standard deviations gives the range of the concentration,
+$\kappa \approx p(1-p)/sd^2$. Here:
+
+- the counts are simulated with lognormal noise of sd 0.2: `sigma_count`
+  in [0.1, 0.3];
+- the FACS split is drawn from about 3000 sorted cells, binomial noise of
+  sd ~0.009: `kappa_facs` in [2000, 4000];
+- the driver CCF is twice the mean VAF of about 40 mutations at depth ~100
+  (sd ~0.015 from the reads), measured on the ~1000-2000 cells of each
+  sorted sample (sd ~0.01), for a total sd ~0.02: a range of sd 0.012-0.03
+  with $p(1-p) \approx 0.2$ gives `alpha_dir` (and `kappa_clade`) in
+  [200, 1400].
+
+Concentrations above a few thousands make the measurement almost
+deterministic.
 
 ## Inference
 

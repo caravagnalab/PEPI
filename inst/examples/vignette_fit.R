@@ -142,17 +142,19 @@ x = fit_multirates(
   beta_n_wt = 1e4,
   alpha_p_wt = 0.2,
   beta_p_wt = 10,
-  # FACS split: binomial noise of ~3000 sorted cells (kappa ~ 3000); driver
-  # CCF from the mean VAF of ~40 mutations at depth ~100 (sd ~0.015,
-  # alpha ~ CCF (1 - CCF) / sd^2 ~ 1000)
+  # concentration ~ p (1 - p) / sd^2. FACS split: binomial noise of ~3000
+  # sorted cells (sd ~0.009, kappa ~3000). CCFs: reads (sd ~0.015 from the
+  # VAFs of ~40 mutations) plus cells of the sorted sample (sd ~0.01), sd
+  # ~0.02; a range of sd 0.012-0.03 with p (1 - p) ~ 0.2 gives 200-1400
   min_kappa_facs = 2000,
   max_kappa_facs = 4000,
-  min_alpha_dir = 300,
-  max_alpha_dir = 2000,
-  min_kappa_clade = 300,
-  max_kappa_clade = 2000,
-  min_sigma_count = 0.05,
-  max_sigma_count = 0.15,
+  min_alpha_dir = 200,
+  max_alpha_dir = 1400,
+  min_kappa_clade = 200,
+  max_kappa_clade = 1400,
+  # the counts are simulated with lognormal noise of sd 0.2
+  min_sigma_count = 0.1,
+  max_sigma_count = 0.3,
   include_poisson = 1,
   include_trunk = 0
 )
