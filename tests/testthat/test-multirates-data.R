@@ -47,7 +47,8 @@ test_that("build_stan_data_multirates builds the correct time grid", {
   built = build_stan_data_multirates(x, mu = 1e-7, l = 2.7e9, t_min = 0,
             ms_epi = 0, sigma_epi = 0.5, alpha_lambda = 1, beta_lambda = 1,
             alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
-            min_kappa = 10, max_kappa = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
+            min_kappa_facs = 10, max_kappa_facs = 1000, min_alpha_dir = 10, max_alpha_dir = 1000,
+            min_kappa_clade = 10, max_kappa_clade = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
 
   data = built$data
 
@@ -66,7 +67,8 @@ test_that("build_stan_data_multirates produces correctly shaped arrays", {
   built = build_stan_data_multirates(x, mu = 1e-7, l = 2.7e9, t_min = 0,
             ms_epi = 0, sigma_epi = 0.5, alpha_lambda = 1, beta_lambda = 1,
             alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
-            min_kappa = 10, max_kappa = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
+            min_kappa_facs = 10, max_kappa_facs = 1000, min_alpha_dir = 10, max_alpha_dir = 1000,
+            min_kappa_clade = 10, max_kappa_clade = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
 
   data = built$data
 
@@ -107,7 +109,8 @@ test_that("build_stan_data_multirates handles empty optional groups", {
   built = build_stan_data_multirates(x, mu = 1e-7, l = 2.7e9, t_min = 0,
             ms_epi = 0, sigma_epi = 0.5, alpha_lambda = 1, beta_lambda = 1,
             alpha_n_wt = 1, beta_n_wt = 10, alpha_p_wt = 1, beta_p_wt = 10,
-            min_kappa = 10, max_kappa = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
+            min_kappa_facs = 10, max_kappa_facs = 1000, min_alpha_dir = 10, max_alpha_dir = 1000,
+            min_kappa_clade = 10, max_kappa_clade = 1000, min_sigma_count = 0.01, max_sigma_count = 1)
 
   expect_equal(built$data$N_driver, 0L)
   expect_equal(built$data$N_clades_wt, 0L)

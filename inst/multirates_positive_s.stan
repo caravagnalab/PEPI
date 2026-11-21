@@ -104,7 +104,6 @@ vector approx_Z_clade(
 }
 
 
-
 // Upper bound of a clade amplitude. Parent (approx_Z, from t_parent) and clade
 // (approx_Z_clade, from t_clade) share the rates, hence x1 and delta:
 //   Z_clade,+ = W1_clade * exp(x1 (t - t_clade))  <=  Z_parent,+ = W2 * exp(x1 (t - t_parent))
@@ -189,34 +188,6 @@ array[] real clade_ub_dc(real lambda_n, real s_epi, array[] real s_dc,
 
 }
 
-  vector Z(real lambda_n,
-           real s,
-           real omega_n,
-           real omega_p,
-           real t1,
-           real t2,
-           vector Z0) {
-
-    matrix[2,2] A;
-    matrix[2,2] E;
-    vector[2] z;
-
-    real dt = t2 - t1;
-
-    real lambda_p = lambda_n * (1 + s);
-
-    A[1,1] = lambda_n;
-    A[1,2] = omega_n;
-    A[2,1] = omega_p;
-    A[2,2] = lambda_p;
-
-    E = matrix_exp(A * dt);
-
-    z = E * Z0;
-
-    return z;
-    
-  }
 
   
 }
@@ -233,7 +204,6 @@ data{
   int N_dc;
   int N_driver_n;
   int N_driver_p;
-  // int<lower=0,upper = 1> include_poisson;
   // one switch per driver type for the Poisson term on its mutations
   int<lower=0,upper = 1> include_poisson_driver;
   int<lower=0,upper = 1> include_poisson_driver_n;
@@ -289,10 +259,6 @@ data{
   array[N_dc] real <lower=0>  beta_p_dc;
   real <lower=0> mu;
   real <lower=0> l;
-  // real <lower=0> alpha_kappa;
-  // real <lower=0> beta_kappa;
-  // real <lower=0> min_kappa;
-  // real <lower=0> max_kappa;
   // measurement process: FACS split (beta), CCF vectors of the "-" and "+"
   // samples (Dirichlet) and clade CCFs (beta)
   real <lower=0> min_kappa_facs;
@@ -301,8 +267,6 @@ data{
   real <lower=0> max_alpha_dir;
   real <lower=0> min_kappa_clade;
   real <lower=0> max_kappa_clade;
-  // real <lower=0> alpha_sigma_count;
-  // real <lower=0> beta_sigma_count;
    real <lower=0> max_sigma_count;
    real <lower=0> min_sigma_count;
   
@@ -312,132 +276,6 @@ transformed data{
   
   real tmax = times[1];
   
-  /* OLD: per-population sizes and +/- fractions derived from the data, used by
-     the old per-population likelihood only (the measurement process below
-     works on zminus, zplus and the CCFs directly)
-
-  array[N_clades_wt,n_sampling_times,2] real z_clade_wt;
-
-  array[N_dc,n_sampling_times,2] real z_dc_clade;
-  array[N_dc,n_sampling_times,2] real z_dc_driver;
-
-  array[N_driver,n_sampling_times,2] real z_driver;
-  
-  array[N_driver_n,n_sampling_times] real z_driver_n;
-  
-  array[N_driver_p,n_sampling_times] real z_driver_p;
-
-  array[n_sampling_times,2] real z_wt;
-
-  // frazioni
-  array[n_sampling_times] real frac_wt_neg;
-  array[n_sampling_times] real frac_wt_pos;
-
-  array[N_clades_wt, n_sampling_times] real frac_clade_wt_neg;
-  array[N_clades_wt, n_sampling_times] real frac_clade_wt_pos;
-
-  array[N_dc, n_sampling_times] real frac_dc_clade_neg;
-  array[N_dc, n_sampling_times] real frac_dc_clade_pos;
-
-  array[N_dc, n_sampling_times] real frac_dc_driver_neg;
-  array[N_dc, n_sampling_times] real frac_dc_driver_pos;
-
-  array[N_driver, n_sampling_times] real frac_driver_neg;
-  array[N_driver, n_sampling_times] real frac_driver_pos;
-
-
-  for (i in 1:N_clades_wt){
-    for(j in 1:n_sampling_times){
-
-      z_clade_wt[i,j,1] = zminus[j] * ccf_clade_wt[i,j,1];
-      z_clade_wt[i,j,2] = zplus[j]  * ccf_clade_wt[i,j,2];
-
-    }
-  }
-
-  for (i in 1:N_dc){
-    for(j in 1:n_sampling_times){
-
-      z_dc_clade[i,j,1] = zminus[j] * ccf_dc_clade[i,j,1];
-      z_dc_clade[i,j,2] = zplus[j]  * ccf_dc_clade[i,j,2];
-
-      z_dc_driver[i,j,1] = zminus[j] * ccf_dc_driver[i,j,1];
-      z_dc_driver[i,j,2] = zplus[j]  * ccf_dc_driver[i,j,2];
-
-    }
-  }
-
-  for (i in 1:N_driver){
-    for(j in 1:n_sampling_times){
-
-      z_driver[i,j,1] = zminus[j] * ccf_driver[i,j,1];
-      z_driver[i,j,2] = zplus[j]  * ccf_driver[i,j,2];
-
-    }
-  }
-  
-  for (i in 1:N_driver_n){
-    
-    for(j in 1:n_sampling_times){
-      
-      z_driver_n[i,j] = zminus[j] * ccf_driver_n[i,j];
-      
-    }
-    
-  }
-  
-    for (i in 1:N_driver_p){
-    
-    for(j in 1:n_sampling_times){
-      
-      z_driver_p[i,j] = zplus[j] * ccf_driver_p[i,j];
-      
-    }
-    
-  }
-
-  for (j in 1:n_sampling_times){
-
-    z_wt[j,1] = zminus[j] * ccf_wt[j,1];
-    z_wt[j,2] = zplus[j]  * ccf_wt[j,2];
-
-    frac_wt_neg[j] = z_wt[j,1] / (z_wt[j,1] + z_wt[j,2]);
-    frac_wt_pos[j] = z_wt[j,2] / (z_wt[j,1] + z_wt[j,2]);
-
-    for (i in 1:N_clades_wt){
-
-      frac_clade_wt_neg[i,j] =
-        z_clade_wt[i,j,1] / (z_clade_wt[i,j,1] + z_clade_wt[i,j,2] );
-
-      frac_clade_wt_pos[i,j] =
-        z_clade_wt[i,j,2] / (z_clade_wt[i,j,1] + z_clade_wt[i,j,2] );
-    }
-
-    for (i in 1:N_dc){
-
-      frac_dc_clade_neg[i,j] =
-        z_dc_clade[i,j,1] / (z_dc_clade[i,j,1] + z_dc_clade[i,j,2] );
-
-      frac_dc_clade_pos[i,j] =
-        z_dc_clade[i,j,2] / (z_dc_clade[i,j,1] + z_dc_clade[i,j,2] );
-
-      frac_dc_driver_neg[i,j] =
-        z_dc_driver[i,j,1] / (z_dc_driver[i,j,1] + z_dc_driver[i,j,2] );
-
-      frac_dc_driver_pos[i,j] =
-        z_dc_driver[i,j,2] / (z_dc_driver[i,j,1] + z_dc_driver[i,j,2] );
-    }
-
-    for (i in 1:N_driver){
-
-      frac_driver_neg[i,j] =
-        z_driver[i,j,1] / (z_driver[i,j,1] + z_driver[i,j,2]);
-
-      frac_driver_pos[i,j] =
-        z_driver[i,j,2] / (z_driver[i,j,1] + z_driver[i,j,2]);
-    }
-  }
-  */
 
   // =========================================================
   // MEASUREMENT PROCESS
@@ -549,7 +387,6 @@ parameters{
   
   real <lower = t_min, upper=tmax> tmrca;
   array[N_clades_wt] real<lower=tmrca,upper=times[sampling_index[1]]> t_clade_wt;
-  // array[N_clades_wt] real<lower=0> bc_clade_wt;
   // clade <= wt in both samples (see clade_ub)
   array[N_clades_wt] real<lower=0,
     upper=clade_ub_wt(lambda_n, s_epi, omega_n_wt, omega_p_wt,
@@ -574,7 +411,6 @@ parameters{
   array[N_dc] real<lower=0> bc_driver_dc;
   array[N_dc] real <lower = 0,upper=pi()> U_dc;
   array[N_dc] real <lower = 0> W_dc;
-  // array[N_dc] real<lower=0> bc_clade_dc;
 
 
   array[N_dc] real <lower = 0> omega_p_dc;
@@ -586,7 +422,6 @@ parameters{
   array[N_driver] real <lower = 0> omega_p_driver;
   array[N_driver] real <lower = 0> omega_n_driver;
   
-  // real <lower = min_kappa, upper = max_kappa> kappa;
   real <lower = min_kappa_facs, upper = max_kappa_facs> kappa_facs;
   real <lower = min_alpha_dir, upper = max_alpha_dir> alpha_dir;
   real <lower = min_kappa_clade, upper = max_kappa_clade> kappa_clade;
@@ -648,23 +483,14 @@ for (j in 1:N_dc){
   
   for (t in 1:n_times) {
     // WT
-    // if (t == 1) {
       Z_wt_lat[t] = approx_Z(lambda_n, lambda_n*(1+s_epi), omega_n_wt, omega_p_wt,
                                tmrca, times[t], bc_wt, chi_wt);
-    // } else {
-    //   Z_wt_lat[t] = Z(lambda_n, s_epi, omega_n_wt, omega_p_wt, times[t-1], times[t], Z_wt_lat[t-1]);
-    // }
     
     // DRIVER
     for (i in 1:N_driver) {
-      // if (t == 1) {
         Z_driver_lat[i,t] = approx_Z(lambda_n*(1 + s_driver[i]),lambda_n*(1 + s_driver[i])*(1 + s_epi),
                             omega_n_driver[i], omega_p_driver[i], t_driver[i], 
                             times[t], bc_driver[i], chi_driver[i]);
-      // } else {
-      //   Z_driver_lat[i,t] = Z(lambda_n*(1 + s_driver[i]), s_epi, omega_n_driver[i], omega_p_driver[i],
-      //        times[t-1], times[t], Z_driver_lat[i,t-1]);
-      // }
     }
     
     for (i in 1:N_driver_n) {
@@ -697,16 +523,11 @@ for (j in 1:N_dc){
     
     // DC
     for (i in 1:N_dc) {
-       // if (t == 1) {
         Z_driver_dc_lat[i,t] = approx_Z(lambda_n*(1 + s_dc[i]), 
                                 lambda_n*(1 + s_dc[i])*(1+s_epi), 
                                 omega_n_dc[i], omega_p_dc[i],
                                 t_dc[i][1], times[t], bc_driver_dc[i], chi_dc[i]
                                 );
-      // } else {
-      //   Z_driver_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]), s_epi, omega_n_dc[i], omega_p_dc[i],
-      //   times[t-1], times[t], Z_driver_dc_lat[i,t-1]);
-      // }
     }
     
  
@@ -717,89 +538,24 @@ for (j in 1:N_dc){
       for (i in 1:N_dc) {
 
 
-        // Z_clade_dc_lat[i,t] =  approx_Z_clade(lambda_n*(1 + s_dc[i]),
-        //           lambda_n*(1 + s_dc[i])*(1 + s_epi),
-        //           omega_n_dc[i], omega_p_dc[i], t_dc[i][2],
-        //           times[t], bc_clade_dc[i]);
         Z_clade_dc_lat[i,t] =  approx_Z_clade(lambda_n*(1 + s_dc[i]),
                   lambda_n*(1 + s_dc[i])*(1 + s_epi),
                   omega_n_dc[i], omega_p_dc[i], t_dc[i][2],
                   times[sampling_index[t]], bc_clade_dc[i]);
         
-      // if (t == 1) {
-      //   
-      //   Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]),s_epi, 
-      //                           omega_n_dc[i], omega_p_dc[i],
-      //                           t_dc[i][2], times[sampling_index[t]], [0,bc_clade_dc[i]]');
-      // } else {
-      // 
-      //   Z_clade_dc_lat[i,t] = Z(lambda_n*(1 + s_dc[i]), s_epi, omega_n_dc[i], omega_p_dc[i],
-      //   times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_dc_lat[i,t-1]);
-      //   
-      // }
   }
     
        // CLADES WT
     for (i in 1:N_clades_wt) {
       
-      // Z_clade_wt_lat[i,t] =  approx_Z_clade(lambda_n, lambda_n*(1 + s_epi),
-      //                        omega_n_wt, omega_p_wt, t_clade_wt[i],
-      //                        times[t], bc_clade_wt[i]);
       Z_clade_wt_lat[i,t] =  approx_Z_clade(lambda_n, lambda_n*(1 + s_epi),
                              omega_n_wt, omega_p_wt, t_clade_wt[i],
                              times[sampling_index[t]], bc_clade_wt[i]);
                             
-      //  if (t == 1) {
-      //    Z_clade_wt_lat[i,t] =  Z(lambda_n, s_epi, omega_n_wt, omega_p_wt, 
-      //                            t_clade_wt[i], times[sampling_index[t]], [0,bc_clade_wt[i]]');
-      //                            
-      //                            
-      // } else {
-      //   Z_clade_wt_lat[i,t] = Z(lambda_n, s_epi, omega_n_wt, omega_p_wt,
-      //   times[sampling_index[t-1]], times[sampling_index[t]], Z_clade_wt_lat[i,t-1]);
-      // }
     }
       
  }
 
-  /* OLD (-/+ split of each population, used by the old likelihood only)
-  array[n_times] vector[2] frac_wt_lat;
-  array[N_driver, n_times] vector[2] frac_driver_lat;
-  array[N_dc, n_times] vector[2] frac_driver_dc_lat;
-  array[N_clades_wt, n_sampling_times] vector[2] frac_clade_wt_lat;
-  array[N_dc, n_sampling_times] vector[2] frac_clade_dc_lat;
-
-  // Stabilizzazione e calcolo frazioni
-  for (t in 1:n_times) {
-    frac_wt_lat[t] = Z_wt_lat[t] / (sum(Z_wt_lat[t]) + 1e-20);
-    frac_wt_lat[t] = frac_wt_lat[t] * (1 - 2*1e-10) + 1e-10;
-
-    for (i in 1:N_driver) {
-      frac_driver_lat[i,t] = Z_driver_lat[i,t] / (sum(Z_driver_lat[i,t]) + 1e-20);
-      frac_driver_lat[i,t] = frac_driver_lat[i,t] * (1 - 2*1e-10) + 1e-10;
-    }
-
-    for (i in 1:N_dc) {
-      frac_driver_dc_lat[i,t] = Z_driver_dc_lat[i,t] / (sum(Z_driver_dc_lat[i,t]) + 1e-20);
-      frac_driver_dc_lat[i,t] = frac_driver_dc_lat[i,t] * (1 - 2*1e-10) + 1e-10;
-    }
-
-  }
-  
-  for (t in 1:n_sampling_times) {
-
-    for (i in 1:N_dc) {
-      
-      frac_clade_dc_lat[i,t] = Z_clade_dc_lat[i,t] / (sum(Z_clade_dc_lat[i,t]) + 1e-20);
-      frac_clade_dc_lat[i,t] = frac_clade_dc_lat[i,t] * (1 - 2*1e-10) + 1e-10;
-    }
-
-    for (i in 1:N_clades_wt) {
-      frac_clade_wt_lat[i,t] = Z_clade_wt_lat[i,t] / (sum(Z_clade_wt_lat[i,t]) + 1e-20);
-      frac_clade_wt_lat[i,t] = frac_clade_wt_lat[i,t] * (1 - 2*1e-10) + 1e-10;
-    }
-  }
-  */
 
 array[n_intermediate_times] real ztot_lat;
 
@@ -878,7 +634,7 @@ for (t in 1:n_sampling_times) {
 // CCF of the top populations in the "-" and "+" samples (sum to one), "+"
 // fraction of the total, clade CCFs within their parent (wt, or the dc driver)
 // in the "-" and "+" samples, below one by the bound on bc_clade. The beta
-// means are kept inside (0,1) by an affine map, as for the old fractions.
+// means are kept inside (0,1) by the affine map x (1 - 2e-10) + 1e-10.
 
 array[n_sampling_times] vector[N_neg] ccf_neg_lat;
 array[n_sampling_times] vector[N_pos] ccf_pos_lat;
@@ -911,14 +667,11 @@ for (t in 1:n_sampling_times) {
 model{
 
   
-// kappa ~ gamma(alpha_kappa, beta_kappa);
 
-// kappa ~ uniform(min_kappa, max_kappa);
 kappa_facs ~ uniform(min_kappa_facs, max_kappa_facs);
 alpha_dir ~ uniform(min_alpha_dir, max_alpha_dir);
 kappa_clade ~ uniform(min_kappa_clade, max_kappa_clade);
 
-// sigma_count ~ gamma(alpha_sigma_count, beta_sigma_count);
 
 sigma_count ~  uniform(min_sigma_count, max_sigma_count);
 
@@ -952,17 +705,6 @@ for (k in 1:n_intermediate_times){
 
 }
 
-// for (t in 1:n_sampling_times) {
-//
-//   frac_wt_pos[t] ~ beta_proportion(
-//     frac_wt_lat[sampling_index[t]][2], kappa
-//   );
-//
-//     target += normal_lpdf(log(z_wt[t,1] + z_wt[t,2]) |
-//     log(Z_wt_lat[sampling_index[t],1] + Z_wt_lat[sampling_index[t],2] ),
-//     sigma_count );
-//
-// }
 
 // MEASUREMENT PROCESS: total count, FACS split, CCF vectors of the "-" and
 // "+" samples (Dirichlet over the top populations with CCF > 0)
@@ -1000,30 +742,11 @@ if (N_clades_wt > 0) {
    
     m_clade_wt[i] ~ poisson(2*mu*l*lambda_n*2*(t_clade_wt[i] - tmrca));
     
-    // bc_clade_wt[i] ~ exponential(1);
     // exponential(1) truncated above at the bound of the parameter (clade_ub)
     bc_clade_wt[i] ~ exponential(1) T[, clade_ub(lambda_n, lambda_n*(1 + s_epi),
                                        omega_n_wt, omega_p_wt, bc_wt, U_wt, W_wt,
                                        s_epi, t_clade_wt[i] - tmrca)];
 
-// for (t in 1:n_sampling_times) {
-//
-//  if(z_clade_wt[i,t,1] > 0){
-//
-//    frac_clade_wt_pos[i,t] ~ beta_proportion(
-//      frac_clade_wt_lat[i,t][2], kappa
-//      );
-//
-//      target += normal_lpdf(log(z_clade_wt[i,t,1] + z_clade_wt[i,t,2]) |
-//      log(Z_clade_wt_lat[i,t][1] + Z_clade_wt_lat[i,t][2] ), sigma_count );
-//
-//  }else{
-//
-//    target += normal_lpdf(log(z_clade_wt[i,t,2]) | log(Z_clade_wt_lat[i,t][2]), sigma_count );
-//
-//  }
-//
-//     }
 
     // clade CCF within the wt, in the "+" sample and in the "-" sample if observed there
     for (t in 1:n_sampling_times) {
@@ -1052,7 +775,6 @@ if (N_driver > 0) {
     
     t_driver[i] ~ uniform(tmrca, tmax);
     
-    // if(include_poisson == 1){
     if(include_poisson_driver == 1){
 
       m_driver[i] ~ poisson(4 * mu * l * lambda_n * (t_driver[i] - tmrca));
@@ -1065,15 +787,6 @@ if (N_driver > 0) {
     
     
     // the driver enters the measurement process above
-    // for (t in 1:n_sampling_times) {
-    //
-    //     frac_driver_neg[i,t] ~ beta_proportion(frac_driver_lat[i,sampling_index[t]][1], kappa);
-    //
-    //     target += normal_lpdf(log(z_driver[i,t,1] + z_driver[i,t,2] ) |
-    //      log(Z_driver_lat[i,sampling_index[t]][1] + Z_driver_lat[i,sampling_index[t]][2] ), sigma_count );
-    //
-    //
-    // }
   }
   
 }
@@ -1089,19 +802,12 @@ if (N_driver_p > 0) {
     
     bc_driver_p[i] ~ exponential(1);
     
-     // if(include_poisson == 1){
      if(include_poisson_driver_p == 1){
 
-       // target += poisson_lcdf(m_driver_p | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
        target += poisson_lcdf(m_driver_p[i] | 4 * mu * l * lambda_n * (t_driver_p[i] - tmrca));
    }
     
     // driver_p enters the Dirichlet of the "+" sample above
-    // for (t in 1:n_sampling_times) {
-    //
-    //   target += normal_lpdf(log(z_driver_p[i,t]) | log_Z_driver_p_lat[i,sampling_index[t]], sigma_count );
-    //
-    // }
   }
   
 }
@@ -1114,7 +820,6 @@ if (N_driver_n > 0) {
     
     t_driver_n[i] ~ uniform(tmrca, tmax);
     
-    // if(include_poisson == 1){
     if(include_poisson_driver_n == 1){
 
        m_driver_n[i] ~ poisson(4 * mu * l * lambda_n * (t_driver_n[i] - tmrca));
@@ -1124,12 +829,6 @@ if (N_driver_n > 0) {
     bc_driver_n[i] ~ exponential(1);
     
     // driver_n enters the Dirichlet of the "-" sample above
-    // for (t in 1:n_sampling_times) {
-    //
-    //   target += normal_lpdf(log(z_driver_n[i,t]) |
-    //   log_Z_driver_n_lat[i,sampling_index[t]], sigma_count );
-    //
-    // }
   }
   
 }
@@ -1150,13 +849,11 @@ if (N_dc > 0) {
                          1/(lambda_n*(1 + s_dc[i]))) T[0,tmax - t_dc[i][1]]; 
     
     
-    // m_dc[i,1] ~ poisson(2*mu*l*lambda_n*2*(t_dc[i][1] - tmrca));
     if(include_poisson_dc == 1){
       m_dc[i,1] ~ poisson(2*mu*l*lambda_n*2*(t_dc[i][1] - tmrca));
     }
     m_dc[i,2] ~ poisson(2*mu*l*lambda_n*(1 + s_dc[i])*2*(t_dc[i][2] - t_dc[i][1]));
     
-    // bc_clade_dc[i] ~ exponential(1);
     // exponential(1) truncated above at the bound of the parameter (clade_ub)
     bc_clade_dc[i] ~ exponential(1) T[, clade_ub(lambda_n*(1 + s_dc[i]), lambda_n*(1 + s_dc[i])*(1 + s_epi),
                                        omega_n_dc[i], omega_p_dc[i], bc_driver_dc[i], U_dc[i], W_dc[i],
@@ -1166,32 +863,6 @@ if (N_dc > 0) {
     U_dc[i] ~ uniform(0.0, pi());
     W_dc[i] ~ exponential(1.0);
 
-
-//     for (t in 1:n_sampling_times) {
-//
-//       frac_dc_driver_pos[i,t] ~ beta_proportion(
-//         frac_driver_dc_lat[i,sampling_index[t]][2], kappa
-//       );
-//
-//    target += normal_lpdf(log(z_dc_driver[i,t,1] + z_dc_driver[i,t,2] ) |
-//    log(Z_driver_dc_lat[i,sampling_index[t]][1] + Z_driver_dc_lat[i,sampling_index[t]][2]), sigma_count );
-//
-//  if(z_dc_clade[i,t,1] > 0){
-//
-//      frac_dc_clade_pos[i,t] ~ beta_proportion(
-//         frac_clade_dc_lat[i,t][2], kappa
-//       );
-//
-//       target += normal_lpdf(log(z_dc_clade[i,t,1] + z_dc_clade[i,t,2]) |
-//       log(Z_clade_dc_lat[i,t][1] + Z_clade_dc_lat[i,t][2] ), sigma_count );
-//
-//  }else{
-//
-//    target += normal_lpdf(log(z_dc_clade[i,t,2]) | log(Z_clade_dc_lat[i,t][2]), sigma_count );
-//
-//  }
-//
-//     }
 
     // the dc driver enters the measurement process above; clade CCF within the
     // dc driver, in the "+" sample and in the "-" sample if observed there
@@ -1331,7 +1002,7 @@ generated quantities {
     }
   
     // =========================================================
-    // Z POSTERIOR PREDICTIVE (t = 1)
+    // POPULATION COUNTS POSTERIOR PREDICTIVE (sampled below)
     // =========================================================
 
     array[n_sampling_times,2] real z_wt_pred;
@@ -1342,49 +1013,8 @@ generated quantities {
     array[N_dc,n_sampling_times,2] real z_dc_clade_pred;
     array[N_clades_wt,n_sampling_times,2] real z_clade_wt_pred;
 
-/* OLD (independent lognormal count per population)
-for (k in 1:n_sampling_times){
-
-    // z_wt_pred, z_driver_pred and z_dc_driver_pred are sampled below,
-    // from the total count and the "+"/"-" split of each population
-
-for (i in 1:N_driver_n) {
-  
-  
-  z_driver_n_pred[i,k] = exp(normal_rng(log_Z_driver_n_lat[i,sampling_index[k]],sigma_count));
-  
-}
-
-for (i in 1:N_driver_p) {
-  
-  
-  z_driver_p_pred[i,k] = exp(normal_rng(log_Z_driver_p_lat[i,sampling_index[k]],sigma_count));
-  
-}
-
-    for (i in 1:N_dc) {
-
-      z_dc_clade_pred[i,k,1] =
-      exp(normal_rng(log(Z_clade_dc_lat[i,k][1]),sigma_count));
-
-      z_dc_clade_pred[i,k,2] =
-      exp(normal_rng(log(Z_clade_dc_lat[i,k][2]),sigma_count));
-    }
-
-    for (i in 1:N_clades_wt){
-
-      z_clade_wt_pred[i,k,1] =
-      exp(normal_rng(log(Z_clade_wt_lat[i,k][1]),sigma_count));
-
-      z_clade_wt_pred[i,k,2] =
-      exp(normal_rng(log(Z_clade_wt_lat[i,k][2]),sigma_count));
-    }
-    
-  
-}
-*/    
     // ==============================
-    // FRACTIONS POSTERIOR PREDICTIVE
+    // FRACTIONS POSTERIOR PREDICTIVE (sampled below)
     // ==============================
 
     array[n_sampling_times] simplex[2] frac_wt_pred;
@@ -1394,59 +1024,9 @@ for (i in 1:N_driver_p) {
     array[N_clades_wt, n_sampling_times] simplex[2] frac_clade_wt_pred;
 
 
-/* OLD (beta split of each population)
-       for (t in 1:n_sampling_times) {
-
-      // WT
-      {
-        real loc = fmin(1.0 - 1e-9, fmax(1e-9, frac_wt_lat[sampling_index[t]][1]));
-        real p = beta_proportion_rng(loc, kappa);
-
-        frac_wt_pred[t][1] = p;
-        frac_wt_pred[t][2] = 1 - p;
-      }
-
-
-      // DRIVER
-      for (i in 1:N_driver) {
-        real loc = fmin(1.0 - 1e-9, fmax(1e-9, frac_driver_lat[i,sampling_index[t]][1]));
-        real p = beta_proportion_rng(loc, kappa);
-
-        frac_driver_pred[i,t][1] = p;
-        frac_driver_pred[i,t][2] = 1 - p;
-      }
-
-
-      // DC DRIVER + CLADE
-      for (i in 1:N_dc) {
-        real loc1 = fmin(1.0 - 1e-9, fmax(1e-9, frac_driver_dc_lat[i,sampling_index[t]][1]));
-        real p1 = beta_proportion_rng(loc1, kappa);
-
-        frac_dc_driver_pred[i,t][1] = p1;
-        frac_dc_driver_pred[i,t][2] = 1 - p1;
-
-        real loc2 = fmin(1.0 - 1e-9, fmax(1e-9, frac_clade_dc_lat[i,t][1]));
-        real p2 = beta_proportion_rng(loc2, kappa);
-
-        frac_dc_clade_pred[i,t][1] = p2;
-        frac_dc_clade_pred[i,t][2] = 1 - p2;
-      }
-
-
-      // CLADES WT
-      for (i in 1:N_clades_wt) {
-        real loc = fmin(1.0 - 1e-9, fmax(1e-9, frac_clade_wt_lat[i,t][1]));
-        real p = beta_proportion_rng(loc, kappa);
-
-        frac_clade_wt_pred[i,t][1] = p;
-        frac_clade_wt_pred[i,t][2] = 1 - p;
-      }
-    }
-*/
-
     
     // =========================================================
-    // COUNTS POSTERIOR PREDICTIVE
+    // MUTATION COUNTS POSTERIOR PREDICTIVE
     // =========================================================
     
     array[N_driver] int m_driver_pred;
@@ -1549,8 +1129,6 @@ for (i in 1:N_driver_p) {
      
      real Z1_target = 0.01 * zminus[n_sampling_times];
 
-     // omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt);
-
      // Z1 = (omega_n / delta) * W * exp(lambda_p * dt), with W = bc_driver_p[i]
      omega_n_driver_p_pred[i] = Z1_target*delta*exp(-lambda_p*dt) / bc_driver_p[i];
         
@@ -1558,12 +1136,6 @@ for (i in 1:N_driver_p) {
       
       
       
-// ==============================
-// POSTERIOR PREDICTIVE COUNTS AND CCF
-// ==============================
-// As in the likelihood, each population gets a lognormal total count and a
-// beta "+"/"-" split (frac_*_pred above); CCFs are then evaluated on the
-// sampled counts, within the "-" and "+" samples.
 
 array[N_driver, n_sampling_times, 2] real ccf_driver_pred;
 array[N_driver_n, n_sampling_times] real ccf_driver_n_pred;   
@@ -1572,63 +1144,6 @@ array[N_dc, n_sampling_times, 2] real ccf_driver_dc_pred;
 array[n_sampling_times] real frac_pos_pred;
 array[n_sampling_times] real frac_neg_pred;
 
-/* OLD (independent lognormal count and beta split per population)
-for (t in 1:n_sampling_times){
-
-  real n_tot = exp(normal_rng(log(sum(Z_wt_lat[sampling_index[t]])), sigma_count));
-  z_wt_pred[t,1] = n_tot * frac_wt_pred[t][1];
-  z_wt_pred[t,2] = n_tot * frac_wt_pred[t][2];
-
-  real total_neg = z_wt_pred[t,1];
-  real total_pos = z_wt_pred[t,2];
-
-  for (i in 1:N_driver){
-    n_tot = exp(normal_rng(log(sum(Z_driver_lat[i,sampling_index[t]])), sigma_count));
-    z_driver_pred[i,t,1] = n_tot * frac_driver_pred[i,t][1];
-    z_driver_pred[i,t,2] = n_tot * frac_driver_pred[i,t][2];
-    total_neg += z_driver_pred[i,t,1];
-    total_pos += z_driver_pred[i,t,2];
-  }
-
-  for (i in 1:N_dc){
-    n_tot = exp(normal_rng(log(sum(Z_driver_dc_lat[i,sampling_index[t]])), sigma_count));
-    z_dc_driver_pred[i,t,1] = n_tot * frac_dc_driver_pred[i,t][1];
-    z_dc_driver_pred[i,t,2] = n_tot * frac_dc_driver_pred[i,t][2];
-    total_neg += z_dc_driver_pred[i,t,1];
-    total_pos += z_dc_driver_pred[i,t,2];
-  }
-
-  for (i in 1:N_driver_n){
-    total_neg += z_driver_n_pred[i,t];
-  }
-
-  for (i in 1:N_driver_p){
-    total_pos += z_driver_p_pred[i,t];
-  }
-
-  for (i in 1:N_driver){
-    ccf_driver_pred[i,t][1] = z_driver_pred[i,t,1] / total_neg;
-    ccf_driver_pred[i,t][2] = z_driver_pred[i,t,2] / total_pos;
-  }
-
-  for (i in 1:N_driver_n){
-    ccf_driver_n_pred[i,t] = z_driver_n_pred[i,t] / total_neg;
-  }
-
-  for (i in 1:N_driver_p){
-    ccf_driver_p_pred[i,t] = z_driver_p_pred[i,t] / total_pos;
-  }
-
-  for (i in 1:N_dc){
-    ccf_driver_dc_pred[i,t][1] = z_dc_driver_pred[i,t,1] / total_neg;
-    ccf_driver_dc_pred[i,t][2] = z_dc_driver_pred[i,t,2] / total_pos;
-  }
-
-  frac_pos_pred[t] = total_pos / (total_neg + total_pos);
-  frac_neg_pred[t] = total_neg / (total_neg + total_pos);
-
-}
-*/
 
 // As in the likelihood: lognormal total count, beta FACS split, Dirichlet CCF
 // vectors of the top populations in the "-" and "+" samples, beta clade CCFs

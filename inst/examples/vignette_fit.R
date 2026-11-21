@@ -142,8 +142,14 @@ x = fit_multirates(
   beta_n_wt = 1e4,
   alpha_p_wt = 0.2,
   beta_p_wt = 10,
-  min_kappa = 3000,
-  max_kappa = 5000,
+  # FACS split of ~3000 sorted cells; driver CCF from the mean VAF of ~40
+  # mutations at depth ~100 (sd ~0.015, alpha ~ CCF (1 - CCF) / sd^2 ~ 1000)
+  min_kappa_facs = 1000,
+  max_kappa_facs = 10000,
+  min_alpha_dir = 300,
+  max_alpha_dir = 3000,
+  min_kappa_clade = 300,
+  max_kappa_clade = 3000,
   min_sigma_count = 0.05,
   max_sigma_count = 0.15,
   include_poisson = 1,

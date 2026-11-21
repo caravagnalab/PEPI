@@ -17,7 +17,6 @@
     for(b in bases) m[[b]] <<- dims
   }
 
-  # reg(c("lambda_n","s_epi","omega_p_wt","omega_n_wt","bc_wt","U_wt","W_wt","tmrca","kappa","sigma_count",
   reg(c("lambda_n","s_epi","omega_p_wt","omega_n_wt","bc_wt","U_wt","W_wt","tmrca",
         "kappa_facs","alpha_dir","kappa_clade","sigma_count",
         "lambda_n_prior","tmrca_prior","s_epi_prior","omega_n_wt_prior","omega_p_wt_prior","m_trunk_pred"),

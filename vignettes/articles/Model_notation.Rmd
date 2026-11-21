@@ -42,7 +42,8 @@ $$
 Z(t_2) = \exp\!\big(A\,(t_2-t_1)\big)\,Z(t_1)
 $$
 
-This is the Stan model's own `Z()` function.
+The Stan model uses an analytic approximation of this solution, `approx_Z()`
+(and `approx_Z_clade()` for sub-lineages founded within a parent).
 
 ## The groups: wt, drivers, driver-only clades, driver+clade combos
 
@@ -82,41 +83,78 @@ and analogously for $Z^{tot}_+(t)$.
 
 ## The observation model
 
-### Cancer cell fractions (CCF) and mutation-arm fractions
+The likelihood follows the measurement process. At each sampling time the
+total population is counted, sorted by FACS into `-` and `+` cells, and
+the two sorted samples are sequenced; the CCFs of the populations in each
+sample come from the VAFs of their mutations.
 
-For genotypes that occupy both epigenetic states, the CCF of the `-`
-phenotype at a sampling time is the fraction of that genotype's cells
-that are in the `-` state:
+### Total count
 
-$$
-CCF_{g,-}(t)=\frac{Z_{g,-}(t)}{Z_{g,-}(t)+Z_{g,+}(t)}
-$$
-
-This is observed (as data) or predicted (as a posterior draw) with Beta
-noise of concentration $\kappa$:
+The total size $z^{obs}(t) = z_-^{obs}(t) + z_+^{obs}(t)$ (`zminus + zplus`
+in `population_sizes`) is observed with lognormal noise of scale
+$\sigma_{count}$, as are the totals `ztot` at the intermediate times:
 
 $$
-CCF_{g,-}^{obs} \sim \text{Beta}\big(CCF_{g,-}(t)\cdot\kappa,\ (1-CCF_{g,-}(t))\cdot\kappa\big)
+z^{obs}(t) \sim \text{LogNormal}\big(\log(Z^{tot}_-(t)+Z^{tot}_+(t)),\ \sigma_{count}\big)
 $$
 
-This CCF is defined only for genotypes `g` with both `-` and `+` compartments such as `wt` and `driver`;
-genotypes confined to a single epigenetic state, such as `driver_n`, `driver_p` do not have a phenotypic CCF split.
+### FACS split
 
-`kappa` is the same idea as `bayesplot`'s `neff_ratio` - it controls how
-tightly the observed fraction is expected to hug its predicted mean;
-high $\kappa$ means a very peaked, low-noise likelihood (see
-`vignette("Convergence_diagnostics")` for why a very high `kappa` can make
-Stan's sampler harder to initialize).
-
-### Population sizes
-
-Total population sizes for each genotype at sampling times (`zminus`,
-`zplus`) and at any additional intermediate times (`ztot`) are observed
-with lognormal noise of scale $\sigma_{count}$:
+The fraction of `+` cells, $f_+^{obs}(t) = z_+^{obs}/z^{obs}$, is a beta
+around its latent value, with concentration $\kappa_{facs}$ (of the order
+of the number of sorted cells):
 
 $$
-z_g^{obs}(t) \sim \text{LogNormal}\big(\log z_g(t),\ \sigma_{count}\big)
+f_+^{obs}(t) \sim \text{Beta}\big(f_+(t)\,\kappa_{facs},\ (1-f_+(t))\,\kappa_{facs}\big),
+\qquad f_+(t) = \frac{Z^{tot}_+(t)}{Z^{tot}_-(t)+Z^{tot}_+(t)}
 $$
+
+### CCFs in the `-` and `+` samples
+
+Within each sample, the top populations (wt, drivers, `dc` driver legs and
+the private drivers of that compartment: `driver_n` in `-`, `driver_p` in
+`+`) partition the cells, and their CCFs sum to one. The observed CCF
+vector of each sample is a Dirichlet around the latent CCFs, with a single
+concentration $\alpha_{dir}$:
+
+$$
+\big(CCF^{obs}_{g,\pm}(t)\big)_g \sim \text{Dirichlet}\big(\alpha_{dir}\,CCF_{g,\pm}(t)\big),
+\qquad CCF_{g,\pm}(t) = \frac{Z_{g,\pm}(t)}{Z^{tot}_\pm(t)}
+$$
+
+Only populations with observed CCF $> 0$ enter the Dirichlet of a sample
+(a CCF of 0 has no density), and the observed CCFs are renormalised to sum
+to one. As a guide, a CCF estimated with standard deviation $sd$ gives
+$\alpha_{dir} \approx CCF(1-CCF)/sd^2$.
+
+### Clades
+
+A clade (`clade_wt`, or the clade leg of a `dc`) is nested in its parent
+(the wt, or the `dc` driver leg) and is not part of the Dirichlet. Its
+observation is its CCF *within the parent*, $q^{obs} = CCF_{clade}/CCF_{parent}$
+in the same sample, a beta with concentration $\kappa_{clade}$:
+
+$$
+q^{obs}_\pm(t) \sim \text{Beta}\big(q_\pm(t)\,\kappa_{clade},\ (1-q_\pm(t))\,\kappa_{clade}\big),
+\qquad q_\pm(t) = \frac{Z_{clade,\pm}(t)}{Z_{parent,\pm}(t)}
+$$
+
+in the `+` sample, and in the `-` sample when the clade is observed there.
+
+The clade grows with the rates of its parent from a single amplitude
+$W_{1,clade}$ (`bc_clade_wt`, `bc_clade_dc`). With shared rates, parent and
+clade have the same dominant eigenvalue $x_1$, and $Z_{clade,+} \le Z_{parent,+}$
+at every time is
+
+$$
+W_{1,clade} \le W_2\, e^{x_1 (t_{clade} - t_{parent})}
+$$
+
+with $W_2$ the `+` amplitude of the parent and $t_{parent}$ its founding
+time ($t_{mrca}$ for the wt, $t_{dc,1}$ for a `dc`); the `-` inequality
+follows. This bound is the upper bound of the amplitude, whose prior is an
+exponential truncated above at it, so that a clade never exceeds its
+parent and $q_\pm(t) < 1$.
 
 ### Mutation counts
 
@@ -145,7 +183,10 @@ $\lambda_-(1+s_{dc})$ over $\Delta t = t_{dc,2}-t_{dc,1}$.
 | $t_{mrca}$                                                      | $\text{Uniform}(t_{min}, t_{max})$                  | `t_min` (`t_max` is the latest sampling time)                           |
 | $s_{driver_i}, s_{driver^{-}_i}, s_{driver^{+}_i}, s_{dc_i}$ | $\text{LogNormal}(ms,\sigma)$, one prior per entity | `ms_driver`/`sigma_driver` columns (etc.) in the entity's `_muts` table |
 | $\omega_-^{driver_i},\omega_+^{driver_i}$ (and `_dc`)        | $\text{Gamma}(\alpha,\beta)$, one prior per entity  | `alpha_n_driver`/`beta_n_driver` columns (etc.)                         |
-| $\kappa$                                                     | $\text{Uniform}(min_\kappa, max_\kappa)$            | `min_kappa`, `max_kappa`                                                |
+| $\kappa_{facs}$                                              | $\text{Uniform}(min, max)$                          | `min_kappa_facs`, `max_kappa_facs`                                      |
+| $\alpha_{dir}$                                               | $\text{Uniform}(min, max)$                          | `min_alpha_dir`, `max_alpha_dir`                                        |
+| $\kappa_{clade}$                                             | $\text{Uniform}(min, max)$                          | `min_kappa_clade`, `max_kappa_clade`                                    |
+| $W_{1,clade}$ (`bc_clade_wt`, `bc_clade_dc`)                  | $\text{Exponential}(1)$ truncated above at the clade bound | -                                                              |
 | $\sigma_{count}$                                             | $\text{Uniform}(min_{\sigma},max_{\sigma})$         | `min_sigma_count`, `max_sigma_count`                                    |
 
 Global priors are arguments to `fit_multirates()`. Per-entity priors
@@ -171,7 +212,8 @@ notation = data.frame(
     "$s_{driver^{-}_i}$ / $s_{driver^{+}_i}$", "$t_{driver^{-}_i}$ / $t_{driver^{+}_i}$",
     "$s_{dc_i}$", "$t_{dc_i,1}, t_{dc_i,2}$",
     "$t_{clade_i}$ (wt sub-lineage)",
-    "$CCF_{g,-}(t)$ (observed)", "$\\kappa$",
+    "$CCF_{g,\\pm}(t)$ (observed)", "$\\alpha_{dir}$", "$q_{\\pm}(t)$ (clade within parent)", "$\\kappa_{clade}$",
+    "$f_+(t)$ (FACS split)", "$\\kappa_{facs}$",
     "$z_-(t), z_+(t)$ (observed)", "$\\sigma_{count}$",
     "$\\mu$ (mutation rate)", "$\\ell$ (genome length)"
   ),
@@ -183,7 +225,8 @@ notation = data.frame(
     "`s_driver_n` / `s_driver_p`", "`t_driver_n` / `t_driver_p`",
     "`s_dc`", "`delta_t_dc[,1]`, `delta_t_dc[,2]`",
     "`t_clade_wt`",
-    "`ccf` (family `\"ccf\"`)", "`kappa`",
+    "`ccf` (family `\"ccf\"`)", "`alpha_dir`", "`ccf` of the clade", "`kappa_clade`",
+    "`frac_pos_pred`", "`kappa_facs`",
     "`zminus`, `zplus`", "`sigma_count`",
     "`mu`", "`l`"
   ),
@@ -196,7 +239,9 @@ notation = data.frame(
     "`driver_n_muts`/`driver_p_muts$ms_driver_n`/`_p`", "inferred",
     "`dc_muts$ms_dc`, `sigma_dc`", "inferred",
     "inferred",
-    "`driver_ccf`/`clades_wt_ccf`/`dc_ccf`/`wt_ccf$ccf`", "`fit_multirates(min_kappa=, max_kappa=)`",
+    "`driver_ccf`/`dc_ccf`/`wt_ccf$ccf`", "`fit_multirates(min_alpha_dir=, max_alpha_dir=)`",
+    "`clades_wt_ccf`/`dc_ccf` (clade) over the parent CCF", "`fit_multirates(min_kappa_clade=, max_kappa_clade=)`",
+    "`population_sizes$zplus / (zminus + zplus)`", "`fit_multirates(min_kappa_facs=, max_kappa_facs=)`",
     "`population_sizes$zminus`, `zplus`", "`fit_multirates(min_sigma_count=, max_sigma_count=)`",
     "`fit_multirates(mu=)`", "`fit_multirates(l=)`"
   ),

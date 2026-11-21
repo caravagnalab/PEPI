@@ -80,6 +80,13 @@ on a specific subset.
 plot_trace(x, params = c("lambda_n", "s_epi", "s_driver", "t_driver"))
 ```
 
+The noise parameters of the measurement process are sampled like the
+others, and are checked in the same way:
+
+```{r, fig.width=9, fig.height=4}
+plot_trace(x, params = c("sigma_count", "kappa_facs", "alpha_dir"))
+```
+
 Trace plots overlay each chain's path through the parameter space over
 iterations; well-mixed chains look like "fuzzy caterpillars" with no trend
 and substantial overlap between chains.
@@ -113,8 +120,9 @@ divergences, it does not necessarily bias the posterior).
 - **High R-hat / low ESS**: run more iterations (`ndraws`), or more chains
   (`chains`) so R-hat has more information to detect disagreement.
 - **Divergences**: tighten the priors that are letting the sampler explore
-  an implausible, poorly-conditioned region (e.g. narrow `min_kappa`/
-  `max_kappa`, `min_sigma_count`/`max_sigma_count` bounds, or gamma priors
+  an implausible, poorly-conditioned region (e.g. narrow bounds of the
+  noise concentrations `kappa_facs`, `alpha_dir`, `kappa_clade`, or of
+  `sigma_count`, calibrated on the measurement noise, or gamma priors
   on the switch rates `omega_*` closer to the scale you actually expect).
 - **Both persist**: check that the priors are consistent with the data
   (see the prior vs posterior plots of `vignette("Multirates_inference")`),

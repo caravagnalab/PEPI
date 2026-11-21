@@ -25,8 +25,12 @@ fit_multirates(
   beta_n_wt = 10,
   alpha_p_wt = 1,
   beta_p_wt = 10,
-  min_kappa = 10,
-  max_kappa = 1000,
+  min_kappa_facs = 10,
+  max_kappa_facs = 1000,
+  min_alpha_dir = 10,
+  max_alpha_dir = 1000,
+  min_kappa_clade = 10,
+  max_kappa_clade = 1000,
   min_sigma_count = 0.01,
   max_sigma_count = 1,
   include_poisson = 1L,
@@ -34,13 +38,7 @@ fit_multirates(
   include_poisson_driver_n = include_poisson,
   include_poisson_driver_p = include_poisson,
   include_poisson_dc = 1L,
-  include_trunk = 1L,
-  min_kappa_facs = min_kappa,
-  max_kappa_facs = max_kappa,
-  min_alpha_dir = min_kappa,
-  max_alpha_dir = max_kappa,
-  min_kappa_clade = min_kappa,
-  max_kappa_clade = max_kappa
+  include_trunk = 1L
 )
 }
 \arguments{
@@ -76,8 +74,16 @@ default (see \code{.multirates_default_init()}).}
 \item{alpha_n_wt, beta_n_wt, alpha_p_wt, beta_p_wt}{Gamma prior hyperparameters
 for the wt switch rates omega_n_wt/omega_p_wt.}
 
-\item{min_kappa, max_kappa}{Default uniform prior bounds of the three
-concentration parameters below, when they are not given.}
+\item{min_kappa_facs, max_kappa_facs}{Uniform prior bounds for kappa_facs, the
+concentration of the beta FACS split in "-" and "+" cells (of the order of
+the number of sorted cells).}
+
+\item{min_alpha_dir, max_alpha_dir}{Uniform prior bounds for alpha_dir, the
+concentration of the Dirichlet CCF vectors of the "-" and "+" samples
+(about CCF (1 - CCF) / sd(CCF)^2).}
+
+\item{min_kappa_clade, max_kappa_clade}{Uniform prior bounds for kappa_clade,
+the concentration of the beta CCF of a clade within its parent.}
 
 \item{min_sigma_count, max_sigma_count}{Uniform prior bounds for sigma_count.}
 
@@ -91,15 +97,6 @@ driver_n and driver_p populations (for driver_p, an upper bound).}
 mutations of the dc populations; the clade terms are always included.}
 
 \item{include_trunk}{Switch (0/1) of the trunk regularization of tmrca.}
-
-\item{min_kappa_facs, max_kappa_facs}{Uniform prior bounds for kappa_facs, the
-concentration of the beta FACS split in "-" and "+" cells.}
-
-\item{min_alpha_dir, max_alpha_dir}{Uniform prior bounds for alpha_dir, the
-concentration of the Dirichlet CCF vectors of the "-" and "+" samples.}
-
-\item{min_kappa_clade, max_kappa_clade}{Uniform prior bounds for kappa_clade,
-the concentration of the beta clade CCFs.}
 }
 \value{
 PEPI_Multirates object with `inference$multirates`, `stan_data$multirates`
@@ -116,7 +113,8 @@ x = fit_multirates(x, seed = 31, chains = 2, parallel_chains = 2, ndraws = 200,
   init = rep(list(list(omega_p_wt = 3e-3, omega_p_driver = 3e-3)), 2),
   mu = mu$mean, l = 51e06, t_min = -20, ms_epi = -0.8, sigma_epi = 0.9,
   alpha_lambda = 10, beta_lambda = 10, alpha_n_wt = 1, beta_n_wt = 1e4,
-  alpha_p_wt = 0.2, beta_p_wt = 10, min_kappa = 3000, max_kappa = 5000,
+  alpha_p_wt = 0.2, beta_p_wt = 10, min_kappa_facs = 1000, max_kappa_facs = 10000,
+  min_alpha_dir = 300, max_alpha_dir = 3000, min_kappa_clade = 300, max_kappa_clade = 3000,
   min_sigma_count = 0.05, max_sigma_count = 0.15, include_poisson = 1, include_trunk = 0)
 }
 }

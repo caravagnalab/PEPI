@@ -86,6 +86,29 @@ The tables required by `init_multirates()`:
 tables
 ```
 
+## Measurement noise
+
+The likelihood follows the measurement process (see
+`vignette("Model_notation")`), with one noise parameter per step:
+
+- the total count at each time is lognormal around the latent size, with
+  scale `sigma_count`;
+- the FACS split in "-" and "+" cells is a beta around the latent "+"
+  fraction, with concentration `kappa_facs`;
+- the CCFs of the populations within each sorted sample sum to one and are
+  a Dirichlet around the latent CCFs, with concentration `alpha_dir`;
+- the CCF of a clade within its parent is a beta, with concentration
+  `kappa_clade` (no clades in this example).
+
+Their uniform priors are set on the scale of the noise in the data. Here
+the counts carry lognormal noise; the FACS fractions come from about 3000
+sorted cells, so `kappa_facs` is of the order of a few thousands; the
+driver CCF is twice the mean VAF of about 40 mutations at depth ~100, with
+standard deviation ~0.015, and a Dirichlet of concentration $\alpha$ has
+standard deviation $\sqrt{CCF(1-CCF)/(\alpha+1)}$, so `alpha_dir` is about
+$CCF(1-CCF)/sd^2 \approx 1000$. The priors are `kappa_facs` in
+[1000, 10000] and `alpha_dir`, `kappa_clade` in [300, 3000].
+
 ## Inference
 
 `fit_multirates()` samples the posterior with Hamiltonian Monte Carlo
@@ -104,6 +127,13 @@ x$inference$multirates$summary(variables = names(truth)) %>%
   dplyr::select(variable, truth, mean, median, sd, q5, q95, rhat, ess_bulk)
 ```
 
+and of the noise parameters:
+
+```{r}
+x$inference$multirates$summary(variables = c("sigma_count", "kappa_facs", "alpha_dir")) %>%
+  dplyr::select(variable, mean, median, sd, q5, q95, rhat, ess_bulk)
+```
+
 ## Prior vs posterior
 
 Prior (transparent) and posterior (solid) distributions; dashed lines mark
@@ -119,10 +149,11 @@ plot_prior_posterior(x, params = names(truth), truth = truth)
 
 `get_predicted_trajectories()` simulates new data from the posterior along a
 time grid. For every draw, the latent "-" and "+" sizes of each population
-are computed from the model; each population then gets a lognormal total
-count and a beta "+"/"-" split, as in the likelihood, and CCFs are evaluated
-on the sampled counts within the "-" and "+" samples. Observed data are
-shown in red.
+are computed from the model, and new observations are sampled as in the
+likelihood: a lognormal total count, a beta FACS split in "-" and "+" cells,
+Dirichlet CCFs of the populations within the "-" and "+" samples, and the CCF
+of each clade as its parent's CCF times a beta share within the parent.
+Population counts are sample size times CCF. Observed data are shown in red.
 
 ```{r}
 pred = get_predicted_trajectories(x)
